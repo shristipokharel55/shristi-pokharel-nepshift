@@ -1,5 +1,10 @@
+import axios from "axios";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+
+
+const navigate = useNavigate();
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -11,10 +16,25 @@ export default function Login() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     console.log(formData);
-    // later we will call backend API here
+
+    try {
+    const res = await axios.post("http://localhost:5000/api/auth/login", {
+      email: formData.emailOrPhone,
+      password: formData.password,
+    });
+
+    alert("Login successful");
+
+    localStorage.setItem("token", res.data.token);
+    localStorage.setItem("role", res.data.role);
+
+    navigate("/home");
+  } catch (err) {
+    alert(err.response?.data?.message || "Invalid credentials");
+  }
   };
 
   return (

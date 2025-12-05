@@ -1,153 +1,168 @@
+// src/pages/auth/RegisterHirer.jsx
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function RegisterHirer() {
-  const [showPassword, setShowPassword] = useState(false);
-
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     phone: "",
-    companyName: "",
     location: "",
+    companyName: "",
     password: "",
     confirmPassword: "",
   });
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  // control password visibility
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const togglePassword = () => setShowPassword(!showPassword);
+  const handleChange = (e) =>
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Hirer Registration Data:", formData);
-    // API will be added later
+    // basic client-side checks
+    if (formData.password !== formData.confirmPassword) {
+      return alert("Passwords do not match");
+    }
+    // TODO: call backend /api/auth/register with role = 'hirer'
+    console.log("Register Hirer", formData);
+    // navigate to verification or login page after successful registration
+    // navigate("/login");
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F4FBFA] px-4">
-      <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg border border-[#CCE7E3]">
-        
+      <div className="w-full max-w-lg bg-white p-8 rounded-2xl shadow-lg border border-[#CCE7E3]">
         <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6">
-          Hirer Registration
+          Create Hirer Account
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-
-          {/* Full Name */}
-          <div>
-            <label className="block text-gray-700 mb-1">Full Name</label>
-            <input
-              type="text"
-              name="fullName"
-              value={formData.fullName}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8ED6CC]"
-              placeholder="Enter full name"
-            />
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="block text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8ED6CC]"
-              placeholder="Enter email"
-            />
-          </div>
-
-          {/* Phone */}
-          <div>
-            <label className="block text-gray-700 mb-1">Phone Number</label>
-            <input
-              type="text"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8ED6CC]"
-              placeholder="98XXXXXXXX"
-            />
-          </div>
-
-          {/* Company Name */}
-          <div>
-            <label className="block text-gray-700 mb-1">Company / Business Name</label>
-            <input
-              type="text"
-              name="companyName"
-              value={formData.companyName}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8ED6CC]"
-              placeholder="Optional (If applicable)"
-            />
-          </div>
-
-          {/* Location Input */}
-          <div>
-            <label className="block text-gray-700 mb-1">Location</label>
-            <input
-              type="text"
-              name="location"
-              value={formData.location}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8ED6CC]"
-              placeholder="e.g., Itahari, Biratnagar, Dharan"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Type your area — location suggestions will be added later.
-            </p>
-          </div>
-
-          {/* Password */}
-          <div>
-            <label className="block text-gray-700 mb-1">Password</label>
-            <div className="relative">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-gray-700 mb-1">Full Name</label>
               <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                value={formData.password}
+                name="fullName"
+                value={formData.fullName}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8ED6CC]"
-                placeholder="Enter password"
+                required
+                className="w-full px-4 py-2 border border-[#CCE7E3] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8ED6CC]"
+                placeholder="e.g. Sita Sharma"
               />
+            </div>
 
-              {/* Toggle Emoji */}
-              <span
-                className="absolute right-3 top-3 text-xl cursor-pointer"
-                onClick={togglePassword}
-              >
-                {showPassword ? "🙈" : "🙉"}
-              </span>
+            <div>
+              <label className="block text-gray-700 mb-1">Email</label>
+              <input
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-2 border border-[#CCE7E3] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8ED6CC]"
+                placeholder="email@example.com"
+              />
+            </div>
+
+            <div>
+              <label className="block text-gray-700 mb-1">Phone</label>
+              <input
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-2 border border-[#CCE7E3] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8ED6CC]"
+                placeholder="+977 98XXXXXXXX"
+              />
+            </div>
+
+            <div>
+              <label className="block text-gray-700 mb-1">Location</label>
+              <input
+                name="location"
+                value={formData.location}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-2 border border-[#CCE7E3] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8ED6CC]"
+                placeholder="City or use map later"
+              />
             </div>
           </div>
 
-          {/* Confirm Password */}
           <div>
-            <label className="block text-gray-700 mb-1">Confirm Password</label>
+            <label className="block text-gray-700 mb-1">Company / Organisation (optional)</label>
             <input
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
+              name="companyName"
+              value={formData.companyName}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8ED6CC]"
-              placeholder="Re-enter password"
+              className="w-full px-4 py-2 border border-[#CCE7E3] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8ED6CC]"
+              placeholder="Company name"
             />
           </div>
 
-          {/* Submit */}
+          {/* Password */}
+          <div className="relative">
+            <label className="block text-gray-700 mb-1">Password</label>
+            <input
+              name="password"
+              type={showPassword ? "text" : "password"}
+              value={formData.password}
+              onChange={handleChange}
+              required
+              minLength={6}
+              className="w-full px-4 py-2 border border-[#CCE7E3] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8ED6CC] pr-12"
+              placeholder="Create a strong password"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((s) => !s)}
+              className="absolute right-2 top-8 text-xl"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? "🙉" : "🙈"}
+            </button>
+          </div>
+
+          {/* Confirm Password */}
+          <div className="relative">
+            <label className="block text-gray-700 mb-1">Confirm Password</label>
+            <input
+              name="confirmPassword"
+              type={showConfirmPassword ? "text" : "password"}
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
+              minLength={6}
+              className="w-full px-4 py-2 border border-[#CCE7E3] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8ED6CC] pr-12"
+              placeholder="Re-enter your password"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword((s) => !s)}
+              className="absolute right-2 top-8 text-xl"
+              aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+            >
+              {showConfirmPassword ? "🙉" : "🙈"}
+            </button>
+          </div>
+
           <button
             type="submit"
-            className="w-full py-2 bg-[#4A9287] text-white rounded-lg hover:bg-[#407C74] transition"
+            className="w-full py-2 bg-[#2B7A78] text-white rounded-lg hover:bg-[#246b67] transition"
           >
             Create Account
           </button>
         </form>
 
+        <p className="text-center text-gray-700 mt-4">
+          Already have an account?{" "}
+          <a href="/login" className="text-[#2B7A78] font-medium hover:underline">
+            Login
+          </a>
+        </p>
       </div>
     </div>
   );

@@ -13,15 +13,29 @@ export default function RegisterHelper() {
     experience: "",
     password: "",
     confirmPassword: "",
+    role: "helper",
   });
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
     console.log("Helper Register Data:", formData);
+
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+
+    try {
+      const res = await axios.post("http://localhost:5000/api/auth/register", formData);
+      alert(res.data.message);
+      navigate("/verify-otp"); // later we will build OTP page
+    } catch (err) {
+      alert(err.response?.data?.message || "Something went wrong");
+    }
   };
 
   return (
