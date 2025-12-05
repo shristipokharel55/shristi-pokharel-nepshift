@@ -1,5 +1,9 @@
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import User from "../models/user.js";
 import otpGenerator from "../utils/otpGenerator.js";
+
+const SALT_ROUNDS = 10;
 
 export const registerUser = async (req, res) => {
   try {
@@ -7,6 +11,8 @@ export const registerUser = async (req, res) => {
 
     const exists = await User.findOne({ email });
     if (exists) return res.status(400).json({ message: "User already exists" });
+
+    const hashed = await bcrypt.hash(password, SALT_ROUNDS);
 
     const otp = otpGenerator();
     const otpExpires = Date.now() + 5 * 60 * 1000;
@@ -17,13 +23,16 @@ export const registerUser = async (req, res) => {
       phone,
       location,
       role,
-      password,
+      password: hashed,
       otp,
       otpExpires,
+      verified:false
     });
 
+    // In dev, return OTP for testing. In prod send via email/SMS.
     return res.json({
-      message: "User registered successfully. Verify OTP to activate account.",
+      message: "Registered. Verify OTP to activate account.",
+      otp: process.env.NODE_ENV === "development" ? otp : undefined
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -39,33 +48,22 @@ export const loginUser = async (req, res) => {
       email === process.env.ADMIN_EMAIL &&
       password === process.env.ADMIN_PASSWORD
     ) {
-      return res.json({
-        message: "Admin login successful",
-        role: "admin",
-        token,
-      });
+      return res.json({ message: "Admin login successful", role: "admin", token: adminToken });
     }
 
     const user = await User.findOne({ email });
     if (!user || user.password !== password)
       return res.status(400).json({ message: "Invalid credentials" });
 
-    // Generate JWT for user
-    const token = jwt.sign(
-      {
-        id: user._id,
-        role: user.role,
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    if (!user.verified) return res.status(403).json({ message: "Please verify your account via OTP" });
 
-    res.json({
-      message: "Login successful",
-      token,
-      role: user.role,
-      user,
-    });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+
+    // Generate JWT for user
+    const token = jwt.sign({ id: user._id, role: user.role, email: user.email }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
+
+    res.json({ message: "Login successful", token, user: { id: user._id, fullName: user.fullName, role: user.role, email: user.email } });
 
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -79,10 +77,10 @@ export const verifyOTP = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: "User not found" });
+    if (user.verified) return res.status(400).json({ message: "Already verified" });
 
-    if (user.otp !== otp || user.otpExpires < Date.now()) {
-      return res.status(400).json({ message: "Invalid or expired OTP" });
-    }
+    if (user.otp !== otp) return res.status(400).json({ message: "Invalid OTP" });
+    if (Date.now() > user.otpExpires) return res.status(400).json({ message: "OTP expired" });
 
     user.isVerified = true;
     user.otp = null;
