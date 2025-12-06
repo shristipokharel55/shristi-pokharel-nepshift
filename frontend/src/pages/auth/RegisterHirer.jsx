@@ -1,4 +1,5 @@
 // src/pages/auth/RegisterHirer.jsx
+import axios from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -27,10 +28,16 @@ export default function RegisterHirer() {
     if (formData.password !== formData.confirmPassword) {
       return alert("Passwords do not match");
     }
-    // TODO: call backend /api/auth/register with role = 'hirer'
-    console.log("Register Hirer", formData);
-    // navigate to verification or login page after successful registration
-    // navigate("/login");
+    (async () => {
+      try {
+        const payload = { ...formData, role: 'hirer', location: formData.location };
+        const res = await axios.post('http://localhost:5000/api/auth/register', payload);
+        alert(res.data.message);
+        navigate('/login');
+      } catch (err) {
+        alert(err.response?.data?.message || 'Something went wrong');
+      }
+    })();
   };
 
   return (

@@ -1,6 +1,9 @@
+import axios from "axios";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function RegisterHelper() {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -30,9 +33,11 @@ export default function RegisterHelper() {
     }
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/register", formData);
+      // ensure location key is lowercase
+      const payload = { ...formData, location: formData.location };
+      const res = await axios.post("http://localhost:5000/api/auth/register", payload);
       alert(res.data.message);
-      navigate("/verify-otp"); // later we will build OTP page
+      navigate("/login");
     } catch (err) {
       alert(err.response?.data?.message || "Something went wrong");
     }

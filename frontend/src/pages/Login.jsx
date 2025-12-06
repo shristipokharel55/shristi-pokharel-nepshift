@@ -1,12 +1,11 @@
 import axios from "axios";
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
-
-const navigate = useNavigate();
 
 export default function Login() {
+  const navigate = useNavigate();
+  
   const [formData, setFormData] = useState({
     emailOrPhone: "",
     password: "",
@@ -28,8 +27,10 @@ export default function Login() {
 
     alert("Login successful");
 
+    // persist token and role
     localStorage.setItem("token", res.data.token);
-    localStorage.setItem("role", res.data.role);
+    localStorage.setItem("role", res.data.user?.role || res.data.role);
+    localStorage.setItem("user", JSON.stringify(res.data.user || {}));
 
     navigate("/home");
   } catch (err) {
