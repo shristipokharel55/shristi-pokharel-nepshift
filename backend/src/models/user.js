@@ -1,13 +1,17 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema({
   fullName: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   phone: { type: String },
   location: { type: String, required: true },
-  role: { type: String, enum: ['helper','hirer','admin'], default: 'helper' },
+  role: { type: String, enum: ["helper", "hirer", "admin"], default: "helper" },
   password: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  resetOTP: { type: String },
+  resetOTPExpires: { type: Date },
+
+  isVerified: { type: Boolean, default: false },
 });
 
-export default mongoose.model('User', UserSchema);
+export default mongoose.model("User", UserSchema);

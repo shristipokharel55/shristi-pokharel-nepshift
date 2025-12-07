@@ -2,10 +2,9 @@ import axios from "axios";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-
 export default function Login() {
   const navigate = useNavigate();
-  
+
   const [formData, setFormData] = useState({
     emailOrPhone: "",
     password: "",
@@ -20,35 +19,42 @@ export default function Login() {
     console.log(formData);
 
     try {
-    const res = await axios.post("http://localhost:5000/api/auth/login", {
-      email: formData.emailOrPhone,
-      password: formData.password,
-    });
+      const res = await axios.post("http://localhost:5000/api/auth/login", {
+        email: formData.emailOrPhone,
+        password: formData.password,
+      });
 
-    alert("Login successful");
+      alert("Login successful");
 
-    // persist token and role
-    localStorage.setItem("token", res.data.token);
-    localStorage.setItem("role", res.data.user?.role || res.data.role);
-    localStorage.setItem("user", JSON.stringify(res.data.user || {}));
+      // persist token and role
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("role", res.data.user?.role || res.data.role);
+      localStorage.setItem("user", JSON.stringify(res.data.user || {}));
 
-    navigate("/home");
-  } catch (err) {
-    alert(err.response?.data?.message || "Invalid credentials");
-  }
+      const role = res.data.user?.role;
+
+      // ✅ ROLE BASED REDIRECTS
+      if (res.data.user.role === "helper") {
+        navigate("/helper/dashboard");
+      } else if (res.data.user.role === "hirer") {
+        navigate("/hirer/dashboard");
+      } else {
+        navigate("/home");
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || "Invalid credentials");
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F4FBFA] px-4">
       <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg border border-[#CCE7E3]">
-        
         <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6">
           Login to Nepshift
         </h2>
 
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          
           <div>
             <label className="block text-gray-700 mb-1">Email or Phone</label>
             <input
@@ -74,14 +80,17 @@ export default function Login() {
           </div>
 
           <div className="text-right">
-            <a href="/forgot-password" className="text-sm text-[#4A9287] hover:underline">
+            <a
+              href="/forgot-password"
+              className="text-sm text-[#4A9287] hover:underline"
+            >
               Forgot Password?
             </a>
           </div>
 
           <button
             type="submit"
-            className="w-full py-2 bg-[#4A9287] text-white rounded-lg hover:bg-[#407C74] transition"
+            className="w-full py-2 bg-[#4A9287] text-white rounded-lg cursor-pointer hover:bg-[#407C74] transition"
           >
             Login
           </button>
@@ -106,8 +115,12 @@ export default function Login() {
 
         <p className="text-center text-gray-700 mt-4">
           Don’t have an account?{" "}
-          <Link to="/register" className="text-[#4A9287] font-medium hover:underline">Create Account</Link>
-
+          <Link
+            to="/register"
+            className="text-[#4A9287] font-medium hover:underline"
+          >
+            Create Account
+          </Link>
         </p>
       </div>
     </div>
