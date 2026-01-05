@@ -1,5 +1,7 @@
+import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import { useState } from "react";
+import { toast } from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function Login() {
@@ -10,48 +12,59 @@ export default function Login() {
     password: "",
   });
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
-
     try {
       const res = await axios.post("http://localhost:5000/api/auth/login", {
         email: formData.emailOrPhone,
         password: formData.password,
       });
 
-      alert("Login successful");
+      toast.success("Login successful");
 
       // persist token and role
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.user?.role || res.data.role);
       localStorage.setItem("user", JSON.stringify(res.data.user || {}));
 
+      // role based redirect
       const role = res.data.user?.role;
-
-      // ✅ ROLE BASED REDIRECTS
-      if (res.data.user.role === "helper") {
-        navigate("/helper/dashboard");
-      } else if (res.data.user.role === "hirer") {
-        navigate("/hirer/dashboard");
-      } else {
-        navigate("/home");
-      }
+      if (role === "helper") navigate("/helper/dashboard");
+      else if (role === "hirer") navigate("/hirer/dashboard");
+      else navigate("/home");
     } catch (err) {
-      alert(err.response?.data?.message || "Invalid credentials");
+      toast.error(err.response?.data?.message || "Invalid credentials");
     }
   };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const token = credentialResponse?.credential;
+      if (!token) return toast.error("Google login failed");
+
+      const res = await axios.post("http://localhost:5000/api/auth/google", { token });
+      toast.success("Login successful");
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user || {}));
+      localStorage.setItem("role", res.data.user?.role || "helper");
+
+      const role = res.data.user?.role || "helper";
+      if (role === "helper") navigate("/helper/dashboard");
+      else if (role === "hirer") navigate("/hirer/dashboard");
+      else navigate("/home");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Google login failed");
+    }
+  };
+
+  const handleGoogleError = () => toast.error("Google Sign-In failed");
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F4FBFA] px-4">
       <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg border border-[#CCE7E3]">
-        <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6">
-          Login to Nepshift
-        </h2>
+        <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6">Login to Nepshift</h2>
 
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -80,20 +93,10 @@ export default function Login() {
           </div>
 
           <div className="text-right">
-            <a
-              href="/forgot-password"
-              className="text-sm text-[#4A9287] hover:underline"
-            >
-              Forgot Password?
-            </a>
+            <a href="/forgot-password" className="text-sm text-[#4A9287] hover:underline">Forgot Password?</a>
           </div>
 
-          <button
-            type="submit"
-            className="w-full py-2 bg-[#4A9287] text-white rounded-lg cursor-pointer hover:bg-[#407C74] transition"
-          >
-            Login
-          </button>
+          <button type="submit" className="w-full py-2 bg-[#4A9287] text-white rounded-lg hover:bg-[#407C74] transition">Login</button>
         </form>
 
         {/* OR Divider */}
@@ -103,25 +106,12 @@ export default function Login() {
           <div className="flex-1 h-px bg-gray-300"></div>
         </div>
 
-        {/* Google Login Button */}
-        <button className="w-full py-2 border border-[#CCE7E3] rounded-lg flex items-center justify-center gap-3 hover:bg-gray-50 transition">
-          <img
-            src="https://www.svgrepo.com/show/475656/google-color.svg"
-            alt="Google"
-            className="h-5 w-5"
-          />
-          Continue with Google
-        </button>
+        {/* Google Login */}
+        <div className="flex flex-col gap-3">
+          <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
+        </div>
 
-        <p className="text-center text-gray-700 mt-4">
-          Don’t have an account?{" "}
-          <Link
-            to="/register"
-            className="text-[#4A9287] font-medium hover:underline"
-          >
-            Create Account
-          </Link>
-        </p>
+        <p className="text-center text-gray-700 mt-4">Don’t have an account? <Link to="/register" className="text-[#4A9287] font-medium hover:underline">Create Account</Link></p>
       </div>
     </div>
   );

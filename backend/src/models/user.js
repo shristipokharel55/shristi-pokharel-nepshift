@@ -8,8 +8,10 @@ const UserSchema = new mongoose.Schema({
   role: { type: String, enum: ["helper", "hirer", "admin"], default: "helper" },
   password: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
-  resetOTP: { type: String },
-  resetOTPExpires: { type: Date },
+  resetOtp: { type: String },
+  resetOtpExpires: { type: Date },
+  resetOtpVerifiedAt: { type: Date },
+  googleId: { type: String },
 
   isVerified: { type: Boolean, default: false },
 });

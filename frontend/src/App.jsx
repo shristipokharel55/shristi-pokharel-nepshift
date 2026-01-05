@@ -4,6 +4,7 @@ import {
   BrowserRouter as Router,
   Routes,
 } from "react-router-dom";
+import Home from "./pages/Home/Home";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import RegisterHelper from "./pages/auth/RegisterHelper";
@@ -12,18 +13,19 @@ import RegisterSelect from "./pages/auth/RegisterSelect";
 import ResetPassword from "./pages/auth/ResetPassword";
 import VerifyOTP from "./pages/auth/VerifyOtp";
 import HelperDashboard from "./pages/helper/HelperDashboard";
+import ProtectedRoute from "./middleware/ProtectedRoute";
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" />} />
+        {/* Landing Page is now the HOME route */}
+        <Route path="/" element={<Home />} />
+
         <Route path="/login" element={<Login />} />
 
         {/* Register selection page */}
         <Route path="/register" element={<RegisterSelect />} />
-        {/* <Route path="/register/form" element={<RegisterPage />} />
-        <Route path="/register/:role" element={<RegisterPage />} /> */}
 
         {/* Different Register Pages */}
         <Route path="/register/helper" element={<RegisterHelper />} />
@@ -33,13 +35,29 @@ function App() {
         <Route path="/verify-otp" element={<VerifyOTP />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
-        {/* redirect root / to /login */}
-        <Route path="/" element={<Navigate to="/login" />} />
+        <Route
+          path="/helper/dashboard"
+          element={
+            <ProtectedRoute requiredRole="helper">
+              <HelperDashboard />
+            </ProtectedRoute>
+          }
+        />
 
-        <Route path="/helper/dashboard" element={<HelperDashboard />} />
+        {/* Hirer Dashboard Route - Placeholder since component is missing */}
+        <Route
+          path="/hirer/dashboard"
+          element={
+            <ProtectedRoute requiredRole="hirer">
+              <div className="p-8 text-center">Hirer Dashboard Coming Soon...</div>
+            </ProtectedRoute>
+          }
+        />
+
       </Routes>
     </Router>
   );
 }
 
 export default App;
+

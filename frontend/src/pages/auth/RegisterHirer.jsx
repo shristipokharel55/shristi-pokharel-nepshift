@@ -1,6 +1,7 @@
 // src/pages/auth/RegisterHirer.jsx
 import axios from "axios";
 import { useState } from "react";
+import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
 export default function RegisterHirer() {
@@ -26,17 +27,17 @@ export default function RegisterHirer() {
     e.preventDefault();
     // basic client-side checks
     if (formData.password !== formData.confirmPassword) {
-      return alert("Passwords do not match");
+      return toast.error("Passwords do not match");
     }
     (async () => {
-      try {
-        const payload = { ...formData, role: 'hirer', location: formData.location };
-        const res = await axios.post('http://localhost:5000/api/auth/register', payload);
-        alert(res.data.message);
-        navigate('/login');
-      } catch (err) {
-        alert(err.response?.data?.message || 'Something went wrong');
-      }
+        try {
+          const payload = { ...formData, role: 'hirer', location: formData.location };
+          const res = await axios.post('http://localhost:5000/api/auth/register', payload);
+          toast.success(res.data.message || 'Registered');
+          navigate('/login');
+        } catch (err) {
+          toast.error(err.response?.data?.message || 'Something went wrong');
+        }
     })();
   };
 

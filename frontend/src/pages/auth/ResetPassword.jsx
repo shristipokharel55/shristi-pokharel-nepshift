@@ -1,10 +1,11 @@
-import { useState } from "react";
 import axios from "axios";
+import { useState } from "react";
+import { toast } from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
 
 export default function ResetPassword() {
   const { state } = useLocation();
-  const email = state?.email;
+  const email = state?.email || localStorage.getItem('resetEmail');
 
   const navigate = useNavigate();
 
@@ -15,20 +16,22 @@ export default function ResetPassword() {
     e.preventDefault();
 
     if (password !== confirm) {
-      alert("Passwords do not match");
+      toast.error("Passwords do not match");
       return;
     }
 
     try {
       await axios.post("http://localhost:5000/api/auth/reset-password", {
         email,
-        password
+        newPassword: password
       });
 
-      alert("Password reset successful!");
+      toast.success("Password reset successful!");
+      // cleanup
+      localStorage.removeItem('resetEmail');
       navigate("/login");
     } catch (err) {
-      alert(err.response?.data?.message || "Reset failed");
+      toast.error(err.response?.data?.message || "Reset failed");
     }
   };
 

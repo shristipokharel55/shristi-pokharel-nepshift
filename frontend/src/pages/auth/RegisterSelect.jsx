@@ -1,39 +1,61 @@
 import { useNavigate } from "react-router-dom";
+import { User, Briefcase } from "lucide-react";
 
 export default function RegisterSelect() {
   const navigate = useNavigate();
 
   const handleSelect = (role) => {
-    // navigate to helper register or hirer register
     navigate(`/register/${role}`);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F4FBFA] px-4">
-      <div className="w-full max-w-md bg-white shadow-lg rounded-2xl p-8 border border-[#CCE7E3]">
+    <div className="min-h-screen flex items-center justify-center bg-[#F1F8F7] px-4">
+      <div className="text-center">
         
-        <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">
-          Create Your Account
-        </h2>
+        {/* Heading */}
+        <h1 className="text-3xl font-semibold text-[#0B3B36] mb-3">
+          Join Nepshift
+        </h1>
 
-        <p className="text-gray-600 text-center mb-8">
-          Please select your role to continue
+        <p className="text-gray-600 mb-10">
+          Choose your role to get started.
         </p>
 
-        <div className="flex flex-col gap-4">
-          <button
-            onClick={() => handleSelect("helper")}
-            className="py-3 px-4 rounded-xl border border-[#4A9287] text-[#4A9287] hover:bg-[#E6F4F2] transition font-medium"
-          >
-            I’m a Helper
-          </button>
+        {/* Role Selection Cards */}
+        <div className="flex flex-col md:flex-row items-center justify-center gap-6">
 
-          <button
-            onClick={() => handleSelect("hirer")}
-            className="py-3 px-4 rounded-xl border border-[#4A9287] text-[#4A9287] hover:bg-[#E6F4F2] transition font-medium"
+          {/* Helper Card */}
+          <div
+            onClick={() => handleSelect("helper")}
+            className="w-64 cursor-pointer bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition border border-[#DDEBE9]"
           >
-            I’m a Hirer
-          </button>
+            <div className="flex flex-col items-center">
+              <User className="h-10 w-10 text-[#0B3B36] mb-3" />
+              <h3 className="text-lg font-semibold text-[#0B3B36]">
+                I'm a Helper
+              </h3>
+              <p className="text-gray-600 text-sm mt-2">
+                Find shifts and earn money
+              </p>
+            </div>
+          </div>
+
+          {/* Hirer Card */}
+          <div
+            onClick={() => handleSelect("hirer")}
+            className="w-64 cursor-pointer bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition border border-[#DDEBE9]"
+          >
+            <div className="flex flex-col items-center">
+              <Briefcase className="h-10 w-10 text-[#0B3B36] mb-3" />
+              <h3 className="text-lg font-semibold text-[#0B3B36]">
+                I'm a Hirer
+              </h3>
+              <p className="text-gray-600 text-sm mt-2">
+                Post shifts and hire talent
+              </p>
+            </div>
+          </div>
+
         </div>
 
       </div>

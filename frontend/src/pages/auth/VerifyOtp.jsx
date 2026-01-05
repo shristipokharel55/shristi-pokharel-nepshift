@@ -1,11 +1,12 @@
-import { useState } from "react";
 import axios from "axios";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { toast } from "react-hot-toast";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function OtpVerify() {
   const navigate = useNavigate();
   const location = useLocation();
-  const email = location.state?.email;
+  const email = location.state?.email || localStorage.getItem('resetEmail');
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
 
@@ -32,10 +33,12 @@ export default function OtpVerify() {
         { email, otp: finalOtp }
       );
 
-      alert("OTP Verified Successfully!");
-      navigate("/login");
+      toast.success(res.data.message || "OTP Verified Successfully!");
+      // keep email for reset step
+      localStorage.setItem('resetEmail', email);
+      navigate("/reset-password");
     } catch (err) {
-      alert(err.response?.data?.message || "Invalid OTP");
+      toast.error(err.response?.data?.message || "Invalid OTP");
     }
   };
 

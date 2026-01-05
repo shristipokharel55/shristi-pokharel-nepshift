@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useState } from "react";
+import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
 export default function RegisterHelper() {
@@ -28,7 +29,7 @@ export default function RegisterHelper() {
     console.log("Helper Register Data:", formData);
 
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match");
+      toast.error("Passwords do not match");
       return;
     }
 
@@ -36,10 +37,10 @@ export default function RegisterHelper() {
       // ensure location key is lowercase
       const payload = { ...formData, location: formData.location };
       const res = await axios.post("http://localhost:5000/api/auth/register", payload);
-      alert(res.data.message);
+      toast.success(res.data.message || 'Registered');
       navigate("/login");
     } catch (err) {
-      alert(err.response?.data?.message || "Something went wrong");
+      toast.error(err.response?.data?.message || "Something went wrong");
     }
   };
 

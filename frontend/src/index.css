@@ -1,1 +1,53 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+@theme {
+    --font-sans: 'Outfit', sans-serif;
+    --color-primary: #4A9287;
+    --color-secondary: #F4FBFA;
+    --color-dark: #1F2937;
+    --color-accent: #4A9287;
+}
+
+body {
+    background-color: var(--color-secondary);
+    color: var(--color-dark);
+}
+
+@keyframes blob {
+    0% {
+        transform: translate(0px, 0px) scale(1);
+    }
+
+    33% {
+        transform: translate(30px, -50px) scale(1.1);
+    }
+
+    66% {
+        transform: translate(-20px, 20px) scale(0.9);
+    }
+
+    100% {
+        transform: translate(0px, 0px) scale(1);
+    }
+}
+
+@keyframes bounce-slow {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.animate-blob {
+    animation: blob 7s infinite;
+}
+
+.animate-bounce-slow {
+    animation: bounce-slow 3s infinite;
+}

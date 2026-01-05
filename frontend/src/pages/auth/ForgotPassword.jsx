@@ -1,5 +1,6 @@
-import { useState } from "react";
 import axios from "axios";
+import { useState } from "react";
+import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
 export default function ForgotPassword() {
@@ -11,11 +12,12 @@ export default function ForgotPassword() {
 
     try {
       const res = await axios.post("http://localhost:5000/api/auth/forgot-password", { email });
-
-      alert("OTP sent to your email!");
+      // persist email for OTP flow
+      localStorage.setItem('resetEmail', email);
+      toast.success(res.data.message || 'OTP sent to your email!');
       navigate("/verify-otp");
     } catch (err) {
-      alert(err.response?.data?.message || "Something went wrong");
+      toast.error(err.response?.data?.message || "Something went wrong");
     }
   };
 
