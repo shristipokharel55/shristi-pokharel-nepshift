@@ -1,14 +1,13 @@
 // backend/src/controllers/authController.js
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { OAuth2Client } from "google-auth-library";
 import User from "../models/user.js";
+import { getClearCookieOptions, getCookieOptions } from "../utils/cookieOptions.js";
 import { sendOtpEmail } from "../utils/sendEmail.js"; // implement this (nodemailer wrapper)
 
 const SALT_ROUNDS = 10;
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID; // for google login
 
 if (!JWT_SECRET) {
   console.warn("Warning: JWT_SECRET is not set in environment variables.");
@@ -66,7 +65,7 @@ export const registerUser = async (req, res) => {
 /**
  * Login user - accepts email or phone in `email` field
  * - compares hashed password
- * - returns JWT token
+ * - sets JWT token in httpOnly cookie
  */
 export const loginUser = async (req, res) => {
   try {
@@ -84,9 +83,11 @@ export const loginUser = async (req, res) => {
       expiresIn: JWT_EXPIRES_IN,
     });
 
+    // Set token in httpOnly cookie
+    res.cookie("token", token, getCookieOptions());
+
     return res.json({
       message: "Login successful",
-      token,
       user: { id: user._id, fullName: user.fullName, role: user.role, email: user.email },
     });
   } catch (err) {
@@ -116,12 +117,27 @@ export const forgotPassword = async (req, res) => {
     user.resetOtpVerifiedAt = null;
     await user.save();
 
+    // Check if email credentials are configured
+    if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
+      console.warn("Email credentials not configured. OTP:", otp);
+      // In development, return success but log the OTP for testing
+      if (process.env.NODE_ENV === "development") {
+        console.log(`[DEV MODE] OTP for ${email}: ${otp}`);
+        return res.json({ message: "OTP sent to registered email", devOtp: otp });
+      }
+      return res.status(500).json({ message: "Email service not configured" });
+    }
+
     // send OTP email (implement sendOtpEmail in utils/sendEmail.js)
     try {
       await sendOtpEmail(user.email, otp);
     } catch (sendErr) {
       console.error("Failed to send OTP email:", sendErr);
-      // don't leak implementation detail to client
+      // In development, still return the OTP for testing
+      if (process.env.NODE_ENV === "development") {
+        console.log(`[DEV MODE] OTP for ${email}: ${otp}`);
+        return res.json({ message: "Email failed but OTP generated", devOtp: otp });
+      }
       return res.status(500).json({ message: "Failed to send OTP email" });
     }
 
@@ -191,51 +207,31 @@ export const resetPassword = async (req, res) => {
 };
 
 /**
- * Google Login
- * - expects client to POST { token: <idToken from Google> }
- * - creates a new user if not present
+ * Logout user - clears the httpOnly cookie
  */
-export const googleLogin = async (req, res) => {
+export const logoutUser = async (req, res) => {
   try {
-    const { token } = req.body;
-    if (!token) return res.status(400).json({ message: "Token is required" });
-    if (!GOOGLE_CLIENT_ID) return res.status(500).json({ message: "Google client ID not configured on server" });
-
-    const client = new OAuth2Client(GOOGLE_CLIENT_ID);
-    const ticket = await client.verifyIdToken({ idToken: token, audience: GOOGLE_CLIENT_ID });
-    const payload = ticket.getPayload();
-    const { email, name, sub: googleId } = payload;
-
-    if (!email) return res.status(400).json({ message: "Google account has no email" });
-
-    let user = await User.findOne({ email });
-    if (!user) {
-      // create new user with random password (they can use googlesignin)
-      const randomPassword = Math.random().toString(36).slice(-8);
-      const hashed = await bcrypt.hash(randomPassword, SALT_ROUNDS);
-      user = await User.create({
-        fullName: name || email.split("@")[0],
-        email,
-        password: hashed,
-        role: "helper",
-        googleId,
-      });
-    } else if (!user.googleId) {
-      user.googleId = googleId;
-      await user.save();
-    }
-
-    const jwtToken = jwt.sign({ id: user._id, role: user.role, email: user.email }, JWT_SECRET, {
-      expiresIn: JWT_EXPIRES_IN,
-    });
-
-    return res.json({
-      message: "Google login successful",
-      token: jwtToken,
-      user: { id: user._id, fullName: user.fullName, role: user.role, email: user.email },
-    });
+    res.clearCookie("token", getClearCookieOptions());
+    return res.json({ message: "Logged out successfully" });
   } catch (err) {
-    console.error("googleLogin error:", err);
+    console.error("logoutUser error:", err);
+    res.status(500).json({ message: err.message || "Server error" });
+  }
+};
+
+/**
+ * Get current user - validates session and returns user data
+ */
+export const getCurrentUser = async (req, res) => {
+  try {
+    // req.user is set by the protect middleware
+    const user = await User.findById(req.user._id).select("-password -resetOtp -resetOtpExpires -resetOtpVerifiedAt");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    return res.json({ user });
+  } catch (err) {
+    console.error("getCurrentUser error:", err);
     res.status(500).json({ message: err.message || "Server error" });
   }
 };

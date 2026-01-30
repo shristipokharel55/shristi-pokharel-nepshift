@@ -1,12 +1,29 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @theme {
     --font-sans: 'Outfit', sans-serif;
+    --font-inter: 'Inter', sans-serif;
+
+    /* Original theme colors */
     --color-primary: #4A9287;
     --color-secondary: #F4FBFA;
     --color-dark: #1F2937;
     --color-accent: #4A9287;
+
+    /* Worker Dashboard Theme Colors */
+    --color-worker-primary: #0B4B54;
+    --color-worker-secondary: #D3E4E7;
+    --color-worker-seafoam: #82ACAB;
+    --color-worker-midnight: #032A33;
+    --color-worker-white: #FFFFFF;
+    --color-worker-text: #222222;
+    --color-worker-muted: #888888;
+    --color-worker-hover: #0D5A65;
+    --color-worker-success: #10B981;
+    --color-worker-warning: #F59E0B;
+    --color-worker-danger: #EF4444;
 }
 
 body {
@@ -14,6 +31,48 @@ body {
     color: var(--color-dark);
 }
 
+/* Worker Dashboard Specific Styles */
+.worker-dashboard {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--color-worker-secondary);
+    min-height: 100vh;
+}
+
+/* Custom Scrollbar for Worker Dashboard */
+.worker-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.worker-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.worker-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--color-worker-seafoam);
+    border-radius: 3px;
+}
+
+.worker-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--color-worker-primary);
+}
+
+/* Glassmorphism Card Effect */
+.glass-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(130, 172, 171, 0.2);
+}
+
+/* Gradient backgrounds */
+.gradient-primary {
+    background: linear-gradient(135deg, #0B4B54 0%, #0D5A65 50%, #0F6974 100%);
+}
+
+.gradient-seafoam {
+    background: linear-gradient(135deg, #82ACAB 0%, #9BBFBE 100%);
+}
+
+/* Animations */
 @keyframes blob {
     0% {
         transform: translate(0px, 0px) scale(1);
@@ -44,10 +103,143 @@ body {
     }
 }
 
+@keyframes fade-in-up {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slide-in-left {
+    0% {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes pulse-soft {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
 .animate-blob {
     animation: blob 7s infinite;
 }
 
 .animate-bounce-slow {
     animation: bounce-slow 3s infinite;
+}
+
+.animate-fade-in-up {
+    animation: fade-in-up 0.5s ease-out forwards;
+}
+
+.animate-slide-in-left {
+    animation: slide-in-left 0.4s ease-out forwards;
+}
+
+.animate-pulse-soft {
+    animation: pulse-soft 2s ease-in-out infinite;
+}
+
+/* Staggered animation delays */
+.delay-100 {
+    animation-delay: 100ms;
+}
+
+.delay-200 {
+    animation-delay: 200ms;
+}
+
+.delay-300 {
+    animation-delay: 300ms;
+}
+
+.delay-400 {
+    animation-delay: 400ms;
+}
+
+/* Nav item active indicator */
+.nav-item-active {
+    position: relative;
+}
+
+.nav-item-active::before {
+    content: '';
+    position: absolute;
+    left: -16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 70%;
+    background: linear-gradient(180deg, #82ACAB 0%, #0B4B54 100%);
+    border-radius: 0 4px 4px 0;
+}
+
+/* Card hover effects */
+.card-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px -12px rgba(11, 75, 84, 0.15);
+}
+
+/* Button ripple effect */
+.btn-ripple {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-ripple::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.4s, height 0.4s;
+}
+
+.btn-ripple:active::after {
+    width: 200px;
+    height: 200px;
+}
+
+/* Chart container */
+.chart-container {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(211, 228, 231, 0.3) 100%);
+    border-radius: 16px;
+    padding: 24px;
 }

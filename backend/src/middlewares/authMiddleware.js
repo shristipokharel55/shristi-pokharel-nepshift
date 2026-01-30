@@ -4,7 +4,12 @@ import User from "../models/user.js";
 export const protect = async (req, res, next) => {
   let token;
 
-  if (
+  // First, check for token in httpOnly cookie
+  if (req.cookies?.token) {
+    token = req.cookies.token;
+  }
+  // Fallback: check Authorization header (for backward compatibility)
+  else if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
   ) {
@@ -18,6 +23,11 @@ export const protect = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     req.user = await User.findById(decoded.id).select("-password");
+    
+    if (!req.user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+    
     next();
   } catch (err) {
     return res.status(401).json({ message: "Invalid or expired token" });

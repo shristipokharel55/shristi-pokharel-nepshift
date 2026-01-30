@@ -1,27 +1,26 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../../components/landing/Navbar';
-import Hero from '../../components/landing/Hero';
-import Features from '../../components/landing/Features';
-import HowItWorks from '../../components/landing/HowItWorks';
 import CTASection from '../../components/landing/CTASection';
+import Features from '../../components/landing/Features';
 import Footer from '../../components/landing/Footer';
+import Hero from '../../components/landing/Hero';
+import HowItWorks from '../../components/landing/HowItWorks';
+import Navbar from '../../components/landing/Navbar';
+import { useAuth } from '../../context/AuthContext';
 
 const Home = () => {
     const navigate = useNavigate();
+    const { isAuthenticated, user, loading } = useAuth();
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        const user = JSON.parse(localStorage.getItem('user'));
-
-        if (token && user) {
+        if (!loading && isAuthenticated && user) {
             if (user.role === 'helper') {
-                navigate('/helper/dashboard');
+                navigate('/worker/dashboard', { replace: true });
             } else if (user.role === 'hirer') {
-                navigate('/hirer/dashboard');
+                navigate('/hirer/dashboard', { replace: true });
             }
         }
-    }, [navigate]);
+    }, [isAuthenticated, user, loading, navigate]);
 
     return (
         <div className="min-h-screen bg-white font-sans selection:bg-primary/30 selection:text-primary">

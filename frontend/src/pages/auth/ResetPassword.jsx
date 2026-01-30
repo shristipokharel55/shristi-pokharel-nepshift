@@ -1,7 +1,7 @@
-import axios from "axios";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
+import api from "../../utils/api";
 
 export default function ResetPassword() {
   const { state } = useLocation();
@@ -21,7 +21,7 @@ export default function ResetPassword() {
     }
 
     try {
-      await axios.post("http://localhost:5000/api/auth/reset-password", {
+      await api.post("/auth/reset-password", {
         email,
         newPassword: password
       });

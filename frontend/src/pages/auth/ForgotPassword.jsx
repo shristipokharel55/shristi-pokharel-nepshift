@@ -1,7 +1,7 @@
-import axios from "axios";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import api from "../../utils/api";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -11,10 +11,17 @@ export default function ForgotPassword() {
     e.preventDefault();
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/forgot-password", { email });
+      const res = await api.post("/auth/forgot-password", { email });
       // persist email for OTP flow
       localStorage.setItem('resetEmail', email);
-      toast.success(res.data.message || 'OTP sent to your email!');
+      
+      // In development, if devOtp is returned, show it for testing
+      if (res.data.devOtp) {
+        toast.success(`OTP: ${res.data.devOtp} (Dev Mode)`);
+      } else {
+        toast.success(res.data.message || 'OTP sent to your email!');
+      }
+      
       navigate("/verify-otp");
     } catch (err) {
       toast.error(err.response?.data?.message || "Something went wrong");

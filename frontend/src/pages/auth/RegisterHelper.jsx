@@ -1,7 +1,7 @@
-import axios from "axios";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import api from "../../utils/api";
 
 export default function RegisterHelper() {
   const navigate = useNavigate();
@@ -36,7 +36,7 @@ export default function RegisterHelper() {
     try {
       // ensure location key is lowercase
       const payload = { ...formData, location: formData.location };
-      const res = await axios.post("http://localhost:5000/api/auth/register", payload);
+      const res = await api.post("/auth/register", payload);
       toast.success(res.data.message || 'Registered');
       navigate("/login");
     } catch (err) {

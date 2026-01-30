@@ -1,7 +1,7 @@
-import axios from "axios";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
+import api from "../../utils/api";
 
 export default function OtpVerify() {
   const navigate = useNavigate();
@@ -28,10 +28,7 @@ export default function OtpVerify() {
     const finalOtp = otp.join("");
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/verify-otp",
-        { email, otp: finalOtp }
-      );
+      const res = await api.post("/auth/verify-otp", { email, otp: finalOtp });
 
       toast.success(res.data.message || "OTP Verified Successfully!");
       // keep email for reset step

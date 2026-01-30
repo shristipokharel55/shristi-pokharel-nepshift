@@ -1,8 +1,8 @@
 // src/pages/auth/RegisterHirer.jsx
-import axios from "axios";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import api from "../../utils/api";
 
 export default function RegisterHirer() {
   const navigate = useNavigate();
@@ -32,7 +32,7 @@ export default function RegisterHirer() {
     (async () => {
         try {
           const payload = { ...formData, role: 'hirer', location: formData.location };
-          const res = await axios.post('http://localhost:5000/api/auth/register', payload);
+          const res = await api.post('/auth/register', payload);
           toast.success(res.data.message || 'Registered');
           navigate('/login');
         } catch (err) {

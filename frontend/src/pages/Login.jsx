@@ -1,39 +1,42 @@
 import { GoogleLogin } from "@react-oauth/google";
-import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { login, googleLogin, isAuthenticated, user, loading } = useAuth();
 
   const [formData, setFormData] = useState({
     emailOrPhone: "",
     password: "",
   });
 
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (!loading && isAuthenticated && user) {
+      const role = user.role;
+      if (role === "helper") navigate("/worker/dashboard", { replace: true });
+      else if (role === "hirer") navigate("/hirer/dashboard", { replace: true });
+      else navigate("/", { replace: true });
+    }
+  }, [isAuthenticated, user, loading, navigate]);
+
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", {
-        email: formData.emailOrPhone,
-        password: formData.password,
-      });
+      const data = await login(formData.emailOrPhone, formData.password);
 
       toast.success("Login successful");
 
-      // persist token and role
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("role", res.data.user?.role || res.data.role);
-      localStorage.setItem("user", JSON.stringify(res.data.user || {}));
-
       // role based redirect
-      const role = res.data.user?.role;
-      if (role === "helper") navigate("/helper/dashboard");
-      else if (role === "hirer") navigate("/hirer/dashboard");
-      else navigate("/home");
+      const role = data.user?.role;
+      if (role === "helper") navigate("/worker/dashboard", { replace: true });
+      else if (role === "hirer") navigate("/hirer/dashboard", { replace: true });
+      else navigate("/", { replace: true });
     } catch (err) {
       toast.error(err.response?.data?.message || "Invalid credentials");
     }
@@ -41,25 +44,31 @@ export default function Login() {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      const token = credentialResponse?.credential;
-      if (!token) return toast.error("Google login failed");
+      const credential = credentialResponse?.credential;
+      if (!credential) return toast.error("Google login failed");
 
-      const res = await axios.post("http://localhost:5000/api/auth/google", { token });
+      const data = await googleLogin(credential);
       toast.success("Login successful");
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user || {}));
-      localStorage.setItem("role", res.data.user?.role || "helper");
 
-      const role = res.data.user?.role || "helper";
-      if (role === "helper") navigate("/helper/dashboard");
-      else if (role === "hirer") navigate("/hirer/dashboard");
-      else navigate("/home");
+      const role = data.user?.role || "helper";
+      if (role === "helper") navigate("/worker/dashboard", { replace: true });
+      else if (role === "hirer") navigate("/hirer/dashboard", { replace: true });
+      else navigate("/", { replace: true });
     } catch (err) {
       toast.error(err.response?.data?.message || "Google login failed");
     }
   };
 
   const handleGoogleError = () => toast.error("Google Sign-In failed");
+
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F4FBFA]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4A9287]"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F4FBFA] px-4">
@@ -93,7 +102,7 @@ export default function Login() {
           </div>
 
           <div className="text-right">
-            <a href="/forgot-password" className="text-sm text-[#4A9287] hover:underline">Forgot Password?</a>
+            <Link to="/forgot-password" className="text-sm text-[#4A9287] hover:underline">Forgot Password?</Link>
           </div>
 
           <button type="submit" className="w-full py-2 bg-[#4A9287] text-white rounded-lg hover:bg-[#407C74] transition">Login</button>
