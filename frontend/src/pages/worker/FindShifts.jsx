@@ -1,19 +1,49 @@
 import {
+    AlertCircle,
     ArrowUpRight,
     Briefcase,
     Building,
     Clock,
     DollarSign,
     Filter,
+    Loader2,
     MapPin,
     Search,
+    ShieldAlert,
     Star
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import WorkerLayout from '../../components/worker/WorkerLayout';
+import api from '../../utils/api';
 
-const ShiftCard = ({ shift, delay }) => {
+// Verification Required Banner
+const VerificationRequiredBanner = ({ onVerify }) => (
+    <div className="glass-card rounded-2xl p-5 mb-6 bg-amber-50 border border-amber-200 animate-fade-in-up">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
+                    <ShieldAlert size={24} className="text-amber-600" />
+                </div>
+                <div>
+                    <h4 className="font-semibold text-[#032A33]">Verification Required</h4>
+                    <p className="text-sm text-[#888888]">
+                        You must verify your identity before you can apply for shifts.
+                    </p>
+                </div>
+            </div>
+            <button 
+                onClick={onVerify}
+                className="px-5 py-2.5 rounded-xl bg-amber-500 text-white font-semibold hover:bg-amber-600 transition-colors flex items-center gap-2"
+            >
+                Get Verified
+                <ArrowUpRight size={16} />
+            </button>
+        </div>
+    </div>
+);
+
+const ShiftCard = ({ shift, delay, canApply, onApply, onVerify }) => {
     const navigate = useNavigate();
 
     return (
@@ -73,24 +103,76 @@ const ShiftCard = ({ shift, delay }) => {
                     <span className="font-medium text-[#032A33]">{shift.rating}</span>
                     <span className="text-[#888888] text-sm">({shift.reviews} reviews)</span>
                 </div>
-                <button className="
-          px-5 py-2.5 rounded-xl
-          bg-[#0B4B54] hover:bg-[#0D5A65]
-          text-white font-semibold text-sm
-          transition-all duration-200 flex items-center gap-2
-          shadow-lg shadow-[#0B4B54]/20
-        ">
-                    Apply Now
-                    <ArrowUpRight size={16} />
-                </button>
+                {canApply ? (
+                    <button 
+                        onClick={() => onApply(shift)}
+                        className="
+                            px-5 py-2.5 rounded-xl
+                            bg-[#0B4B54] hover:bg-[#0D5A65]
+                            text-white font-semibold text-sm
+                            transition-all duration-200 flex items-center gap-2
+                            shadow-lg shadow-[#0B4B54]/20
+                        "
+                    >
+                        Apply Now
+                        <ArrowUpRight size={16} />
+                    </button>
+                ) : (
+                    <button 
+                        onClick={onVerify}
+                        className="
+                            px-5 py-2.5 rounded-xl
+                            bg-gray-300 hover:bg-gray-400
+                            text-gray-700 font-semibold text-sm
+                            transition-all duration-200 flex items-center gap-2
+                        "
+                        title="You must be verified to apply"
+                    >
+                        <AlertCircle size={16} />
+                        Verify to Apply
+                    </button>
+                )}
             </div>
         </div>
     );
 };
 
 const FindShifts = () => {
+    const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
     const [activeFilter, setActiveFilter] = useState('All');
+    const [canBid, setCanBid] = useState(false);
+    const [verificationStatus, setVerificationStatus] = useState('not_submitted');
+    const [loading, setLoading] = useState(true);
+
+    // Check if user can bid on shifts
+    useEffect(() => {
+        const checkBidEligibility = async () => {
+            try {
+                setLoading(true);
+                const response = await api.get('/helper/can-bid');
+                setCanBid(response.data?.data?.canBid || false);
+                setVerificationStatus(response.data?.data?.verificationStatus || 'not_submitted');
+            } catch (error) {
+                console.error('Error checking bid eligibility:', error);
+                setCanBid(false);
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        checkBidEligibility();
+    }, []);
+
+    const handleApply = (shift) => {
+        // TODO: Implement actual application logic
+        console.log('Applying to shift:', shift);
+        alert(`Application submitted for ${shift.title} at ${shift.company}!`);
+    };
+
+    const handleVerify = () => {
+        navigate('/worker/verification');
+    };
 
     const filters = ['All', 'Hospitality', 'Warehouse', 'Events', 'Kitchen', 'Cleaning'];
 
@@ -162,6 +244,16 @@ const FindShifts = () => {
         },
     ];
 
+    if (loading) {
+        return (
+            <WorkerLayout>
+                <div className="flex items-center justify-center h-64">
+                    <Loader2 className="w-8 h-8 animate-spin text-[#0B4B54]" />
+                </div>
+            </WorkerLayout>
+        );
+    }
+
     return (
         <WorkerLayout>
             <div className="max-w-5xl mx-auto">
@@ -170,6 +262,28 @@ const FindShifts = () => {
                     <h1 className="text-3xl font-bold text-[#032A33] mb-2">Find Shifts</h1>
                     <p className="text-[#888888]">Discover available shifts near your location</p>
                 </div>
+
+                {/* Verification Required Banner */}
+                {!canBid && verificationStatus !== 'pending' && (
+                    <VerificationRequiredBanner onVerify={handleVerify} />
+                )}
+                
+                {/* Pending Verification Banner */}
+                {verificationStatus === 'pending' && (
+                    <div className="glass-card rounded-2xl p-5 mb-6 bg-blue-50 border border-blue-200 animate-fade-in-up">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+                                <Clock size={24} className="text-blue-600" />
+                            </div>
+                            <div>
+                                <h4 className="font-semibold text-[#032A33]">Verification In Progress</h4>
+                                <p className="text-sm text-[#888888]">
+                                    Your documents are being reviewed. You'll be able to apply for shifts once verified.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Search and Filters */}
                 <div className="glass-card rounded-2xl p-6 mb-8 animate-fade-in-up">
@@ -232,7 +346,14 @@ const FindShifts = () => {
                 {/* Shift Listings */}
                 <div className="space-y-6">
                     {availableShifts.map((shift, index) => (
-                        <ShiftCard key={shift.id} shift={shift} delay={index * 100} />
+                        <ShiftCard 
+                            key={shift.id} 
+                            shift={shift} 
+                            delay={index * 100}
+                            canApply={canBid}
+                            onApply={handleApply}
+                            onVerify={handleVerify}
+                        />
                     ))}
                 </div>
             </div>

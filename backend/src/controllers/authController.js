@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/user.js";
 import { getClearCookieOptions, getCookieOptions } from "../utils/cookieOptions.js";
-import { sendOtpEmail } from "../utils/sendEmail.js"; // implement this (nodemailer wrapper)
+import { sendOtpEmail } from "../utils/sendEmail.js";
 
 const SALT_ROUNDS = 10;
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -252,6 +252,13 @@ export const logoutUser = async (req, res) => {
 export const getCurrentUser = async (req, res) => {
   try {
     // req.user is set by the protect middleware
+
+    // Admin check: if user is admin, req.user._id will be 'admin', which is NOT a valid ObjectId
+    // So we handle it here explicitly
+    if (req.user._id === 'admin') {
+      return res.json({ user: req.user });
+    }
+
     const user = await User.findById(req.user._id).select("-password -resetOtp -resetOtpExpires -resetOtpVerifiedAt");
     if (!user) {
       return res.status(404).json({ message: "User not found" });

@@ -14,7 +14,9 @@ import ResetPassword from "./pages/auth/ResetPassword";
 import VerifyOTP from "./pages/auth/VerifyOtp";
 
 // Worker Dashboard Pages
+import CompleteProfile from "./pages/worker/CompleteProfile";
 import FindShifts from "./pages/worker/FindShifts";
+import HelperVerification from "./pages/worker/HelperVerification";
 import MyShifts from "./pages/worker/MyShifts";
 import Wallet from "./pages/worker/Wallet";
 import WorkerAvailability from "./pages/worker/WorkerAvailability";
@@ -134,6 +136,22 @@ function App() {
           element={
             <ProtectedRoute requiredRole="helper">
               <WorkerSupport />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/worker/complete-profile"
+          element={
+            <ProtectedRoute requiredRole="helper">
+              <CompleteProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/worker/verification"
+          element={
+            <ProtectedRoute requiredRole="helper">
+              <HelperVerification />
             </ProtectedRoute>
           }
         />

@@ -1,18 +1,147 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
+    AlertCircle,
+    ArrowUpRight,
     Briefcase,
+    Calendar,
     CheckCircle,
+    ChevronRight,
     Clock,
     DollarSign,
     MapPin,
-    Calendar,
-    TrendingUp,
-    ArrowUpRight,
+    Shield,
+    ShieldCheck,
     Star,
+    TrendingUp,
+    User,
     Zap
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import WorkerLayout from '../../components/worker/WorkerLayout';
+import api from '../../utils/api';
+
+// Profile Completion Banner Component
+const ProfileCompletionBanner = ({ percentage, onComplete }) => {
+    const isComplete = percentage >= 100;
+    
+    if (isComplete) return null;
+    
+    return (
+        <div 
+            className="glass-card rounded-2xl p-5 mb-6 border-l-4 border-[#0B4B54] animate-fade-in-up"
+            style={{ animationFillMode: 'forwards' }}
+        >
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-[#0B4B54]/10 flex items-center justify-center">
+                        <User size={24} className="text-[#0B4B54]" />
+                    </div>
+                    <div>
+                        <h4 className="font-semibold text-[#032A33]">Complete Your Profile</h4>
+                        <p className="text-sm text-[#888888]">
+                            Your profile is {percentage}% complete. Add more details to get more job opportunities.
+                        </p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-4 w-full sm:w-auto">
+                    <div className="flex-1 sm:w-32">
+                        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div 
+                                className="h-full bg-gradient-to-r from-[#0B4B54] to-[#82ACAB] rounded-full transition-all duration-500"
+                                style={{ width: `${percentage}%` }}
+                            />
+                        </div>
+                    </div>
+                    <button 
+                        onClick={onComplete}
+                        className="flex items-center gap-1 px-4 py-2 rounded-xl bg-[#0B4B54] text-white text-sm font-semibold hover:bg-[#0D5A65] transition-colors"
+                    >
+                        Complete
+                        <ChevronRight size={16} />
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Verification Status Banner Component
+const VerificationBanner = ({ status, onVerify }) => {
+    if (status === 'verified') return null;
+    
+    const bannerConfig = {
+        'not_submitted': {
+            bgColor: 'bg-amber-50',
+            borderColor: 'border-amber-400',
+            iconBg: 'bg-amber-100',
+            iconColor: 'text-amber-600',
+            icon: AlertCircle,
+            title: 'Verify Your Identity',
+            message: 'Submit your citizenship documents to get verified and start bidding on jobs.',
+            buttonText: 'Get Verified',
+            buttonColor: 'bg-amber-500 hover:bg-amber-600'
+        },
+        'pending': {
+            bgColor: 'bg-blue-50',
+            borderColor: 'border-blue-400',
+            iconBg: 'bg-blue-100',
+            iconColor: 'text-blue-600',
+            icon: Shield,
+            title: 'Verification In Progress',
+            message: 'Your documents are being reviewed. This usually takes 1-2 business days.',
+            buttonText: 'View Status',
+            buttonColor: 'bg-blue-500 hover:bg-blue-600'
+        },
+        'rejected': {
+            bgColor: 'bg-red-50',
+            borderColor: 'border-red-400',
+            iconBg: 'bg-red-100',
+            iconColor: 'text-red-600',
+            icon: AlertCircle,
+            title: 'Verification Rejected',
+            message: 'Your verification was rejected. Please resubmit with valid documents.',
+            buttonText: 'Resubmit',
+            buttonColor: 'bg-red-500 hover:bg-red-600'
+        }
+    };
+    
+    const config = bannerConfig[status] || bannerConfig['not_submitted'];
+    const IconComponent = config.icon;
+    
+    return (
+        <div 
+            className={`rounded-2xl p-5 mb-6 border-l-4 ${config.bgColor} ${config.borderColor} animate-fade-in-up`}
+            style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}
+        >
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-xl ${config.iconBg} flex items-center justify-center`}>
+                        <IconComponent size={24} className={config.iconColor} />
+                    </div>
+                    <div>
+                        <h4 className="font-semibold text-[#032A33]">{config.title}</h4>
+                        <p className="text-sm text-[#888888]">{config.message}</p>
+                    </div>
+                </div>
+                <button 
+                    onClick={onVerify}
+                    className={`flex items-center gap-1 px-4 py-2 rounded-xl text-white text-sm font-semibold transition-colors ${config.buttonColor}`}
+                >
+                    {config.buttonText}
+                    <ChevronRight size={16} />
+                </button>
+            </div>
+        </div>
+    );
+};
+
+// Verified Badge Component
+const VerifiedBadge = () => (
+    <span className="px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-700 font-semibold flex items-center gap-2 text-sm">
+        <ShieldCheck size={16} />
+        Verified Helper
+    </span>
+);
 
 // Stat Card Component
 const StatCard = ({ title, value, icon: Icon, trend, trendValue, gradientFrom, gradientTo, delay }) => (
@@ -254,10 +383,49 @@ const WorkerDashboard = () => {
         pending: 5,
         earnings: 45600
     });
+    
+    // Profile and verification states
+    const [profileData, setProfileData] = useState({
+        profileCompletionPercentage: 0,
+        verificationStatus: 'not_submitted',
+        isVerified: false
+    });
+    const [loadingProfile, setLoadingProfile] = useState(true);
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
         return () => clearInterval(timer);
+    }, []);
+    
+    // Fetch profile and verification status
+    useEffect(() => {
+        const fetchProfileStatus = async () => {
+            try {
+                setLoadingProfile(true);
+                const [profileRes, verificationRes] = await Promise.all([
+                    api.get('/helper/profile'),
+                    api.get('/helper/verification-status')
+                ]);
+                
+                setProfileData({
+                    profileCompletionPercentage: profileRes.data?.data?.profileCompletionPercentage || 0,
+                    verificationStatus: verificationRes.data?.data?.verificationStatus || 'not_submitted',
+                    isVerified: verificationRes.data?.data?.isVerified || false
+                });
+            } catch (error) {
+                console.error('Error fetching profile status:', error);
+                // Set defaults if API fails
+                setProfileData({
+                    profileCompletionPercentage: 0,
+                    verificationStatus: 'not_submitted',
+                    isVerified: false
+                });
+            } finally {
+                setLoadingProfile(false);
+            }
+        };
+        
+        fetchProfileStatus();
     }, []);
 
     const getGreeting = () => {
@@ -332,6 +500,20 @@ const WorkerDashboard = () => {
 
     return (
         <WorkerLayout>
+            {/* Profile Completion and Verification Banners */}
+            {!loadingProfile && (
+                <>
+                    <ProfileCompletionBanner 
+                        percentage={profileData.profileCompletionPercentage} 
+                        onComplete={() => navigate('/worker/complete-profile')}
+                    />
+                    <VerificationBanner 
+                        status={profileData.verificationStatus} 
+                        onVerify={() => navigate('/worker/verification')}
+                    />
+                </>
+            )}
+            
             {/* Greeting Section */}
             <div className="mb-8 animate-fade-in-up">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -342,10 +524,14 @@ const WorkerDashboard = () => {
                         <p className="text-[#888888] font-medium">{formatDate()}</p>
                     </div>
                     <div className="flex items-center gap-3">
-                        <span className="px-4 py-2 rounded-xl bg-[#82ACAB]/20 text-[#0B4B54] font-semibold flex items-center gap-2">
-                            <Zap size={16} className="text-yellow-500" />
-                            Pro Helper
-                        </span>
+                        {profileData.isVerified ? (
+                            <VerifiedBadge />
+                        ) : (
+                            <span className="px-4 py-2 rounded-xl bg-[#82ACAB]/20 text-[#0B4B54] font-semibold flex items-center gap-2">
+                                <Zap size={16} className="text-yellow-500" />
+                                Pro Helper
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>

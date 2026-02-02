@@ -7,9 +7,9 @@ import { useState } from 'react';
 
 // Settings Section Component
 const SettingsSection = ({ title, description, children }) => (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+    <div className="bg-white rounded-xl p-6 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-slate-100/60">
         <div className="mb-6">
-            <h3 className="text-lg font-semibold text-slate-800">{title}</h3>
+            <h3 className="text-lg font-semibold text-slate-800 tracking-tight">{title}</h3>
             <p className="text-sm text-slate-500 mt-1">{description}</p>
         </div>
         {children}
@@ -22,14 +22,12 @@ const ToggleSwitch = ({ enabled, onChange, label }) => (
         <span className="text-slate-700 font-medium">{label}</span>
         <button
             onClick={() => onChange(!enabled)}
-            className={`relative w-12 h-6 rounded-full transition-colors ${
-                enabled ? 'bg-[#4A9287]' : 'bg-slate-300'
-            }`}
+            className={`relative w-12 h-6 rounded-full transition-colors ${enabled ? 'bg-[#3B82F6]' : 'bg-slate-300'
+                }`}
         >
             <span
-                className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                    enabled ? 'translate-x-6' : 'translate-x-0'
-                }`}
+                className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${enabled ? 'translate-x-6' : 'translate-x-0'
+                    }`}
             />
         </button>
     </div>
@@ -62,18 +60,18 @@ const AdminSettings = () => {
     };
 
     return (
-        <div className="space-y-8" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <div className="space-y-8 animate-fade-in-up" style={{ fontFamily: "'Inter', sans-serif" }}>
             {/* Page Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl lg:text-3xl font-bold text-slate-800">
+                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
                         Settings
                     </h1>
-                    <p className="text-slate-500 mt-1">
+                    <p className="text-slate-500 mt-1 font-medium">
                         Manage your admin preferences and platform settings
                     </p>
                 </div>
-                <button className="px-5 py-2.5 bg-[#4A9287] text-white rounded-xl font-medium hover:bg-[#3d7a71] transition-colors flex items-center gap-2">
+                <button className="px-5 py-2 bg-[#3B82F6] text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20 flex items-center gap-2">
                     <Save size={18} />
                     Save Changes
                 </button>
@@ -81,8 +79,8 @@ const AdminSettings = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Profile Settings */}
-                <SettingsSection 
-                    title="Profile Settings" 
+                <SettingsSection
+                    title="Profile Settings"
                     description="Update your admin profile information"
                 >
                     <div className="space-y-4">
@@ -95,7 +93,7 @@ const AdminSettings = () => {
                                 name="name"
                                 value={profile.name}
                                 onChange={handleProfileChange}
-                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#4A9287]/20 focus:border-[#4A9287]"
+                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all"
                             />
                         </div>
                         <div>
@@ -107,7 +105,7 @@ const AdminSettings = () => {
                                 name="email"
                                 value={profile.email}
                                 onChange={handleProfileChange}
-                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#4A9287]/20 focus:border-[#4A9287]"
+                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all"
                             />
                         </div>
                         <div>
@@ -119,15 +117,15 @@ const AdminSettings = () => {
                                 name="phone"
                                 value={profile.phone}
                                 onChange={handleProfileChange}
-                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#4A9287]/20 focus:border-[#4A9287]"
+                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all"
                             />
                         </div>
                     </div>
                 </SettingsSection>
 
                 {/* Security Settings */}
-                <SettingsSection 
-                    title="Security Settings" 
+                <SettingsSection
+                    title="Security Settings"
                     description="Manage your account security preferences"
                 >
                     <div className="space-y-4">
@@ -139,7 +137,7 @@ const AdminSettings = () => {
                                 <input
                                     type={showPassword ? 'text' : 'password'}
                                     placeholder="Enter current password"
-                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#4A9287]/20 focus:border-[#4A9287] pr-12"
+                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] pr-12 transition-all"
                                 />
                                 <button
                                     onClick={() => setShowPassword(!showPassword)}
@@ -156,7 +154,7 @@ const AdminSettings = () => {
                             <input
                                 type="password"
                                 placeholder="Enter new password"
-                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#4A9287]/20 focus:border-[#4A9287]"
+                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all"
                             />
                         </div>
                         <div className="pt-2 border-t border-slate-100">
@@ -170,8 +168,8 @@ const AdminSettings = () => {
                 </SettingsSection>
 
                 {/* Notification Settings */}
-                <SettingsSection 
-                    title="Notification Preferences" 
+                <SettingsSection
+                    title="Notification Preferences"
                     description="Control how you receive notifications"
                 >
                     <div className="divide-y divide-slate-100">
@@ -194,8 +192,8 @@ const AdminSettings = () => {
                 </SettingsSection>
 
                 {/* Platform Settings */}
-                <SettingsSection 
-                    title="Platform Settings" 
+                <SettingsSection
+                    title="Platform Settings"
                     description="Configure global platform behavior"
                 >
                     <div className="divide-y divide-slate-100">
@@ -216,7 +214,7 @@ const AdminSettings = () => {
                             <input
                                 type="number"
                                 defaultValue="10"
-                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#4A9287]/20 focus:border-[#4A9287]"
+                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all"
                             />
                         </div>
                     </div>
@@ -224,16 +222,16 @@ const AdminSettings = () => {
             </div>
 
             {/* Danger Zone */}
-            <div className="bg-red-50 rounded-2xl p-6 border border-red-100">
-                <h3 className="text-lg font-semibold text-red-800 mb-2">Danger Zone</h3>
+            <div className="bg-red-50 rounded-xl p-6 border border-red-100">
+                <h3 className="text-lg font-semibold text-red-800 mb-2 tracking-tight">Danger Zone</h3>
                 <p className="text-sm text-red-600 mb-4">
                     These actions are irreversible. Please proceed with caution.
                 </p>
                 <div className="flex flex-wrap gap-3">
-                    <button className="px-5 py-2.5 bg-white text-red-600 border border-red-200 rounded-xl font-medium hover:bg-red-50 transition-colors">
+                    <button className="px-5 py-2 bg-white text-red-600 border border-red-200 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors shadow-sm">
                         Clear All Logs
                     </button>
-                    <button className="px-5 py-2.5 bg-white text-red-600 border border-red-200 rounded-xl font-medium hover:bg-red-50 transition-colors">
+                    <button className="px-5 py-2 bg-white text-red-600 border border-red-200 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors shadow-sm">
                         Reset Platform Stats
                     </button>
                 </div>
