@@ -1,12 +1,9 @@
-import React from 'react';
 import {
-    Calendar,
-    Clock,
     CheckCircle,
-    MinusCircle,
-    Plus,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    MinusCircle,
+    Plus
 } from 'lucide-react';
 import WorkerLayout from '../../components/worker/WorkerLayout';
 
@@ -81,8 +78,8 @@ const WorkerAvailability = () => {
                                                     className={`
                             w-10 h-10 rounded-xl flex items-center justify-center transition-all
                             ${availability[day][slotIndex]
-                                                            ? 'bg-[#0B4B54] text-white hover:bg-[#0D5A65]'
-                                                            : 'bg-[#D3E4E7] text-[#888888] hover:bg-[#82ACAB]/30'
+                                                            ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-md shadow-emerald-500/20'
+                                                            : 'bg-red-50 text-red-400 hover:bg-red-100 border border-red-200'
                                                         }
                           `}
                                                 >
@@ -103,15 +100,15 @@ const WorkerAvailability = () => {
 
                 {/* Legend */}
                 <div className="flex flex-wrap gap-6 p-4 glass-card rounded-xl animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-[#0B4B54] flex items-center justify-center">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center shadow-md shadow-emerald-500/20">
                             <CheckCircle size={16} className="text-white" />
                         </div>
                         <span className="text-[#032A33] font-medium">Available</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-[#D3E4E7] flex items-center justify-center">
-                            <MinusCircle size={16} className="text-[#888888]" />
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-red-50 border border-red-200 flex items-center justify-center">
+                            <MinusCircle size={16} className="text-red-400" />
                         </div>
                         <span className="text-[#032A33] font-medium">Not Available</span>
                     </div>

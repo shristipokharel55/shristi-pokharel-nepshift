@@ -1,19 +1,18 @@
 import {
     Bell,
     Briefcase,
-    Calendar,
     CheckCircle,
     ChevronDown,
     ChevronRight,
     Clock,
-    HelpCircle,
+    CreditCard,
     LayoutDashboard,
     LogOut,
-    MapPin,
     Menu,
+    Plus,
     Settings,
     User,
-    Wallet,
+    Users,
     X,
     XCircle
 } from 'lucide-react';
@@ -21,7 +20,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
-const WorkerLayout = ({ children }) => {
+const HirerLayout = ({ children }) => {
     const location = useLocation();
     const navigate = useNavigate();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -33,14 +32,14 @@ const WorkerLayout = ({ children }) => {
     const notificationRef = useRef(null);
     const { user, logout } = useAuth();
 
-    const firstName = user?.fullName?.split(" ")[0] || "Worker";
+    const firstName = user?.fullName?.split(" ")[0] || "Employer";
 
     // Sample notifications data with types for color coding
     const notifications = [
-        { id: 1, title: 'New shift available', message: 'Kitchen Helper at Hotel Himalaya', time: '5 min ago', unread: true, type: 'info' },
-        { id: 2, title: 'Shift confirmed', message: 'Your shift at Marriott Hotel is confirmed', time: '1 hour ago', unread: true, type: 'success' },
-        { id: 3, title: 'Payment received', message: 'Rs 1,200 added to your wallet', time: '2 hours ago', unread: true, type: 'success' },
-        { id: 4, title: 'Shift reminder', message: 'Your shift starts in 2 hours', time: '1 day ago', unread: false, type: 'warning' },
+        { id: 1, title: 'New applicant', message: 'Ram Sharma applied for Kitchen Helper', time: '5 min ago', unread: true, type: 'info' },
+        { id: 2, title: 'Shift completed', message: 'Kitchen Helper shift completed successfully', time: '1 hour ago', unread: true, type: 'success' },
+        { id: 3, title: 'Payment processed', message: 'Rs 1,200 released to worker', time: '2 hours ago', unread: true, type: 'success' },
+        { id: 4, title: 'Shift starting soon', message: 'Event Staff shift starts in 2 hours', time: '1 day ago', unread: false, type: 'warning' },
     ];
 
     // Get notification icon color based on type
@@ -72,12 +71,11 @@ const WorkerLayout = ({ children }) => {
     }, []);
 
     const navItems = [
-        { name: 'Dashboard', path: '/worker/dashboard', icon: LayoutDashboard },
-        { name: 'Find Shifts', path: '/worker/find-shifts', icon: MapPin },
-        { name: 'My Shifts', path: '/worker/my-shifts', icon: Briefcase },
-        { name: 'Schedule', path: '/worker/schedule', icon: Calendar },
-        { name: 'Wallet', path: '/worker/wallet', icon: Wallet },
-        { name: 'Support', path: '/worker/support', icon: HelpCircle },
+        { name: 'Dashboard', path: '/hirer/dashboard', icon: LayoutDashboard },
+        { name: 'Post a Shift', path: '/hirer/post-shift', icon: Plus, highlighted: true },
+        { name: 'Manage Jobs', path: '/hirer/manage-jobs', icon: Briefcase },
+        { name: 'Applicants', path: '/hirer/applicants', icon: Users },
+        { name: 'Payments', path: '/hirer/payments', icon: CreditCard },
     ];
 
     const handleLogout = async () => {
@@ -88,7 +86,7 @@ const WorkerLayout = ({ children }) => {
     const isActive = (path) => location.pathname === path;
 
     return (
-        <div className="worker-dashboard flex min-h-screen">
+        <div className="hirer-dashboard flex min-h-screen">
             {/* Mobile Menu Overlay */}
             {isMobileMenuOpen && (
                 <div
@@ -100,17 +98,17 @@ const WorkerLayout = ({ children }) => {
             {/* Vertical Sidebar Navigation */}
             <aside
                 className={`
-          fixed lg:sticky top-0 left-0 h-screen w-72 
-          bg-[#D3E4E7]/30 backdrop-blur-sm
-          flex flex-col z-50
-          transform transition-transform duration-300 ease-in-out
-          ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          worker-scrollbar overflow-y-auto
-        `}
+                    fixed lg:sticky top-0 left-0 h-screen w-72 
+                    bg-[#D3E4E7]/30 backdrop-blur-sm
+                    flex flex-col z-50
+                    transform transition-transform duration-300 ease-in-out
+                    ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+                    worker-scrollbar overflow-y-auto
+                `}
             >
                 {/* Logo Section */}
                 <div className="px-6 py-6 flex items-center justify-between">
-                    <Link to="/worker/dashboard" className="flex items-center gap-3 group">
+                    <Link to="/hirer/dashboard" className="flex items-center gap-3 group">
                         <div className="w-11 h-11 gradient-primary rounded-xl flex items-center justify-center shadow-lg shadow-[#0B4B54]/20 group-hover:shadow-[#0B4B54]/30 transition-shadow">
                             <span className="text-white font-bold text-xl">N</span>
                         </div>
@@ -131,29 +129,53 @@ const WorkerLayout = ({ children }) => {
                             const Icon = item.icon;
                             const active = isActive(item.path);
 
+                            if (item.highlighted) {
+                                return (
+                                    <li key={item.path} className="pt-2 pb-3">
+                                        <Link
+                                            to={item.path}
+                                            className="
+                                                flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl
+                                                bg-gradient-to-r from-amber-500 to-orange-500
+                                                text-white font-semibold
+                                                shadow-lg shadow-amber-500/30
+                                                hover:shadow-amber-500/50 hover:scale-[1.02]
+                                                transition-all duration-200
+                                                animate-slide-in-left
+                                            "
+                                            style={{ animationDelay: `${index * 30}ms` }}
+                                            onClick={() => setIsMobileMenuOpen(false)}
+                                        >
+                                            <Icon size={20} />
+                                            <span>{item.name}</span>
+                                        </Link>
+                                    </li>
+                                );
+                            }
+
                             return (
                                 <li key={item.path}>
                                     <Link
                                         to={item.path}
                                         className={`
-                      flex items-center gap-3 px-4 py-3 rounded-xl
-                      transition-all duration-200 group
-                      animate-slide-in-left
-                      ${active
+                                            flex items-center gap-3 px-4 py-3 rounded-xl
+                                            transition-all duration-200 group
+                                            animate-slide-in-left
+                                            ${active
                                                 ? 'bg-[#0B4B54] text-white shadow-lg shadow-[#0B4B54]/20'
                                                 : 'text-[#032A33] hover:bg-[#82ACAB]/20'
                                             }
-                    `}
+                                        `}
                                         style={{ animationDelay: `${index * 30}ms` }}
                                         onClick={() => setIsMobileMenuOpen(false)}
                                     >
                                         <Icon
                                             size={20}
                                             className={`
-                        transition-transform duration-200 
-                        ${active ? 'text-white' : 'text-[#0B4B54]'}
-                        group-hover:scale-110
-                      `}
+                                                transition-transform duration-200 
+                                                ${active ? 'text-white' : 'text-[#0B4B54]'}
+                                                group-hover:scale-110
+                                            `}
                                         />
                                         <span className={`font-medium ${active ? 'text-white' : ''}`}>
                                             {item.name}
@@ -184,7 +206,7 @@ const WorkerLayout = ({ children }) => {
                             </div>
                             <div className="flex-1 text-left">
                                 <p className="font-medium text-[#032A33]">{firstName}</p>
-                                <p className="text-xs text-[#888888]">Helper</p>
+                                <p className="text-xs text-[#888888]">Employer</p>
                             </div>
                             <ChevronDown 
                                 size={18} 
@@ -194,9 +216,9 @@ const WorkerLayout = ({ children }) => {
 
                         {/* Dropdown Menu */}
                         {isUserDropdownOpen && (
-                            <div className="absolute bottom-full left-0 right-0 mb-2 py-2 bg-white rounded-xl shadow-lg border border-[#82ACAB]/20 animate-fade-in-up">
+                            <div className="absolute bottom-full left-0 right-0 mb-2 py-2 bg-white rounded-xl shadow-lg border border-[#82ACAB]/20 animate-fade-in-up z-50">
                                 <Link
-                                    to="/worker/profile"
+                                    to="/hirer/profile"
                                     onClick={() => {
                                         setIsUserDropdownOpen(false);
                                         setIsMobileMenuOpen(false);
@@ -207,7 +229,7 @@ const WorkerLayout = ({ children }) => {
                                     <span>My Profile</span>
                                 </Link>
                                 <Link
-                                    to="/worker/settings"
+                                    to="/hirer/settings"
                                     onClick={() => {
                                         setIsUserDropdownOpen(false);
                                         setIsMobileMenuOpen(false);
@@ -244,19 +266,19 @@ const WorkerLayout = ({ children }) => {
                             <Menu size={24} />
                         </button>
 
-                        {/* Search Bar (Optional placeholder) */}
+                        {/* Search Bar */}
                         <div className="hidden md:flex flex-1 max-w-md mx-8">
                             <div className="relative w-full">
                                 <input
                                     type="text"
-                                    placeholder="Search jobs, workers..."
+                                    placeholder="Search applicants, jobs..."
                                     className="
-                    w-full px-5 py-2.5 pl-12 rounded-xl
-                    bg-white/80 border border-[#82ACAB]/30
-                    text-[#222222] placeholder-[#888888]
-                    focus:outline-none focus:border-[#0B4B54] focus:ring-2 focus:ring-[#0B4B54]/10
-                    transition-all duration-200
-                  "
+                                        w-full px-5 py-2.5 pl-12 rounded-xl
+                                        bg-white/80 border border-[#82ACAB]/30
+                                        text-[#222222] placeholder-[#888888]
+                                        focus:outline-none focus:border-[#0B4B54] focus:ring-2 focus:ring-[#0B4B54]/10
+                                        transition-all duration-200
+                                    "
                                 />
                                 <svg
                                     className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#888888]"
@@ -308,7 +330,7 @@ const WorkerLayout = ({ children }) => {
                                                     className={`p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0 ${notification.unread ? 'bg-blue-50/50' : ''}`}
                                                 >
                                                     <div className="flex items-start gap-3">
-                                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${getNotificationColor(notification.type)}`}>
+                                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${getNotificationColor(notification.type)}`}>
                                                             {notification.type === 'success' && <CheckCircle size={16} />}
                                                             {notification.type === 'warning' && <Clock size={16} />}
                                                             {notification.type === 'error' && <XCircle size={16} />}
@@ -318,7 +340,7 @@ const WorkerLayout = ({ children }) => {
                                                             <div className="flex items-center gap-2">
                                                                 <p className="font-medium text-[#032A33] text-sm">{notification.title}</p>
                                                                 {notification.unread && (
-                                                                    <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
+                                                                    <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
                                                                 )}
                                                             </div>
                                                             <p className="text-[#888888] text-xs mt-0.5 truncate">{notification.message}</p>
@@ -331,7 +353,7 @@ const WorkerLayout = ({ children }) => {
                                         <div className="p-3 border-t border-[#82ACAB]/20">
                                             <button 
                                                 onClick={() => {
-                                                    navigate('/worker/notifications');
+                                                    navigate('/hirer/notifications');
                                                     setIsNotificationOpen(false);
                                                 }}
                                                 className="w-full text-center text-sm text-[#0B4B54] font-medium hover:underline"
@@ -347,7 +369,7 @@ const WorkerLayout = ({ children }) => {
                             <div className="relative flex items-center gap-3 pl-4 border-l border-[#82ACAB]/30" ref={profileDropdownRef}>
                                 <div className="hidden sm:block text-right">
                                     <p className="text-sm font-semibold text-[#032A33]">{firstName}</p>
-                                    <p className="text-xs text-[#888888]">Helper</p>
+                                    <p className="text-xs text-[#888888]">Employer</p>
                                 </div>
                                 <button
                                     onClick={() => {
@@ -371,7 +393,7 @@ const WorkerLayout = ({ children }) => {
                                     <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-[#82ACAB]/20 animate-fade-in-up z-50 py-2">
                                         <button
                                             onClick={() => {
-                                                navigate('/worker/profile');
+                                                navigate('/hirer/profile');
                                                 setIsProfileDropdownOpen(false);
                                             }}
                                             className="flex items-center gap-3 px-4 py-2.5 w-full text-[#032A33] hover:bg-[#D3E4E7]/50 transition-colors"
@@ -406,4 +428,4 @@ const WorkerLayout = ({ children }) => {
     );
 };
 
-export default WorkerLayout;
+export default HirerLayout;

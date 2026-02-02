@@ -14,17 +14,22 @@ import ResetPassword from "./pages/auth/ResetPassword";
 import VerifyOTP from "./pages/auth/VerifyOtp";
 
 // Worker Dashboard Pages
-import WorkerActiveJobs from "./pages/worker/WorkerActiveJobs";
+import FindShifts from "./pages/worker/FindShifts";
+import MyShifts from "./pages/worker/MyShifts";
+import Wallet from "./pages/worker/Wallet";
 import WorkerAvailability from "./pages/worker/WorkerAvailability";
-import WorkerCompletedJobs from "./pages/worker/WorkerCompletedJobs";
 import WorkerDashboard from "./pages/worker/WorkerDashboard";
-import WorkerEarnings from "./pages/worker/WorkerEarnings";
-import WorkerJobRequests from "./pages/worker/WorkerJobRequests";
-import WorkerNearbyJobs from "./pages/worker/WorkerNearbyJobs";
 import WorkerNotifications from "./pages/worker/WorkerNotifications";
 import WorkerProfile from "./pages/worker/WorkerProfile";
-import WorkerRatings from "./pages/worker/WorkerRatings";
 import WorkerSupport from "./pages/worker/WorkerSupport";
+
+// Hirer Dashboard Pages
+import Applicants from "./pages/hirer/Applicants";
+import HirerDashboard from "./pages/hirer/HirerDashboard";
+import HirerPayments from "./pages/hirer/HirerPayments";
+import HirerProfile from "./pages/hirer/HirerProfile";
+import ManageJobs from "./pages/hirer/ManageJobs";
+import PostShift from "./pages/hirer/PostShift";
 
 
 function App() {
@@ -77,7 +82,7 @@ function App() {
           }
         />
         <Route
-          path="/worker/availability"
+          path="/worker/schedule"
           element={
             <ProtectedRoute requiredRole="helper">
               <WorkerAvailability />
@@ -85,50 +90,26 @@ function App() {
           }
         />
         <Route
-          path="/worker/nearby-jobs"
+          path="/worker/find-shifts"
           element={
             <ProtectedRoute requiredRole="helper">
-              <WorkerNearbyJobs />
+              <FindShifts />
             </ProtectedRoute>
           }
         />
         <Route
-          path="/worker/job-requests"
+          path="/worker/my-shifts"
           element={
             <ProtectedRoute requiredRole="helper">
-              <WorkerJobRequests />
+              <MyShifts />
             </ProtectedRoute>
           }
         />
         <Route
-          path="/worker/active-jobs"
+          path="/worker/wallet"
           element={
             <ProtectedRoute requiredRole="helper">
-              <WorkerActiveJobs />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/worker/completed-jobs"
-          element={
-            <ProtectedRoute requiredRole="helper">
-              <WorkerCompletedJobs />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/worker/earnings"
-          element={
-            <ProtectedRoute requiredRole="helper">
-              <WorkerEarnings />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/worker/ratings"
-          element={
-            <ProtectedRoute requiredRole="helper">
-              <WorkerRatings />
+              <Wallet />
             </ProtectedRoute>
           }
         />
@@ -149,12 +130,54 @@ function App() {
           }
         />
 
-        {/* Hirer Dashboard Route - Placeholder since component is missing */}
+        {/* ================================== */}
+        {/* HIRER DASHBOARD ROUTES */}
+        {/* ================================== */}
         <Route
           path="/hirer/dashboard"
           element={
             <ProtectedRoute requiredRole="hirer">
-              <div className="p-8 text-center">Hirer Dashboard Coming Soon...</div>
+              <HirerDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hirer/post-shift"
+          element={
+            <ProtectedRoute requiredRole="hirer">
+              <PostShift />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hirer/manage-jobs"
+          element={
+            <ProtectedRoute requiredRole="hirer">
+              <ManageJobs />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hirer/applicants"
+          element={
+            <ProtectedRoute requiredRole="hirer">
+              <Applicants />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hirer/payments"
+          element={
+            <ProtectedRoute requiredRole="hirer">
+              <HirerPayments />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hirer/profile"
+          element={
+            <ProtectedRoute requiredRole="hirer">
+              <HirerProfile />
             </ProtectedRoute>
           }
         />
