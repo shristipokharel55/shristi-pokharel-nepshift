@@ -31,6 +31,14 @@ import HirerProfile from "./pages/hirer/HirerProfile";
 import ManageJobs from "./pages/hirer/ManageJobs";
 import PostShift from "./pages/hirer/PostShift";
 
+// Admin Dashboard Pages
+import AdminLayout from "./components/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminFinancials from "./pages/admin/AdminFinancials";
+import AdminSettings from "./pages/admin/AdminSettings";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminVerification from "./pages/admin/AdminVerification";
+
 
 function App() {
   return (
@@ -181,6 +189,25 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* ================================== */}
+        {/* ADMIN DASHBOARD ROUTES */}
+        {/* ================================== */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="verification" element={<AdminVerification />} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="financials" element={<AdminFinancials />} />
+          <Route path="settings" element={<AdminSettings />} />
+          <Route index element={<AdminDashboard />} />
+        </Route>
 
       </Routes>
     </Router>

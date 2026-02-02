@@ -19,6 +19,7 @@ export default function Login() {
       const role = user.role;
       if (role === "helper") navigate("/worker/dashboard", { replace: true });
       else if (role === "hirer") navigate("/hirer/dashboard", { replace: true });
+      else if (role === "admin") navigate("/admin/dashboard", { replace: true });
       else navigate("/", { replace: true });
     }
   }, [isAuthenticated, user, loading, navigate]);
@@ -36,6 +37,7 @@ export default function Login() {
       const role = data.user?.role;
       if (role === "helper") navigate("/worker/dashboard", { replace: true });
       else if (role === "hirer") navigate("/hirer/dashboard", { replace: true });
+      else if (role === "admin") navigate("/admin/dashboard", { replace: true });
       else navigate("/", { replace: true });
     } catch (err) {
       toast.error(err.response?.data?.message || "Invalid credentials");
@@ -53,6 +55,7 @@ export default function Login() {
       const role = data.user?.role || "helper";
       if (role === "helper") navigate("/worker/dashboard", { replace: true });
       else if (role === "hirer") navigate("/hirer/dashboard", { replace: true });
+      else if (role === "admin") navigate("/admin/dashboard", { replace: true });
       else navigate("/", { replace: true });
     } catch (err) {
       toast.error(err.response?.data?.message || "Google login failed");

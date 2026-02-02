@@ -29,6 +29,8 @@ export default function ProtectedRoute({ children, requiredRole }) {
         return <Navigate to="/worker/dashboard" replace />;
       } else if (userRole === "hirer") {
         return <Navigate to="/hirer/dashboard" replace />;
+      } else if (userRole === "admin") {
+        return <Navigate to="/admin/dashboard" replace />;
       } else {
         return <Navigate to="/" replace />;
       }

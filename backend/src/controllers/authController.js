@@ -64,6 +64,8 @@ export const registerUser = async (req, res) => {
 
 /**
  * Login user - accepts email or phone in `email` field
+ * - First checks for admin credentials from environment variables
+ * - Then falls back to MongoDB database lookup
  * - compares hashed password
  * - sets JWT token in httpOnly cookie
  */
@@ -73,6 +75,31 @@ export const loginUser = async (req, res) => {
 
     if (!email || !password) return res.status(400).json({ message: "Missing credentials" });
 
+    // Check for admin login via environment variables first
+    const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+    if (ADMIN_EMAIL && ADMIN_PASSWORD && email === ADMIN_EMAIL) {
+      // Admin login attempt
+      if (password === ADMIN_PASSWORD) {
+        const token = jwt.sign(
+          { id: "admin", role: "admin", email: ADMIN_EMAIL },
+          JWT_SECRET,
+          { expiresIn: JWT_EXPIRES_IN }
+        );
+
+        res.cookie("token", token, getCookieOptions());
+
+        return res.json({
+          message: "Login successful",
+          user: { id: "admin", fullName: "System Administrator", role: "admin", email: ADMIN_EMAIL },
+        });
+      } else {
+        return res.status(400).json({ message: "Invalid credentials" });
+      }
+    }
+
+    // Regular user login - check MongoDB
     const user = await User.findOne({ $or: [{ email }, { phone: email }] });
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
