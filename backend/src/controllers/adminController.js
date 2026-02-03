@@ -1,9 +1,10 @@
 // backend/src/controllers/adminController.js
+import bcrypt from "bcrypt";
 import HelperProfile from "../models/helperProfile.js";
+import Notification from "../models/Notification.js";
 import Shift from "../models/shift.js";
 import User from "../models/user.js";
 import transporter from "../utils/sendEmail.js";
-import bcrypt from "bcrypt";
 
 /**
  * Get Dashboard Statistics
@@ -371,6 +372,16 @@ export const updateVerificationStatus = async (req, res) => {
     }
 
     await user.save();
+
+    // Create Notification
+    await Notification.create({
+      recipient: user._id,
+      type: action === 'approve' ? 'success' : 'error',
+      title: action === 'approve' ? 'Profile Verified' : 'Verification Rejected',
+      message: action === 'approve' 
+        ? 'Your profile verification has been approved! You can now apply for shifts.' 
+        : `Your verification was rejected. Reason: ${reason || 'Contact support'}`,
+    });
 
     res.status(200).json({
       success: true,

@@ -20,6 +20,7 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../utils/api';
 
 const WorkerLayout = ({ children }) => {
     const location = useLocation();
@@ -35,13 +36,41 @@ const WorkerLayout = ({ children }) => {
 
     const firstName = user?.fullName?.split(" ")[0] || "Worker";
 
-    // Sample notifications data with types for color coding
-    const notifications = [
-        { id: 1, title: 'New shift available', message: 'Kitchen Helper at Hotel Himalaya', time: '5 min ago', unread: true, type: 'info' },
-        { id: 2, title: 'Shift confirmed', message: 'Your shift at Marriott Hotel is confirmed', time: '1 hour ago', unread: true, type: 'success' },
-        { id: 3, title: 'Payment received', message: 'Rs 1,200 added to your wallet', time: '2 hours ago', unread: true, type: 'success' },
-        { id: 4, title: 'Shift reminder', message: 'Your shift starts in 2 hours', time: '1 day ago', unread: false, type: 'warning' },
-    ];
+    // State for notifications
+    const [notifications, setNotifications] = useState([]);
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    // Fetch notifications
+    useEffect(() => {
+        const fetchNotifications = async () => {
+            try {
+                const res = await api.get('/notifications');
+                if (res.data.success) {
+                    setNotifications(res.data.data || []);
+                    setUnreadCount(res.data.unreadCount || 0);
+                }
+            } catch (error) {
+                console.error('Error fetching notifications:', error);
+            }
+        };
+
+        fetchNotifications();
+        // Poll for new notifications every 30 seconds
+        const interval = setInterval(fetchNotifications, 30000);
+        return () => clearInterval(interval);
+    }, []);
+
+    // Helper function to format time
+    const getTimeAgo = (dateString) => {
+        const now = new Date();
+        const date = new Date(dateString);
+        const seconds = Math.floor((now - date) / 1000);
+
+        if (seconds < 60) return 'Just now';
+        if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+        if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+        return `${Math.floor(seconds / 86400)}d ago`;
+    };
 
     // Get notification icon color based on type
     const getNotificationColor = (type) => {
@@ -49,7 +78,7 @@ const WorkerLayout = ({ children }) => {
             case 'success': return 'bg-emerald-100 text-emerald-600';
             case 'warning': return 'bg-amber-100 text-amber-600';
             case 'error': return 'bg-red-100 text-red-600';
-            case 'info': 
+            case 'info':
             default: return 'bg-blue-100 text-blue-600';
         }
     };
@@ -186,8 +215,8 @@ const WorkerLayout = ({ children }) => {
                                 <p className="font-medium text-[#032A33]">{firstName}</p>
                                 <p className="text-xs text-[#888888]">Helper</p>
                             </div>
-                            <ChevronDown 
-                                size={18} 
+                            <ChevronDown
+                                size={18}
                                 className={`text-[#888888] transition-transform duration-200 ${isUserDropdownOpen ? 'rotate-180' : ''}`}
                             />
                         </button>
@@ -273,7 +302,7 @@ const WorkerLayout = ({ children }) => {
                         <div className="flex items-center gap-4">
                             {/* Notifications */}
                             <div className="relative" ref={notificationRef}>
-                                <button 
+                                <button
                                     onClick={() => {
                                         setIsNotificationOpen(!isNotificationOpen);
                                         setIsProfileDropdownOpen(false);
@@ -287,9 +316,11 @@ const WorkerLayout = ({ children }) => {
                                     "
                                 >
                                     <Bell size={20} />
-                                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-semibold">
-                                        {notifications.filter(n => n.unread).length}
-                                    </span>
+                                    {unreadCount > 0 && (
+                                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-semibold">
+                                            {unreadCount}
+                                        </span>
+                                    )}
                                 </button>
 
                                 {/* Notifications Dropdown */}
@@ -302,10 +333,10 @@ const WorkerLayout = ({ children }) => {
                                             </div>
                                         </div>
                                         <div className="max-h-80 overflow-y-auto">
-                                            {notifications.map((notification) => (
-                                                <div 
-                                                    key={notification.id}
-                                                    className={`p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0 ${notification.unread ? 'bg-blue-50/50' : ''}`}
+                                            {notifications.slice(0, 5).map((notification) => (
+                                                <div
+                                                    key={notification._id}
+                                                    className={`p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0 ${!notification.read ? 'bg-blue-50/50' : ''}`}
                                                 >
                                                     <div className="flex items-start gap-3">
                                                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${getNotificationColor(notification.type)}`}>
@@ -317,19 +348,19 @@ const WorkerLayout = ({ children }) => {
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex items-center gap-2">
                                                                 <p className="font-medium text-[#032A33] text-sm">{notification.title}</p>
-                                                                {notification.unread && (
+                                                                {!notification.read && (
                                                                     <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
                                                                 )}
                                                             </div>
                                                             <p className="text-[#888888] text-xs mt-0.5 truncate">{notification.message}</p>
-                                                            <p className="text-[#82ACAB] text-xs mt-1">{notification.time}</p>
+                                                            <p className="text-[#82ACAB] text-xs mt-1">{getTimeAgo(notification.createdAt)}</p>
                                                         </div>
                                                     </div>
                                                 </div>
                                             ))}
                                         </div>
                                         <div className="p-3 border-t border-[#82ACAB]/20">
-                                            <button 
+                                            <button
                                                 onClick={() => {
                                                     navigate('/worker/notifications');
                                                     setIsNotificationOpen(false);

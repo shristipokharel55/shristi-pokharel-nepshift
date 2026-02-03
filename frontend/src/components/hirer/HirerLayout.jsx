@@ -17,12 +17,7 @@ const HirerLayout = ({ children }) => {
     const firstName = user?.fullName?.split(" ")[0] || "Employer";
 
     // Sample notifications data
-    const notifications = [
-        { id: 1, title: 'New applicant', message: 'Ram Sharma applied for Kitchen Helper', time: '5 min ago', unread: true, type: 'info' },
-        { id: 2, title: 'Shift completed', message: 'Kitchen Helper shift completed successfully', time: '1 hour ago', unread: true, type: 'success' },
-        { id: 3, title: 'Payment processed', message: 'Rs 1,200 released to worker', time: '2 hours ago', unread: true, type: 'success' },
-        { id: 4, title: 'Shift starting soon', message: 'Event Staff shift starts in 2 hours', time: '1 day ago', unread: false, type: 'warning' },
-    ];
+    const notifications = [];
 
     // Close dropdowns when clicking outside
     useEffect(() => {

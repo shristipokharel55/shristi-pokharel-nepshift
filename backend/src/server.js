@@ -9,6 +9,7 @@ import { errorHandler, notFound } from "./middlewares/errorMiddleware.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import helperRoutes from "./routes/helperRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 
 // ES Module directory name
 const __filename = fileURLToPath(import.meta.url);
@@ -59,6 +60,7 @@ app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/helper", helperRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Test Route
 app.get("/", (req, res) => {

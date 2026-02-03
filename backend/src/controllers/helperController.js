@@ -1,5 +1,6 @@
 // backend/src/controllers/helperController.js
 import HelperProfile from "../models/helperProfile.js";
+import Notification from "../models/Notification.js";
 import User from "../models/user.js";
 
 /**
@@ -36,14 +37,12 @@ export const getHelperProfile = async (req, res) => {
   }
 };
 
-/**
- * Update/Complete helper profile
- * @route PUT /api/helper/profile
- * @access Private (helper only)
- */
 export const updateHelperProfile = async (req, res) => {
   try {
     const userId = req.user._id || req.user.id;
+    console.log("Updating profile for user:", userId);
+    console.log("Payload:", req.body);
+
     const {
       skillCategory,
       yearsOfExperience,
@@ -56,45 +55,76 @@ export const updateHelperProfile = async (req, res) => {
     let profile = await HelperProfile.findOne({ user: userId });
 
     if (!profile) {
+      console.log("Creating new profile for user");
       profile = new HelperProfile({ user: userId });
     }
 
-    // Update fields if provided
+    // Update fields if provided matches
     if (skillCategory) profile.skillCategory = skillCategory;
-    if (yearsOfExperience !== undefined) profile.yearsOfExperience = yearsOfExperience;
+
+    // Handle number fields safely - prevent null/empty string casting errors
+    if (yearsOfExperience !== undefined && yearsOfExperience !== null && yearsOfExperience !== "") {
+      profile.yearsOfExperience = Number(yearsOfExperience);
+    }
+
     if (aboutMe !== undefined) profile.aboutMe = aboutMe;
-    if (hourlyRate !== undefined) profile.hourlyRate = hourlyRate;
+
+    if (hourlyRate !== undefined && hourlyRate !== null && hourlyRate !== "") {
+      profile.hourlyRate = Number(hourlyRate);
+    }
+
     if (isAvailable !== undefined) profile.isAvailable = isAvailable;
 
     // Update location if provided
     if (location) {
-      // Ensure we have an object to read from, even if profile.location is undefined
-      const currentLoc = profile.location ? profile.location.toObject() : {};
+      // Safe access to existing location
+      const profileObj = (typeof profile.toObject === 'function') ? profile.toObject() : profile;
+      const currentLoc = profileObj.location || {};
       const currentCoords = currentLoc.coordinates || {};
 
-      const newLatitude = location.latitude !== undefined
-        ? location.latitude
-        : (location.coordinates?.latitude !== undefined
-          ? location.coordinates.latitude
-          : currentCoords.latitude);
+      // Determine latitude - Handle null/empty string explicitly
+      let newLatitude = location.latitude;
+      if (newLatitude === null || newLatitude === "") {
+        // If explicitly null in payload, fallback to existing or undefined
+        newLatitude = undefined;
+      }
+      // If still undefined, fallback to current
+      if (newLatitude === undefined && location.coordinates?.latitude !== undefined) {
+        newLatitude = location.coordinates.latitude;
+      }
+      if (newLatitude === undefined) {
+        newLatitude = currentCoords.latitude;
+      }
 
-      const newLongitude = location.longitude !== undefined
-        ? location.longitude
-        : (location.coordinates?.longitude !== undefined
-          ? location.coordinates.longitude
-          : currentCoords.longitude);
+      // Determine longitude - Handle null/empty string explicitly
+      let newLongitude = location.longitude;
+      if (newLongitude === null || newLongitude === "") {
+        newLongitude = undefined;
+      }
+      // If still undefined, fallback to current
+      if (newLongitude === undefined && location.coordinates?.longitude !== undefined) {
+        newLongitude = location.coordinates.longitude;
+      }
+      if (newLongitude === undefined) {
+        newLongitude = currentCoords.longitude;
+      }
 
-      profile.location = {
+      // Construct update object
+      const locationUpdate = {
         address: location.address || currentLoc.address,
         city: location.city || currentLoc.city,
         coordinates: {
-          latitude: newLatitude,
-          longitude: newLongitude
+          // Only include if they are valid numbers
+          latitude: (newLatitude !== undefined && newLatitude !== null) ? Number(newLatitude) : undefined,
+          longitude: (newLongitude !== undefined && newLongitude !== null) ? Number(newLongitude) : undefined
         }
       };
+
+      profile.location = locationUpdate;
     }
 
     await profile.save();
+    console.log("Profile saved successfully");
 
     // Populate user data before returning
     await profile.populate('user', 'fullName email phone isVerified verificationStatus');
@@ -108,7 +138,7 @@ export const updateHelperProfile = async (req, res) => {
     console.error("updateHelperProfile error:", error);
     res.status(500).json({
       success: false,
-      message: "Error updating profile",
+      message: "Error updating profile: " + error.message,
       error: error.message
     });
   }
@@ -193,6 +223,7 @@ export const submitVerification = async (req, res) => {
     profile.citizenshipFrontImage = citizenshipFrontImage;
     profile.citizenshipBackImage = citizenshipBackImage;
 
+    // This save will trigger the pre-save hook to recalculate profile completion percentage
     await profile.save();
 
     // Update user verification status to pending
@@ -211,6 +242,19 @@ export const submitVerification = async (req, res) => {
         }
       ]
     });
+
+    // Notify Admins
+    const admins = await User.find({ role: 'admin' });
+    if (admins.length > 0) {
+      const adminNotifications = admins.map(admin => ({
+        recipient: admin._id,
+        type: 'info',
+        title: 'New Verification Request',
+        message: 'A helper has submitted documents for verification.',
+        relatedId: userId
+      }));
+      await Notification.insertMany(adminNotifications);
+    }
 
     res.status(200).json({
       success: true,
@@ -319,7 +363,7 @@ export const canBidOnShifts = async (req, res) => {
     const profile = await HelperProfile.findOne({ user: userId }).select('citizenshipNumber');
 
     const canBid = user?.isVerified === true;
-    
+
     // Determine verification status for frontend
     let status = 'not_submitted';
     if (user?.verificationStatus === 'approved') {

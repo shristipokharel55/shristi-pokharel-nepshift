@@ -88,7 +88,7 @@ const HelperProfileSchema = new mongoose.Schema({
 });
 
 // Calculate profile completion percentage before saving
-HelperProfileSchema.pre('save', function (next) {
+HelperProfileSchema.pre('save', async function () {
   let percentage = 0;
 
   // Basic Profile Fields (Warning: Weighted to total 80%)
@@ -117,8 +117,6 @@ HelperProfileSchema.pre('save', function (next) {
   this.profileCompletionPercentage = Math.min(Math.round(percentage), 100);
   this.isProfileComplete = this.profileCompletionPercentage >= 80;
   this.updatedAt = new Date();
-
-  next();
 });
 
 export default mongoose.model("HelperProfile", HelperProfileSchema);
