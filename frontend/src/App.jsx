@@ -1,7 +1,7 @@
 import {
-    Route,
-    BrowserRouter as Router,
-    Routes
+  Route,
+  BrowserRouter as Router,
+  Routes
 } from "react-router-dom";
 import ProtectedRoute from "./middleware/ProtectedRoute";
 import Home from "./pages/Home/Home";
@@ -34,6 +34,7 @@ import ManageJobs from "./pages/hirer/ManageJobs";
 import PostShift from "./pages/hirer/PostShift";
 
 // Admin Dashboard Pages
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import AdminLayout from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminFinancials from "./pages/admin/AdminFinancials";
@@ -43,13 +44,20 @@ import AdminVerification from "./pages/admin/AdminVerification";
 
 
 function App() {
+    const GoogleAuthWrapper = () => {
+    return (
+      <GoogleOAuthProvider clientId="468772811061-2irh6mqdpdu2el7143jc3jlp1bbvh4te.apps.googleusercontent.com">
+        <Login />
+      </GoogleOAuthProvider>
+    )
+  }
   return (
     <Router>
       <Routes>
         {/* Landing Page is now the HOME route */}
         <Route path="/" element={<Home />} />
 
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<GoogleAuthWrapper />} />
 
         {/* Register selection page */}
         <Route path="/register" element={<RegisterSelect />} />

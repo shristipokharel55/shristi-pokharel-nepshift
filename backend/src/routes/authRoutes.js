@@ -1,11 +1,12 @@
 import express from "express";
-import { forgotPassword, getCurrentUser, loginUser, logoutUser, registerUser, resetPassword, verifyOTP } from "../controllers/authController.js";
+import { forgotPassword, getCurrentUser, loginUser, logoutUser, registerHirer, registerUser, resetPassword, verifyOTP } from "../controllers/authController.js";
 import { continueWithGoogle } from "../controllers/googleAuthController.js";
 import { authorizeRoles, protect } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
 router.post("/register", registerUser);
+router.post("/register-hirer", registerHirer);
 router.post("/login", loginUser);
 router.post("/logout", logoutUser);
 router.post("/verify-otp", verifyOTP);

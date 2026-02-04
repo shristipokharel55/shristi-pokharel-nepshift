@@ -4,7 +4,7 @@ const UserSchema = new mongoose.Schema({
   fullName: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   phone: { type: String },
-  location: { type: String, required: true },
+  location: { type: String, default: 'Not Provided' }, // Made optional for hirers
   role: { type: String, enum: ["helper", "hirer", "admin"], default: "helper" },
   password: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
@@ -15,12 +15,12 @@ const UserSchema = new mongoose.Schema({
 
   // Verification fields
   isVerified: { type: Boolean, default: false },
-  verificationStatus: { 
-    type: String, 
-    enum: ['pending', 'approved', 'rejected'], 
-    default: 'pending' 
+  verificationStatus: {
+    type: String,
+    enum: ['unverified', 'pending', 'approved', 'rejected'],
+    default: 'unverified'
   },
-  
+
   // KYC Documents (array of URLs)
   documents: [{
     type: { type: String, enum: ['kyc', 'id', 'address', 'business_license'], required: true },
@@ -28,12 +28,12 @@ const UserSchema = new mongoose.Schema({
     uploadedAt: { type: Date, default: Date.now },
     status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' }
   }],
-  
+
   // Verification metadata
   verifiedAt: { type: Date },
   verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   rejectionReason: { type: String },
-    
+
   joinedAt: { type: Date, default: Date.now }
 });
 

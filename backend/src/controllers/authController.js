@@ -30,7 +30,8 @@ export const registerUser = async (req, res) => {
     const { fullName, email, phone, role, password } = req.body;
     const location = getLocationFromBody(req.body);
 
-    if (!fullName || !email || !password || !location) {
+    // Validate required fields (location is optional now)
+    if (!fullName || !email || !password) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -43,7 +44,7 @@ export const registerUser = async (req, res) => {
       fullName,
       email,
       phone,
-      location: location.toLowerCase(),
+      location: location ? location.toLowerCase() : 'Not Provided', // Default if not provided
       role: role || "helper",
       password: hashed,
       // fields for reset/otp left null by default
@@ -59,6 +60,56 @@ export const registerUser = async (req, res) => {
   } catch (err) {
     console.error("registerUser error:", err);
     res.status(500).json({ message: err.message || "Server error" });
+  }
+};
+
+/**
+ * Register Hirer (Simplified)
+ * @route POST /api/auth/register-hirer
+ */
+export const registerHirer = async (req, res) => {
+  try {
+    const { fullName, email, phone, password } = req.body;
+
+    // Check required fields
+    if (!fullName || !email || !password || !phone) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Check if user exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User with this email already exists" });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+
+    // Create user
+    const user = await User.create({
+      fullName,
+      email,
+      phone,
+      password: hashedPassword,
+      role: 'hirer',
+      location: 'Not Provided', // Default placeholder as per requirements to skip map
+      verificationStatus: 'unverified', // Default as per requirements
+      isVerified: false
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Hirer account created successfully",
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error("registerHirer error:", error);
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
 

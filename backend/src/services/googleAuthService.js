@@ -72,7 +72,8 @@ export const continueWithGoogleService = async ({ credential }) => {
       role: "helper",
       location: "unknown",
       googleId,
-      isVerified: Boolean(emailVerified),
+      isVerified: false
+
     });
   } else {
     let changed = false;
@@ -82,11 +83,11 @@ export const continueWithGoogleService = async ({ credential }) => {
       changed = true;
     }
 
-    // If they came from password signup, keep their existing isVerified.
-    if (emailVerified && !user.isVerified) {
-      user.isVerified = true;
-      changed = true;
-    }
+    // // If they came from password signup, keep their existing isVerified.
+    // if (emailVerified && !user.isVerified) {
+    //   user.isVerified = false;
+    //   changed = true;
+    // }
 
     if (changed) await user.save();
   }

@@ -50,6 +50,7 @@ export default function Login() {
       if (!credential) return toast.error("Google login failed");
 
       const data = await googleLogin(credential);
+      console.log(data);
       toast.success("Login successful");
 
       const role = data.user?.role || "helper";
@@ -60,6 +61,14 @@ export default function Login() {
     } catch (err) {
       toast.error(err.response?.data?.message || "Google login failed");
     }
+
+    // try {
+    //   console.log(credentialResponse);
+    // }
+    // catch (err) {
+    //   console.error("error on the goolge login :", err);
+    // }
+
   };
 
   const handleGoogleError = () => toast.error("Google Sign-In failed");

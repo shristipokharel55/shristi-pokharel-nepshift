@@ -8,13 +8,29 @@ import './index.css'
 
 const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
+const AppWithProviders = () => {
+  if (clientId && clientId.trim() !== '') {
+    return (
+      <GoogleOAuthProvider clientId={clientId}>
+        <AuthProvider>
+          <Toaster position="top-right" />
+          <App />
+        </AuthProvider>
+      </GoogleOAuthProvider>
+    );
+  }
+
+  // If no Google client ID, skip Google OAuth Provider
+  return (
+    <AuthProvider>
+      <Toaster position="top-right" />
+      <App />
+    </AuthProvider>
+  );
+};
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <GoogleOAuthProvider clientId={clientId}>
-      <AuthProvider>
-        <Toaster position="top-right" />
-        <App />
-      </AuthProvider>
-    </GoogleOAuthProvider>
+    <AppWithProviders />
   </StrictMode>,
 )
