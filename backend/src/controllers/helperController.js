@@ -4,6 +4,49 @@ import Notification from "../models/Notification.js";
 import User from "../models/user.js";
 
 /**
+ * Get all workers/helpers with their profiles (for hirers to browse)
+ * @route GET /api/helper/workers
+ * @access Private (hirer only)
+ */
+export const getAllWorkers = async (req, res) => {
+  try {
+    // Find all users with role 'helper'
+    const helpers = await User.find({ role: 'helper' })
+      .select('fullName email phone isVerified verificationStatus')
+      .lean();
+
+    // Get profiles for all helpers
+    const helperIds = helpers.map(h => h._id);
+    const profiles = await HelperProfile.find({ user: { $in: helperIds } }).lean();
+
+    // Map profiles to helpers
+    const profileMap = {};
+    profiles.forEach(profile => {
+      profileMap[profile.user.toString()] = profile;
+    });
+
+    // Combine helper data with profiles
+    const workersWithProfiles = helpers.map(helper => ({
+      ...helper,
+      profile: profileMap[helper._id.toString()] || null
+    }));
+
+    res.status(200).json({
+      success: true,
+      count: workersWithProfiles.length,
+      data: workersWithProfiles
+    });
+  } catch (error) {
+    console.error("getAllWorkers error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching workers",
+      error: error.message
+    });
+  }
+};
+
+/**
  * Get helper profile for current user
  * @route GET /api/helper/profile
  * @access Private (helper only)

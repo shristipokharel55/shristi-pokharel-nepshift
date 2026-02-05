@@ -122,16 +122,19 @@ export const registerHirer = async (req, res) => {
  */
 export const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body; // `email` may be an email or phone string
+    const { email, password } = req.body;
 
-    if (!email || !password) return res.status(400).json({ message: "Missing credentials" });
+    console.log("Login attempt:", { email, hasPassword: !!password });
 
-    // Check for admin login via environment variables first
+    if (!email || !password) {
+      return res.status(400).json({ message: "Missing credentials" });
+    }
+
+    // Check for admin login first
     const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
     const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
     if (ADMIN_EMAIL && ADMIN_PASSWORD && email === ADMIN_EMAIL) {
-      // Admin login attempt
       if (password === ADMIN_PASSWORD) {
         const token = jwt.sign(
           { id: "admin", role: "admin", email: ADMIN_EMAIL },
@@ -150,19 +153,32 @@ export const loginUser = async (req, res) => {
       }
     }
 
-    // Regular user login - check MongoDB
+    // Regular user login
     const user = await User.findOne({ $or: [{ email }, { phone: email }] });
-    if (!user) return res.status(400).json({ message: "Invalid credentials" });
+    
+    console.log("User found:", user ? `Yes (${user.email})` : "No");
+    
+    if (!user) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+    
+    console.log("Password match:", isMatch);
+    
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
 
-    const token = jwt.sign({ id: user._id, role: user.role, email: user.email }, JWT_SECRET, {
-      expiresIn: JWT_EXPIRES_IN,
-    });
+    const token = jwt.sign(
+      { id: user._id, role: user.role, email: user.email },
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN }
+    );
 
-    // Set token in httpOnly cookie
     res.cookie("token", token, getCookieOptions());
+
+    console.log("Login successful for:", user.email);
 
     return res.json({
       message: "Login successful",

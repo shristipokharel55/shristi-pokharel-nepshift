@@ -1,102 +1,150 @@
 import mongoose from "mongoose";
 
 const ShiftSchema = new mongoose.Schema({
-  title: { 
-    type: String, 
-    required: true,
-    trim: true
+  // Basic shift information
+  title: {
+    type: String,
+    required: [true, "Job title is required"],
+    trim: true,
+    maxlength: [100, "Title cannot exceed 100 characters"],
   },
-  description: { 
-    type: String, 
-    required: true 
+
+  description: {
+    type: String,
+    trim: true,
+    maxlength: [1000, "Description cannot exceed 1000 characters"],
   },
-  
-  // Hirer who posted the shift
-  postedBy: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User', 
-    required: true 
+
+  // What type of work is this? (e.g., Marketing, Construction, etc.)
+  category: {
+    type: String,
+    required: [true, "Please select a category"],
+    enum: [
+      "Construction",
+      "Marketing",
+      "Delivery",
+      "Event Staff",
+      "Cleaning",
+      "Security",
+      "Teaching",
+      "Data Entry",
+      "Customer Service",
+      "Other",
+    ],
   },
-  
-  // Worker assigned to the shift (null if not yet assigned)
-  assignedTo: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User',
-    default: null
+
+  // Payment details - storing min and max for range flexibility
+  pay: {
+    min: {
+      type: Number,
+      required: [true, "Minimum pay is required"],
+      min: [0, "Pay cannot be negative"],
+    },
+    max: {
+      type: Number,
+      required: [true, "Maximum pay is required"],
+      min: [0, "Pay cannot be negative"],
+    },
   },
-  
-  // Shift location
+
+  // Location stored as coordinates from Leaflet map
   location: {
-    address: { type: String, required: true },
-    city: { type: String, required: true },
+    // Human-readable address (e.g., "Thamel, Kathmandu")
+    address: {
+      type: String,
+      required: [true, "Location address is required"],
+    },
+    
+    // City name for filtering
+    city: {
+      type: String,
+      required: [true, "City is required"],
+    },
+
+    // Exact coordinates from the map
     coordinates: {
-      lat: { type: Number },
-      lng: { type: Number }
-    }
+      lat: {
+        type: Number,
+        required: [true, "Latitude is required"],
+      },
+      lng: {
+        type: Number,
+        required: [true, "Longitude is required"],
+      },
+    },
   },
-  
+
+  // When does this shift happen?
+  date: {
+    type: Date,
+    required: [true, "Shift date is required"],
+  },
+
   // Shift timing
-  shiftDate: { type: Date, required: true },
-  startTime: { type: String, required: true }, // e.g., "09:00"
-  endTime: { type: String, required: true },   // e.g., "17:00"
-  duration: { type: Number }, // in hours
-  
-  // Payment
-  payRate: { type: Number, required: true }, // per hour in NPR
-  totalPay: { type: Number },
-  paymentStatus: { 
-    type: String, 
-    enum: ['pending', 'paid', 'failed'], 
-    default: 'pending' 
+  time: {
+    start: {
+      type: String, // Format: "09:00 AM"
+      required: [true, "Start time is required"],
+    },
+    end: {
+      type: String, // Format: "05:00 PM"
+      required: [true, "End time is required"],
+    },
   },
-  
-  // Shift status
-  status: { 
-    type: String, 
-    enum: ['open', 'active', 'in_progress', 'completed', 'cancelled'], 
-    default: 'open' 
+
+  // What skills are needed for this job?
+  skills: {
+    type: [String],
+    default: [],
   },
-  
-  // Category/Type of work
-  category: { 
-    type: String, 
-    enum: ['kitchen', 'cleaning', 'waiter', 'delivery', 'security', 'event', 'other'],
-    required: true
+
+  // Who posted this shift? Link to the Hirer's user account
+  hirerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
   },
-  
-  // Requirements
-  requirements: [{ type: String }],
-  skillsRequired: [{ type: String }],
-  
-  // Applicants
-  applicants: [{
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    appliedAt: { type: Date, default: Date.now },
-    status: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' }
-  }],
-  
-  // Ratings (after completion)
-  workerRating: { type: Number, min: 1, max: 5 },
-  hirerRating: { type: Number, min: 1, max: 5 },
-  
-  // Timestamps
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
-  completedAt: { type: Date }
+
+  // Track the shift status
+  status: {
+    type: String,
+    enum: ["open", "in-progress", "completed", "cancelled"],
+    default: "open",
+  },
+
+  // Keep track of workers who applied
+  applicants: [
+    {
+      workerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+      appliedAt: {
+        type: Date,
+        default: Date.now,
+      },
+      status: {
+        type: String,
+        enum: ["pending", "accepted", "rejected"],
+        default: "pending",
+      },
+    },
+  ],
+
+  // If a worker is selected/hired
+  selectedWorker: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+}, {
+  timestamps: true, // Automatically add createdAt and updatedAt
 });
 
-// Update the updatedAt field before saving
-ShiftSchema.pre('save', function(next) {
-  this.updatedAt = new Date();
-  next();
-});
+// Add indexes for faster queries
+ShiftSchema.index({ hirerId: 1, status: 1 });
+ShiftSchema.index({ status: 1, date: 1 });
+ShiftSchema.index({ "location.city": 1 });
 
-// Calculate total pay based on duration and pay rate
-ShiftSchema.pre('save', function(next) {
-  if (this.duration && this.payRate) {
-    this.totalPay = this.duration * this.payRate;
-  }
-  next();
-});
+const Shift = mongoose.model("Shift", ShiftSchema);
 
-export default mongoose.model("Shift", ShiftSchema);
+export default Shift;

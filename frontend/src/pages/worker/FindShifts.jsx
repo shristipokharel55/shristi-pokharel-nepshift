@@ -13,7 +13,9 @@ import {
     Star
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import BidModal from '../../components/worker/BidModal';
 import WorkerLayout from '../../components/worker/WorkerLayout';
 import api from '../../utils/api';
 
@@ -32,7 +34,7 @@ const VerificationRequiredBanner = ({ onVerify }) => (
                     </p>
                 </div>
             </div>
-            <button 
+            <button
                 onClick={onVerify}
                 className="px-5 py-2.5 rounded-xl bg-amber-500 text-white font-semibold hover:bg-amber-600 transition-colors flex items-center gap-2"
             >
@@ -104,7 +106,7 @@ const ShiftCard = ({ shift, delay, canApply, onApply, onVerify }) => {
                     <span className="text-[#888888] text-sm">({shift.reviews} reviews)</span>
                 </div>
                 {canApply ? (
-                    <button 
+                    <button
                         onClick={() => onApply(shift)}
                         className="
                             px-5 py-2.5 rounded-xl
@@ -118,7 +120,7 @@ const ShiftCard = ({ shift, delay, canApply, onApply, onVerify }) => {
                         <ArrowUpRight size={16} />
                     </button>
                 ) : (
-                    <button 
+                    <button
                         onClick={onVerify}
                         className="
                             px-5 py-2.5 rounded-xl
@@ -145,6 +147,10 @@ const FindShifts = () => {
     const [verificationStatus, setVerificationStatus] = useState('not_submitted');
     const [loading, setLoading] = useState(true);
 
+    // Bid modal state
+    const [selectedShift, setSelectedShift] = useState(null);
+    const [showBidModal, setShowBidModal] = useState(false);
+
     // Check if user can bid on shifts
     useEffect(() => {
         const checkBidEligibility = async () => {
@@ -160,89 +166,53 @@ const FindShifts = () => {
                 setLoading(false);
             }
         };
-        
+
         checkBidEligibility();
     }, []);
 
+    // Open bid modal when worker clicks apply
     const handleApply = (shift) => {
-        // TODO: Implement actual application logic
-        console.log('Applying to shift:', shift);
-        alert(`Application submitted for ${shift.title} at ${shift.company}!`);
+        console.log('Apply clicked for shift:', shift);
+        setSelectedShift(shift);
+        setShowBidModal(true);
+    };
+
+    // When bid is successfully placed
+    const handleBidSuccess = (message) => {
+        toast.success(message || 'Bid placed successfully!');
+        setShowBidModal(false);
+        setSelectedShift(null);
     };
 
     const handleVerify = () => {
         navigate('/worker/verification');
     };
 
-    const filters = ['All', 'Hospitality', 'Warehouse', 'Events', 'Kitchen', 'Cleaning'];
+    const [availableShifts, setAvailableShifts] = useState([]);
+    const [loadingShifts, setLoadingShifts] = useState(true);
 
-    const availableShifts = [
-        {
-            id: 1,
-            title: 'Kitchen Helper',
-            company: 'Hotel Himalaya',
-            description: 'Looking for an experienced kitchen helper for morning shifts. Must be punctual and hardworking.',
-            location: 'Lalitpur',
-            distance: '2.5 km',
-            time: '6:00 AM - 2:00 PM',
-            pay: '1,200',
-            rating: 4.8,
-            reviews: 124,
-            tag: 'Recommended'
-        },
-        {
-            id: 2,
-            title: 'Event Staff',
-            company: 'Marriott Hotel',
-            description: 'Need staff for a wedding event. Experience in hospitality preferred but not required.',
-            location: 'Kathmandu',
-            distance: '3.1 km',
-            time: '4:00 PM - 11:00 PM',
-            pay: '1,500',
-            rating: 4.5,
-            reviews: 89,
-            tag: 'New'
-        },
-        {
-            id: 3,
-            title: 'Warehouse Helper',
-            company: 'Daraz Nepal',
-            description: 'Package sorting and inventory management. Physical fitness required.',
-            location: 'Bhaktapur',
-            distance: '5.2 km',
-            time: '8:00 AM - 4:00 PM',
-            pay: '1,000',
-            rating: 4.3,
-            reviews: 67,
-            tag: 'Urgent'
-        },
-        {
-            id: 4,
-            title: 'Restaurant Server',
-            company: 'Cafe Mitra',
-            description: 'Serve customers and maintain cleanliness. Good communication skills needed.',
-            location: 'Patan',
-            distance: '1.8 km',
-            time: '11:00 AM - 7:00 PM',
-            pay: '1,100',
-            rating: 4.6,
-            reviews: 45,
-            tag: 'New'
-        },
-        {
-            id: 5,
-            title: 'Cleaning Staff',
-            company: 'Hyatt Regency',
-            description: 'Hotel room cleaning and housekeeping. Training provided.',
-            location: 'Boudha',
-            distance: '4.0 km',
-            time: '7:00 AM - 3:00 PM',
-            pay: '1,300',
-            rating: 4.7,
-            reviews: 156,
-            tag: 'Recommended'
-        },
-    ];
+    // Fetch all available shifts
+    useEffect(() => {
+        const fetchShifts = async () => {
+            try {
+                setLoadingShifts(true);
+                // Use the new endpoint specifically for open shifts
+                const response = await api.get('/shifts/open');
+                if (response.data.success) {
+                    setAvailableShifts(response.data.data);
+                }
+            } catch (error) {
+                console.error('Error fetching shifts:', error);
+                toast.error('Failed to load shifts. Please try again.');
+            } finally {
+                setLoadingShifts(false);
+            }
+        };
+
+        fetchShifts();
+    }, []);
+
+    const filters = ['All', 'Construction', 'Marketing', 'Delivery', 'Event Staff', 'Cleaning', 'Security', 'Teaching', 'Data Entry', 'Customer Service', 'Other'];
 
     if (loading) {
         return (
@@ -267,7 +237,7 @@ const FindShifts = () => {
                 {!canBid && verificationStatus !== 'pending' && (
                     <VerificationRequiredBanner onVerify={handleVerify} />
                 )}
-                
+
                 {/* Pending Verification Banner */}
                 {verificationStatus === 'pending' && (
                     <div className="glass-card rounded-2xl p-5 mb-6 bg-blue-50 border border-blue-200 animate-fade-in-up">
@@ -344,19 +314,54 @@ const FindShifts = () => {
                 </div>
 
                 {/* Shift Listings */}
-                <div className="space-y-6">
-                    {availableShifts.map((shift, index) => (
-                        <ShiftCard 
-                            key={shift.id} 
-                            shift={shift} 
-                            delay={index * 100}
-                            canApply={canBid}
-                            onApply={handleApply}
-                            onVerify={handleVerify}
-                        />
-                    ))}
-                </div>
+                {loadingShifts ? (
+                    <div className="text-center py-12">
+                        <Loader2 className="w-12 h-12 animate-spin text-[#0B4B54] mx-auto" />
+                        <p className="text-[#888888] mt-4">Loading available shifts...</p>
+                    </div>
+                ) : availableShifts.length === 0 ? (
+                    <div className="glass-card rounded-2xl p-12 text-center">
+                        <Briefcase size={64} className="text-[#82ACAB] mx-auto mb-4" />
+                        <h3 className="text-xl font-semibold text-[#032A33] mb-2">No Shifts Available</h3>
+                        <p className="text-[#888888]">Check back later for new opportunities</p>
+                    </div>
+                ) : (
+                    <div className="space-y-6">
+                        {availableShifts.map((shift, index) => (
+                            <ShiftCard
+                                key={shift._id}
+                                shift={{
+                                    id: shift._id,
+                                    title: shift.title,
+                                    company: shift.hirerId?.fullName || 'Employer',
+                                    description: shift.description || 'No description provided',
+                                    location: shift.location.city,
+                                    distance: '-- km',
+                                    time: `${shift.time.start} - ${shift.time.end}`,
+                                    pay: `${shift.pay.min}-${shift.pay.max}`,
+                                    rating: 4.5,
+                                    reviews: 0,
+                                    tag: 'New',
+                                    ...shift // Include all shift data for the modal
+                                }}
+                                delay={index * 100}
+                                canApply={canBid}
+                                onApply={() => handleApply(shift)}
+                                onVerify={handleVerify}
+                            />
+                        ))}
+                    </div>
+                )}
             </div>
+
+            {/* Bid Modal - Shows when worker clicks Apply */}
+            {showBidModal && selectedShift && (
+                <BidModal
+                    shift={selectedShift}
+                    onClose={() => setShowBidModal(false)}
+                    onSuccess={handleBidSuccess}
+                />
+            )}
         </WorkerLayout>
     );
 };

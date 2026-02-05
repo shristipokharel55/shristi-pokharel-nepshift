@@ -16,7 +16,9 @@ import {
     Zap
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import BidModal from '../../components/worker/BidModal';
 import WorkerLayout from '../../components/worker/WorkerLayout';
 import api from '../../utils/api';
 
@@ -315,7 +317,7 @@ const EarningsChart = ({ data }) => {
 };
 
 // Recommended Job Card
-const RecommendedJobCard = ({ job, delay }) => (
+const RecommendedJobCard = ({ job, delay, shift, onApply }) => (
     <div
         className="
       glass-card rounded-2xl p-5 card-hover
@@ -358,14 +360,16 @@ const RecommendedJobCard = ({ job, delay }) => (
                 <Star size={14} className="text-yellow-500 fill-yellow-500" />
                 <span className="text-sm font-medium text-[#032A33]">{job.rating}</span>
             </div>
-            <button className="
+            <button 
+                onClick={() => onApply && onApply(shift)}
+                className="
         px-4 py-2 rounded-xl
         bg-[#0B4B54] hover:bg-[#0D5A65]
         text-white text-sm font-semibold
         transition-all duration-200
         btn-ripple
       ">
-                View Details
+                Apply Now
             </button>
         </div>
     </div>
@@ -444,7 +448,47 @@ const WorkerDashboard = () => {
         });
     };
 
-    // Chart data
+    // State for real shift data
+    const [recommendedShifts, setRecommendedShifts] = useState([]);
+    const [loadingShifts, setLoadingShifts] = useState(true);
+    
+    // Bid modal state
+    const [selectedShift, setSelectedShift] = useState(null);
+    const [showBidModal, setShowBidModal] = useState(false);
+
+    // Fetch available shifts for recommendations
+    useEffect(() => {
+        const fetchShifts = async () => {
+            try {
+                setLoadingShifts(true);
+                const response = await api.get('/shifts?status=open');
+                if (response.data.success) {
+                    // Take first 3 shifts for recommendations
+                    setRecommendedShifts(response.data.data.slice(0, 3));
+                }
+            } catch (error) {
+                console.error('Error fetching shifts:', error);
+            } finally {
+                setLoadingShifts(false);
+            }
+        };
+        
+        fetchShifts();
+    }, []);
+    
+    // Handle bid modal
+    const handleApplyShift = (shift) => {
+        setSelectedShift(shift);
+        setShowBidModal(true);
+    };
+    
+    const handleBidSuccess = (message) => {
+        toast.success(message || 'Bid placed successfully!');
+        setShowBidModal(false);
+        setSelectedShift(null);
+    };
+
+    // Chart data - keeping for now but could be fetched from backend later
     const jobsChartData = [
         { label: 'Mon', value: 3 },
         { label: 'Tue', value: 5 },
@@ -463,39 +507,6 @@ const WorkerDashboard = () => {
         { day: 'Fri', amount: 1900 },
         { day: 'Sat', amount: 2500 },
         { day: 'Sun', amount: 1600 },
-    ];
-
-    const recommendedJobs = [
-        {
-            id: 1,
-            title: 'Kitchen Helper',
-            company: 'Hotel Himalaya',
-            location: 'Kathmandu',
-            time: '6 AM - 2 PM',
-            pay: '1,200',
-            rating: 4.8,
-            tag: 'Recommended'
-        },
-        {
-            id: 2,
-            title: 'Event Staff',
-            company: 'Marriott Hotel',
-            location: 'Lalitpur',
-            time: '4 PM - 10 PM',
-            pay: '1,500',
-            rating: 4.5,
-            tag: 'New'
-        },
-        {
-            id: 3,
-            title: 'Warehouse Helper',
-            company: 'Daraz Nepal',
-            location: 'Bhaktapur',
-            time: '8 AM - 4 PM',
-            pay: '1,000',
-            rating: 4.3,
-            tag: 'Urgent'
-        }
     ];
 
     return (
@@ -623,19 +634,56 @@ const WorkerDashboard = () => {
                 <div className="flex items-center justify-between mb-6">
                     <h3 className="font-semibold text-[#032A33] text-lg">Recommended Shifts</h3>
                     <button
-                        onClick={() => navigate('/worker/nearby-jobs')}
+                        onClick={() => navigate('/worker/find-shifts')}
                         className="text-[#0B4B54] hover:text-[#0D5A65] font-semibold text-sm flex items-center gap-1 group"
                     >
                         View All
                         <ArrowUpRight size={16} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                     </button>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {recommendedJobs.map((job, index) => (
-                        <RecommendedJobCard key={job.id} job={job} delay={600 + (index * 100)} />
-                    ))}
-                </div>
+                {loadingShifts ? (
+                    <div className="text-center py-12">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0B4B54] mx-auto"></div>
+                        <p className="text-[#888888] mt-4">Loading shifts...</p>
+                    </div>
+                ) : recommendedShifts.length === 0 ? (
+                    <div className="text-center py-12 glass-card rounded-2xl">
+                        <Briefcase size={48} className="text-[#82ACAB] mx-auto mb-4" />
+                        <h4 className="font-semibold text-[#032A33] mb-2">No Shifts Available</h4>
+                        <p className="text-[#888888]">Check back later for new opportunities</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {recommendedShifts.map((shift, index) => (
+                            <RecommendedJobCard 
+                                key={shift._id} 
+                                job={{
+                                    id: shift._id,
+                                    title: shift.title,
+                                    company: shift.hirerId?.fullName || 'Employer',
+                                    location: shift.location.city,
+                                    time: `${shift.time.start} - ${shift.time.end}`,
+                                    pay: `${shift.pay.min}-${shift.pay.max}`,
+                                    rating: 4.5,
+                                    tag: 'New'
+                                }} 
+                                shift={shift}
+                                onApply={handleApplyShift}
+                                delay={600 + (index * 100)} 
+                            />
+                        ))}
+                    </div>
+                )}
             </div>
+
+            {/* Bid Modal - Shows when worker clicks Apply */}
+            {showBidModal && selectedShift && (
+                <BidModal
+                    shift={selectedShift}
+                    onClose={() => setShowBidModal(false)}
+                    onSuccess={handleBidSuccess}
+                />
+            )}
 
             {/* Footer Info */}
             <div className="text-center py-6 border-t border-[#82ACAB]/20">

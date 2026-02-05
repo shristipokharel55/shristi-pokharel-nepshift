@@ -39,8 +39,8 @@ const HirerLayout = ({ children }) => {
     const navItems = [
         { name: 'Dashboard', path: '/hirer/dashboard', icon: 'ph-squares-four' },
         { name: 'Post a Shift', path: '/hirer/post-shift', icon: 'ph-plus-circle', highlighted: true },
-        { name: 'Manage Jobs', path: '/hirer/manage-jobs', icon: 'ph-briefcase' },
-        { name: 'Applicants', path: '/hirer/applicants', icon: 'ph-users' },
+        { name: 'Manage Shifts', path: '/hirer/manage-jobs', icon: 'ph-briefcase' },
+        { name: 'Workers', path: '/hirer/workers', icon: 'ph-users' },
         { name: 'Payments', path: '/hirer/payments', icon: 'ph-credit-card' },
     ];
 

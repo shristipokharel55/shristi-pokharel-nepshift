@@ -1,272 +1,270 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import HirerLayout from '../../components/hirer/HirerLayout';
-import { useAuth } from '../../context/AuthContext';
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import HirerLayout from "../../components/hirer/HirerLayout";
+import api from "../../utils/api";
 
-// Stat Card Component
+// Stat Card Component  
 const StatCard = ({ title, value, icon, trend, trendValue, delay }) => (
-    <div
-        className={`
-      glass-card rounded-2xl p-6 card-hover
-      animate-fade-in-up opacity-0
-    `}
-        style={{ animationDelay: `${delay}ms`, animationFillMode: 'forwards' }}
-    >
-        <div className="flex items-start justify-between mb-4">
-            <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg bg-gradient-to-br from-[#0B4B54] to-[#0D5A65]"
-            >
-                <i className={`ph ${icon} text-2xl text-white`}></i>
-            </div>
-            {trend && (
-                <div className={`
-          flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold
-          ${trend === 'up' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}
-        `}>
-                    <i className={`ph ${trend === 'up' ? 'ph-trend-up' : 'ph-trend-down'} font-bold`}></i>
-                    {trendValue}
-                </div>
-            )}
+  <div
+    className="bg-white rounded-2xl p-6 shadow-sm border border-[#82ACAB]/20 hover:shadow-md transition-all animate-fade-in-up opacity-0"
+    style={{ animationDelay: `${delay}ms`, animationFillMode: "forwards" }}
+  >
+    <div className="flex items-start justify-between mb-4">
+      <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg bg-gradient-to-br from-[#0B4B54] to-[#0D5A65]">
+        <i className={`ph ${icon} text-2xl text-white`}></i>
+      </div>
+      {trend && (
+        <div
+          className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${trend === "up" ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"
+            }`}
+        >
+          <i className={`ph ${trend === "up" ? "ph-trend-up" : "ph-trend-down"} font-bold`}></i>
+          {trendValue}
         </div>
-        <h3 className="text-3xl font-bold text-[#032A33] mb-1">{value}</h3>
-        <p className="text-[#888888] font-medium">{title}</p>
+      )}
     </div>
+    <h3 className="text-3xl font-bold text-[#032A33] mb-1">{value}</h3>
+    <p className="text-[#888888] font-medium">{title}</p>
+  </div>
 );
 
-// Applicant List Item
-const ApplicantItem = ({ applicant, delay }) => (
-    <div
-        className="p-4 bg-white hover:bg-[#F4FBFA] border border-[#82ACAB]/10 rounded-xl transition-all duration-200 animate-slide-in-left opacity-0"
-        style={{ animationDelay: `${delay}ms`, animationFillMode: 'forwards' }}
-    >
-        <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#82ACAB] to-[#0B4B54] flex items-center justify-center text-white font-bold text-lg shadow-md hover:shadow-lg transition-shadow">
-                {applicant.avatar}
-            </div>
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-1">
-                    <h4 className="font-semibold text-[#032A33] truncate">{applicant.name}</h4>
-                    <span className="flex items-center gap-1 text-xs font-semibold bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full">
-                        <i className="ph-fill ph-star text-amber-500"></i>
-                        {applicant.rating}
-                    </span>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-[#888888] mb-1">
-                    <span className="flex items-center gap-1">
-                        <i className="ph ph-briefcase text-[#82ACAB]"></i>
-                        {applicant.experience}
-                    </span>
-                    <span>•</span>
-                    <span className="truncate">Applied: {applicant.appliedFor}</span>
-                </div>
-            </div>
-            <button className="px-4 py-2 bg-[#0B4B54] hover:bg-[#0D5A65] text-white text-xs font-semibold rounded-lg transition-colors shadow-sm hover:shadow-md">
-                Review
-            </button>
-        </div>
-    </div>
-);
+export default function HirerDashboard() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
-// Active Shift Card
-const ActiveShiftCard = ({ shift, delay }) => (
-    <div
-        className="p-4 bg-white border border-[#82ACAB]/20 rounded-xl hover:shadow-md transition-all duration-200 animate-fade-in-up opacity-0"
-        style={{ animationDelay: `${delay}ms`, animationFillMode: 'forwards' }}
-    >
-        <div className="flex justify-between items-start mb-3">
-            <div>
-                <h4 className="font-semibold text-[#032A33]">{shift.title}</h4>
-                <p className="text-xs text-[#888888] mt-0.5">{shift.location}</p>
-            </div>
-            <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide ${shift.status === 'Fully Staffed' ? 'bg-emerald-100 text-emerald-700' :
-                shift.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
-                    'bg-amber-100 text-amber-700'
-                }`}>
-                {shift.status}
-            </span>
-        </div>
+  // State to store the hirer's posted shifts
+  const [myShifts, setMyShifts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalShifts: 0,
+    openShifts: 0,
+    totalApplicants: 0,
+    completedShifts: 0,
+  });
 
-        <div className="flex items-center gap-3 text-xs text-[#555555] mb-3">
-            <span className="flex items-center gap-1.5 bg-white px-2 py-1 rounded border border-gray-100">
-                <i className="ph ph-clock text-[#82ACAB]"></i>
-                {shift.startTime} - {shift.endTime}
-            </span>
-            <span className="flex items-center gap-1.5 bg-white px-2 py-1 rounded border border-gray-100">
-                <i className="ph ph-users text-[#82ACAB]"></i>
-                {shift.workers}/{shift.totalWorkers}
-            </span>
-        </div>
+  const firstName = user?.fullName?.split(" ")[0] || "Employer";
 
-        <div className="w-full h-1.5 bg-[#D3E4E7] rounded-full overflow-hidden">
-            <div
-                className="h-full bg-[#0B4B54] rounded-full transition-all duration-500"
-                style={{ width: `${shift.progress}%` }}
-            ></div>
-        </div>
-    </div>
-);
+  // Fetch my shifts when component loads
+  useEffect(() => {
+    fetchMyShifts();
+  }, []);
 
-const HirerDashboard = () => {
-    const navigate = useNavigate();
-    const { user } = useAuth();
-    const firstName = user?.fullName?.split(" ")[0] || "Employer";
+  const fetchMyShifts = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get("/shifts/my-shifts");
 
-    const [currentTime, setCurrentTime] = useState(new Date());
+      if (response.data.success) {
+        const shifts = response.data.data;
+        setMyShifts(shifts);
 
-    useEffect(() => {
-        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-        return () => clearInterval(timer);
-    }, []);
+        // Calculate statistics from the shifts
+        const totalApplicants = shifts.reduce((sum, shift) => sum + shift.applicants.length, 0);
+        const openShifts = shifts.filter((s) => s.status === "open").length;
+        const completedShifts = shifts.filter((s) => s.status === "completed").length;
 
-    // Get greeting based on time of day
-    const getGreeting = () => {
-        const hour = currentTime.getHours();
-        if (hour < 12) return 'Good Morning';
-        if (hour < 17) return 'Good Afternoon';
-        return 'Good Evening';
-    };
-
-    const formatDate = () => {
-        return currentTime.toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
+        setStats({
+          totalShifts: shifts.length,
+          openShifts,
+          totalApplicants,
+          completedShifts,
         });
-    };
+      }
+    } catch (error) {
+      console.error("Failed to fetch shifts:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const stats = [
-        { label: 'Total Hires', value: '24', icon: 'ph-users', trend: 'up', trendValue: '+12%' },
-        { label: 'Active Shifts', value: '3', icon: 'ph-briefcase', trend: null },
-        { label: 'Total Spend', value: 'Rs 45k', icon: 'ph-currency-dollar', trend: 'up', trendValue: '+8%' },
-    ];
+  // Format date to readable string
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
 
-    const recentApplicants = [
-        { id: 1, name: 'Ram Sharma', rating: 4.8, experience: '2 yrs', avatar: 'R', appliedFor: 'Kitchen Helper' },
-        { id: 2, name: 'Sita Gurung', rating: 4.9, experience: '3 yrs', avatar: 'S', appliedFor: 'Event Staff' },
-        { id: 3, name: 'Hari Thapa', rating: 4.5, experience: '1 yr', avatar: 'H', appliedFor: 'Warehouse Helper' },
-        { id: 4, name: 'Maya Rai', rating: 4.7, experience: '2 yrs', avatar: 'M', appliedFor: 'Restaurant Server' },
-        { id: 5, name: 'Bikash Lama', rating: 4.6, experience: '1.5 yrs', avatar: 'B', appliedFor: 'Cleaning Staff' },
-    ];
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good Morning";
+    if (hour < 18) return "Good Afternoon";
+    return "Good Evening";
+  };
 
-    const activeShifts = [
-        { id: 1, title: 'Kitchen Helper', location: 'Lalitpur', workers: 2, totalWorkers: 3, status: 'In Progress', startTime: '6:00 AM', endTime: '2:00 PM', progress: 65 },
-        { id: 2, title: 'Event Staff', location: 'Kathmandu', workers: 5, totalWorkers: 5, status: 'Fully Staffed', startTime: '4:00 PM', endTime: '11:00 PM', progress: 30 },
-        { id: 3, title: 'Warehouse Helper', location: 'Bhaktapur', workers: 1, totalWorkers: 2, status: 'Needs Staff', startTime: '8:00 AM', endTime: '4:00 PM', progress: 10 },
-    ];
-
-    return (
-        <HirerLayout>
-            <div className="max-w-[1400px] mx-auto min-h-screen pb-10">
-                {/* Hero / Greeting Section */}
-                <div className="mb-8 animate-fade-in-up">
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                        <div>
-                            <h1 className="text-3xl lg:text-4xl font-bold text-[#032A33] mb-2 font-display">
-                                {getGreeting()}, <span className="text-[#0B4B54]">{firstName}</span>! 👋
-                            </h1>
-                            <p className="text-[#888888] font-medium text-lg flex items-center gap-2">
-                                You have <span className="text-[#0B4B54] font-semibold bg-[#D3E4E7]/50 px-2 py-0.5 rounded-lg">5 new applicants</span> waiting for review.
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <button
-                                onClick={() => navigate('/hirer/post-shift')}
-                                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0B4B54] to-[#0F6974] text-white font-semibold flex items-center gap-2 shadow-lg shadow-[#0B4B54]/20 hover:shadow-[#0B4B54]/30 hover:-translate-y-0.5 transition-all duration-300"
-                            >
-                                <i className="ph ph-plus-circle text-lg"></i>
-                                Post a Shift
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Main Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    {stats.map((stat, index) => (
-                        <StatCard
-                            key={index}
-                            {...stat}
-                            delay={100 + index * 100}
-                        />
-                    ))}
-                </div>
-
-                {/* Content Grid: Applicants & Shifts */}
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-
-                    {/* Recent Applicants Column (Use 2 spans on large screens) */}
-                    <div className="xl:col-span-2 space-y-4 animate-fade-in-up opacity-0" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
-                        <div className="flex items-center justify-between mb-2">
-                            <h2 className="text-xl font-bold text-[#032A33] flex items-center gap-2">
-                                <i className="ph ph-users text-[#0B4B54]"></i>
-                                Recent Applicants
-                            </h2>
-                            <button
-                                onClick={() => navigate('/hirer/applicants')}
-                                className="text-[#0B4B54] font-semibold text-sm hover:underline flex items-center gap-1 group"
-                            >
-                                View All
-                                <i className="ph ph-arrow-right group-hover:translate-x-1 transition-transform"></i>
-                            </button>
-                        </div>
-
-                        <div className="glass-card rounded-2xl p-6 shadow-sm border border-[#82ACAB]/20">
-                            <div className="space-y-3">
-                                {recentApplicants.map((applicant, idx) => (
-                                    <ApplicantItem
-                                        key={applicant.id}
-                                        applicant={applicant}
-                                        delay={500 + idx * 50}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Active Shifts Column (Use 1 span on large screens) */}
-                    <div className="xl:col-span-1 space-y-4 animate-fade-in-up opacity-0" style={{ animationDelay: '500ms', animationFillMode: 'forwards' }}>
-                        <div className="flex items-center justify-between mb-2">
-                            <h2 className="text-xl font-bold text-[#032A33] flex items-center gap-2">
-                                <i className="ph ph-clock-countdown text-[#0B4B54]"></i>
-                                Active Shifts
-                            </h2>
-                            <button
-                                onClick={() => navigate('/hirer/manage-jobs')}
-                                className="text-[#0B4B54] font-semibold text-sm hover:underline"
-                            >
-                                Manage
-                            </button>
-                        </div>
-
-                        <div className="glass-card rounded-2xl p-5 shadow-sm border border-[#82ACAB]/20 space-y-4 min-h-[400px]">
-                            {activeShifts.map((shift, idx) => (
-                                <ActiveShiftCard
-                                    key={shift.id}
-                                    shift={shift}
-                                    delay={600 + idx * 100}
-                                />
-                            ))}
-
-                            <button className="w-full py-3 mt-2 rounded-xl border border-dashed border-[#82ACAB] text-[#0B4B54] font-medium hover:bg-[#F4FBFA] transition-colors flex items-center justify-center gap-2 group">
-                                <i className="ph ph-plus-circle text-lg group-hover:scale-110 transition-transform"></i>
-                                View All Active Shifts
-                            </button>
-                        </div>
-                    </div>
-
-                </div>
-
-                {/* Footer Info */}
-                <div className="text-center py-6 mt-8 border-t border-[#82ACAB]/10">
-                    <p className="text-sm text-[#888888] flex items-center justify-center gap-2">
-                        <i className="ph-fill ph-check-circle text-emerald-500"></i>
-                        All systems operational
-                    </p>
-                </div>
+  return (
+    <HirerLayout>
+      <div className="p-6 max-w-[1400px] mx-auto">
+        {/* Welcome Section */}
+        <div className="mb-8 animate-fade-in-up">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-3xl lg:text-4xl font-bold text-[#032A33] mb-2">
+                {getGreeting()}, <span className="text-[#0B4B54]">{firstName}</span>! 👋
+              </h1>
+              <p className="text-[#888888] font-medium">Here's what's happening with your shifts today</p>
             </div>
-        </HirerLayout>
-    );
-};
+            <button
+              onClick={() => navigate("/hirer/post-shift")}
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0B4B54] to-[#0F6974] text-white font-semibold flex items-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all"
+            >
+              <i className="ph ph-plus-circle text-lg"></i>
+              Post a Shift
+            </button>
+          </div>
+        </div>
 
-export default HirerDashboard;
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Total Shifts */}
+          <StatCard title="Total Shifts" value={stats.totalShifts} icon="ph-briefcase" delay={100} />
+
+          {/* Open Shifts */}
+          <StatCard title="Open Shifts" value={stats.openShifts} icon="ph-clock-countdown" delay={200} />
+
+          {/* Total Applicants */}
+          <StatCard
+            title="Total Applicants"
+            value={stats.totalApplicants}
+            icon="ph-users"
+            trend="up"
+            trendValue={`${stats.totalApplicants} total`}
+            delay={300}
+          />
+
+          {/* Completed Shifts */}
+          <StatCard title="Completed" value={stats.completedShifts} icon="ph-check-circle" delay={400} />
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Post New Shift Card */}
+          <Link
+            to="/hirer/post-shift"
+            className="bg-gradient-to-r from-[#0B4B54] to-[#0F6974] rounded-xl shadow-sm p-6 text-white hover:shadow-lg transition group"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-semibold mb-2">Post a New Shift</h3>
+                <p className="text-white/80">Find the right worker for your job</p>
+              </div>
+              <i className="ph ph-arrow-right text-3xl group-hover:translate-x-1 transition"></i>
+            </div>
+          </Link>
+
+          {/* Browse Workers Card */}
+          <Link
+            to="/hirer/workers"
+            className="bg-white rounded-xl shadow-sm p-6 border border-[#82ACAB]/20 hover:border-[#0B4B54] transition group"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-semibold mb-2 text-[#032A33]">Browse Workers</h3>
+                <p className="text-[#888888]">View and contact available workers</p>
+              </div>
+              <i className="ph ph-arrow-right text-3xl text-[#888888] group-hover:text-[#0B4B54] group-hover:translate-x-1 transition"></i>
+            </div>
+          </Link>
+        </div>
+
+        {/* Your Recent Shifts */}
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-[#82ACAB]/20">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-[#032A33] flex items-center gap-2">
+              <i className="ph ph-clock-countdown text-[#0B4B54]"></i>
+              Your Recent Shifts
+            </h2>
+            <Link to="/hirer/manage-jobs" className="text-[#0B4B54] hover:text-[#0D5A65] font-semibold">
+              View All →
+            </Link>
+          </div>
+
+          {loading ? (
+            // Loading state
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0B4B54] mx-auto"></div>
+              <p className="text-[#888888] mt-4">Loading your shifts...</p>
+            </div>
+          ) : myShifts.length === 0 ? (
+            // Empty state
+            <div className="text-center py-12">
+              <i className="ph ph-briefcase text-6xl text-[#82ACAB] mb-4"></i>
+              <h3 className="text-lg font-medium text-[#032A33] mb-2">No shifts posted yet</h3>
+              <p className="text-[#888888] mb-6">Get started by posting your first shift</p>
+              <button
+                onClick={() => navigate("/hirer/post-shift")}
+                className="inline-block bg-[#0B4B54] text-white px-6 py-3 rounded-lg hover:bg-[#0D5A65] transition"
+              >
+                Post Your First Shift
+              </button>
+            </div>
+          ) : (
+            // Shifts list
+            <div className="space-y-4">
+              {myShifts.slice(0, 5).map((shift, idx) => (
+                <div
+                  key={shift._id}
+                  className="border border-[#82ACAB]/20 rounded-xl p-4 hover:border-[#0B4B54] transition animate-fade-in-up opacity-0"
+                  style={{ animationDelay: `${500 + idx * 50}ms`, animationFillMode: "forwards" }}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="font-semibold text-[#032A33]">{shift.title}</h3>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${shift.status === "open"
+                              ? "bg-green-100 text-green-700"
+                              : shift.status === "completed"
+                                ? "bg-gray-100 text-gray-700"
+                                : "bg-blue-100 text-blue-700"
+                            }`}
+                        >
+                          {shift.status}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-wrap gap-4 text-sm text-[#888888] mb-3">
+                        <div className="flex items-center gap-1">
+                          <i className="ph ph-calendar"></i>
+                          {formatDate(shift.date)}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <i className="ph ph-clock"></i>
+                          {shift.time.start} - {shift.time.end}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <i className="ph ph-map-pin"></i>
+                          {shift.location.city}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <i className="ph ph-currency-dollar"></i>
+                          NPR {shift.pay.min} - {shift.pay.max}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-sm">
+                        <i className="ph ph-users text-[#82ACAB]"></i>
+                        <span className="text-[#888888]">
+                          {shift.applicants.length} applicant{shift.applicants.length !== 1 ? "s" : ""}
+                        </span>
+                      </div>
+                    </div>
+
+                    <Link
+                      to={`/hirer/shift/${shift._id}`}
+                      className="text-[#0B4B54] hover:text-[#0D5A65] font-medium text-sm ml-4"
+                    >
+                      View Details →
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </HirerLayout>
+  );
+}

@@ -351,14 +351,14 @@ const Header = ({ onMenuClick }) => {
                                                 className={`p-4 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-b-0 ${!notification.read ? 'bg-blue-50/50' : ''}`}
                                             >
                                                 <div className="flex items-start gap-3">
-                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${getIconColor(notification.type)}`}>
+                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${getIconColor(notification.type)}`}>
                                                         <Icon size={16} />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center gap-2">
                                                             <p className="font-medium text-slate-900 text-sm">{notification.title}</p>
                                                             {!notification.read && (
-                                                                <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
+                                                                <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
                                                             )}
                                                         </div>
                                                         <p className="text-slate-600 text-xs mt-0.5 truncate">{notification.message}</p>

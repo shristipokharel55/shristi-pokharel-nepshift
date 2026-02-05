@@ -9,7 +9,8 @@ import {
     submitVerification,
     updateHelperLocation,
     updateHelperProfile,
-    uploadImage
+    uploadImage,
+    getAllWorkers
 } from "../controllers/helperController.js";
 import { authorizeRoles, protect } from "../middlewares/authMiddleware.js";
 
@@ -46,6 +47,9 @@ const upload = multer({
 // All routes require authentication and helper role
 router.use(protect);
 router.use(authorizeRoles('helper'));
+
+// Public route for hirers to browse workers
+router.get('/workers', protect, authorizeRoles('hirer'), getAllWorkers);
 
 // Profile routes
 router.get('/profile', getHelperProfile);

@@ -339,7 +339,7 @@ const WorkerLayout = ({ children }) => {
                                                     className={`p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0 ${!notification.read ? 'bg-blue-50/50' : ''}`}
                                                 >
                                                     <div className="flex items-start gap-3">
-                                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${getNotificationColor(notification.type)}`}>
+                                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${getNotificationColor(notification.type)}`}>
                                                             {notification.type === 'success' && <CheckCircle size={16} />}
                                                             {notification.type === 'warning' && <Clock size={16} />}
                                                             {notification.type === 'error' && <XCircle size={16} />}
@@ -349,7 +349,7 @@ const WorkerLayout = ({ children }) => {
                                                             <div className="flex items-center gap-2">
                                                                 <p className="font-medium text-[#032A33] text-sm">{notification.title}</p>
                                                                 {!notification.read && (
-                                                                    <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
+                                                                    <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
                                                                 )}
                                                             </div>
                                                             <p className="text-[#888888] text-xs mt-0.5 truncate">{notification.message}</p>

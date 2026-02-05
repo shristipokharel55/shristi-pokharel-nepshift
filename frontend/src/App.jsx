@@ -32,6 +32,8 @@ import HirerPayments from "./pages/hirer/HirerPayments";
 import HirerProfile from "./pages/hirer/HirerProfile";
 import ManageJobs from "./pages/hirer/ManageJobs";
 import PostShift from "./pages/hirer/PostShift";
+import ShiftDetails from "./pages/hirer/ShiftDetails";
+import Workers from "./pages/hirer/Workers";
 
 // Admin Dashboard Pages
 import { GoogleOAuthProvider } from "@react-oauth/google";
@@ -44,7 +46,7 @@ import AdminVerification from "./pages/admin/AdminVerification";
 
 
 function App() {
-    const GoogleAuthWrapper = () => {
+  const GoogleAuthWrapper = () => {
     return (
       <GoogleOAuthProvider clientId="468772811061-2irh6mqdpdu2el7143jc3jlp1bbvh4te.apps.googleusercontent.com">
         <Login />
@@ -192,6 +194,14 @@ function App() {
           }
         />
         <Route
+          path="/hirer/workers"
+          element={
+            <ProtectedRoute requiredRole="hirer">
+              <Workers />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/hirer/applicants"
           element={
             <ProtectedRoute requiredRole="hirer">
@@ -212,6 +222,14 @@ function App() {
           element={
             <ProtectedRoute requiredRole="hirer">
               <HirerProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hirer/shift/:id"
+          element={
+            <ProtectedRoute requiredRole="hirer">
+              <ShiftDetails />
             </ProtectedRoute>
           }
         />

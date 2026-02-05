@@ -10,6 +10,8 @@ import adminRoutes from "./routes/adminRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import helperRoutes from "./routes/helperRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import shiftRoutes from "./routes/shiftRoutes.js";
+import bidRoutes from "./routes/bidRoutes.js";
 
 // ES Module directory name
 const __filename = fileURLToPath(import.meta.url);
@@ -61,6 +63,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/helper", helperRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/shifts", shiftRoutes);
+app.use("/api/bids", bidRoutes);
 
 // Test Route
 app.get("/", (req, res) => {

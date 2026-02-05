@@ -1,384 +1,169 @@
-import {
-    Briefcase,
-    Calendar,
-    Clock,
-    DollarSign,
-    Edit,
-    Eye,
-    FileText,
-    MapPin,
-    MoreVertical,
-    Plus,
-    Search,
-    Trash2
-} from 'lucide-react';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import HirerLayout from '../../components/hirer/HirerLayout';
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import HirerLayout from "../../components/hirer/HirerLayout";
+import api from "../../utils/api";
 
-const ManageJobs = () => {
-    const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState('active');
-    const [searchQuery, setSearchQuery] = useState('');
+export default function ManageJobs() {
+  const navigate = useNavigate();
+  const [shifts, setShifts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("all"); // all, open, completed, cancelled
 
-    const tabs = [
-        { id: 'active', label: 'Active', icon: Briefcase, count: 3 },
-        { id: 'drafts', label: 'Drafts', icon: FileText, count: 2 },
-        { id: 'history', label: 'History', icon: Calendar, count: 12 },
-    ];
+  useEffect(() => {
+    fetchShifts();
+  }, [filter]);
 
-    const activeJobs = [
-        {
-            id: 1,
-            title: 'Kitchen Helper',
-            category: 'Kitchen Staff',
-            location: 'Lalitpur',
-            date: 'Jan 31, 2026',
-            time: '6:00 AM - 2:00 PM',
-            budget: 1200,
-            workersNeeded: 3,
-            workersHired: 2,
-            applicants: 8,
-            status: 'active'
-        },
-        {
-            id: 2,
-            title: 'Event Staff',
-            category: 'Events',
-            location: 'Kathmandu',
-            date: 'Feb 1, 2026',
-            time: '4:00 PM - 11:00 PM',
-            budget: 1500,
-            workersNeeded: 5,
-            workersHired: 5,
-            applicants: 12,
-            status: 'filled'
-        },
-        {
-            id: 3,
-            title: 'Warehouse Helper',
-            category: 'Warehouse',
-            location: 'Bhaktapur',
-            date: 'Feb 2, 2026',
-            time: '8:00 AM - 4:00 PM',
-            budget: 1000,
-            workersNeeded: 2,
-            workersHired: 1,
-            applicants: 5,
-            status: 'active'
-        },
-    ];
+  const fetchShifts = async () => {
+    try {
+      setLoading(true);
+      // If filter is "all", don't send status param
+      const url = filter === "all" ? "/shifts/my-shifts" : `/shifts/my-shifts?status=${filter}`;
+      const response = await api.get(url);
 
-    const draftJobs = [
-        {
-            id: 4,
-            title: 'Restaurant Server',
-            category: 'Restaurant',
-            location: 'Patan',
-            lastEdited: '2 days ago',
-            completion: 60
-        },
-        {
-            id: 5,
-            title: 'Cleaning Staff',
-            category: 'Cleaning',
-            location: '',
-            lastEdited: '5 days ago',
-            completion: 30
-        },
-    ];
+      if (response.data.success) {
+        setShifts(response.data.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch shifts:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const historyJobs = [
-        {
-            id: 6,
-            title: 'Kitchen Helper',
-            category: 'Kitchen Staff',
-            location: 'Lalitpur',
-            date: 'Jan 25, 2026',
-            budget: 1200,
-            workersHired: 3,
-            totalSpent: 3600,
-            rating: 4.8,
-            status: 'completed'
-        },
-        {
-            id: 7,
-            title: 'Event Staff',
-            category: 'Events',
-            location: 'Kathmandu',
-            date: 'Jan 20, 2026',
-            budget: 1500,
-            workersHired: 4,
-            totalSpent: 6000,
-            rating: 4.9,
-            status: 'completed'
-        },
-        {
-            id: 8,
-            title: 'Warehouse Helper',
-            category: 'Warehouse',
-            location: 'Bhaktapur',
-            date: 'Jan 15, 2026',
-            budget: 1000,
-            workersHired: 2,
-            totalSpent: 2000,
-            rating: 4.5,
-            status: 'completed'
-        },
-    ];
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
 
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'active': return 'bg-blue-100 text-blue-700';
-            case 'filled': return 'bg-emerald-100 text-emerald-700';
-            case 'completed': return 'bg-gray-100 text-gray-700';
-            case 'cancelled': return 'bg-red-100 text-red-700';
-            default: return 'bg-gray-100 text-gray-700';
-        }
-    };
-
-    const renderActiveJobs = () => (
-        <div className="space-y-4">
-            {activeJobs.map((job, index) => (
-                <div key={job.id} className="bg-white/70 rounded-xl border border-[#82ACAB]/20 p-6 hover:shadow-md transition-all hover:border-[#0B4B54]/30 opacity-0 animate-fade-in-up" style={{ animationDelay: `${0.1 * index}s`, animationFillMode: 'forwards' }}>
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                        <div className="flex-1">
-                            <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-[#0B4B54]/10 flex items-center justify-center shrink-0">
-                                    <Briefcase size={24} className="text-[#0B4B54]" />
-                                </div>
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-3 mb-1">
-                                        <h3 className="font-semibold text-[#032A33] text-lg">{job.title}</h3>
-                                        <span className={`px-2.5 py-0.5 rounded-lg text-xs font-semibold capitalize ${getStatusColor(job.status)}`}>
-                                            {job.status === 'filled' ? 'Fully Staffed' : job.status}
-                                        </span>
-                                    </div>
-                                    <div className="flex flex-wrap gap-4 text-sm text-[#888888]">
-                                        <span className="flex items-center gap-1">
-                                            <MapPin size={14} />
-                                            {job.location}
-                                        </span>
-                                        <span className="flex items-center gap-1">
-                                            <Calendar size={14} />
-                                            {job.date}
-                                        </span>
-                                        <span className="flex items-center gap-1">
-                                            <Clock size={14} />
-                                            {job.time}
-                                        </span>
-                                        <span className="flex items-center gap-1">
-                                            <DollarSign size={14} />
-                                            Rs {job.budget}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-6">
-                            <div className="text-center px-4 py-2 bg-[#D3E4E7]/50 rounded-lg">
-                                <p className="text-lg font-bold text-[#0B4B54]">{job.workersHired}/{job.workersNeeded}</p>
-                                <p className="text-xs text-[#888888]">Workers</p>
-                            </div>
-                            <div className="text-center px-4 py-2 bg-[#0B4B54]/10 rounded-lg">
-                                <p className="text-lg font-bold text-[#0B4B54]">{job.applicants}</p>
-                                <p className="text-xs text-[#888888]">Applicants</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button 
-                                    onClick={() => navigate('/hirer/applicants')}
-                                    className="px-4 py-2 bg-[#0B4B54] text-white text-sm font-medium rounded-lg hover:bg-[#0B4B54]/90 transition-colors"
-                                >
-                                    View Applicants
-                                </button>
-                                <button className="p-2 hover:bg-[#D3E4E7]/50 rounded-lg transition-colors">
-                                    <MoreVertical size={18} className="text-[#82ACAB]" />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            ))}
+  return (
+    <HirerLayout>
+      <div className="p-6 max-w-[1400px] mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-[#032A33]">Manage Shifts</h1>
+            <p className="text-[#888888] mt-2">View and manage all your posted shifts</p>
+          </div>
+          <Link
+            to="/hirer/post-shift"
+            className="bg-[#0B4B54] text-white px-6 py-3 rounded-lg hover:bg-[#0D5A65] transition flex items-center gap-2"
+          >
+            <i className="ph ph-plus-circle text-lg"></i>
+            Post New Shift
+          </Link>
         </div>
-    );
 
-    const renderDrafts = () => (
-        <div className="space-y-4">
-            {draftJobs.map((job, index) => (
-                <div key={job.id} className="bg-white/70 rounded-xl border border-[#82ACAB]/20 p-6 hover:shadow-md transition-all hover:border-[#0B4B54]/30 opacity-0 animate-fade-in-up" style={{ animationDelay: `${0.1 * index}s`, animationFillMode: 'forwards' }}>
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-[#D3E4E7]/50 flex items-center justify-center">
-                                <FileText size={24} className="text-[#82ACAB]" />
-                            </div>
-                            <div>
-                                <h3 className="font-semibold text-[#032A33] text-lg">{job.title}</h3>
-                                <div className="flex items-center gap-3 text-sm text-[#888888] mt-1">
-                                    <span>{job.category}</span>
-                                    {job.location && (
-                                        <>
-                                            <span>•</span>
-                                            <span>{job.location}</span>
-                                        </>
-                                    )}
-                                    <span>•</span>
-                                    <span>Last edited {job.lastEdited}</span>
-                                </div>
-                                <div className="mt-3">
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex-1 h-2 bg-[#D3E4E7]/50 rounded-full max-w-[200px]">
-                                            <div 
-                                                className="h-full bg-[#0B4B54] rounded-full"
-                                                style={{ width: `${job.completion}%` }}
-                                            />
-                                        </div>
-                                        <span className="text-xs text-[#888888]">{job.completion}% complete</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <button className="px-4 py-2 bg-[#0B4B54] text-white text-sm font-medium rounded-lg hover:bg-[#0B4B54]/90 transition-colors flex items-center gap-2">
-                                <Edit size={16} />
-                                Continue Editing
-                            </button>
-                            <button className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                                <Trash2 size={18} />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            ))}
-        </div>
-    );
-
-    const renderHistory = () => (
-        <div className="space-y-4">
-            {historyJobs.map((job, index) => (
-                <div key={job.id} className="bg-white/70 rounded-xl border border-[#82ACAB]/20 p-6 hover:shadow-md transition-all hover:border-[#0B4B54]/30 opacity-0 animate-fade-in-up" style={{ animationDelay: `${0.1 * index}s`, animationFillMode: 'forwards' }}>
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                        <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
-                                <Briefcase size={24} className="text-emerald-600" />
-                            </div>
-                            <div>
-                                <div className="flex items-center gap-3 mb-1">
-                                    <h3 className="font-semibold text-[#032A33] text-lg">{job.title}</h3>
-                                    <span className="px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-emerald-100 text-emerald-700">
-                                        Completed
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-4 text-sm text-[#888888]">
-                                    <span className="flex items-center gap-1">
-                                        <MapPin size={14} />
-                                        {job.location}
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                        <Calendar size={14} />
-                                        {job.date}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-6">
-                            <div className="text-center px-4 py-2 bg-[#D3E4E7]/50 rounded-lg">
-                                <p className="text-lg font-bold text-[#032A33]">{job.workersHired}</p>
-                                <p className="text-xs text-[#888888]">Workers</p>
-                            </div>
-                            <div className="text-center px-4 py-2 bg-emerald-50 rounded-lg">
-                                <p className="text-lg font-bold text-emerald-600">Rs {job.totalSpent.toLocaleString()}</p>
-                                <p className="text-xs text-[#888888]">Total Spent</p>
-                            </div>
-                            <div className="text-center px-4 py-2 bg-[#0B4B54]/10 rounded-lg">
-                                <p className="text-lg font-bold text-[#0B4B54]">★ {job.rating}</p>
-                                <p className="text-xs text-[#888888]">Rating</p>
-                            </div>
-                            <button className="p-2 hover:bg-[#D3E4E7]/50 rounded-lg transition-colors">
-                                <Eye size={18} className="text-[#82ACAB]" />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            ))}
-        </div>
-    );
-
-    return (
-        <HirerLayout>
-            <div className="max-w-6xl mx-auto">
-                {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 opacity-0 animate-fade-in-up" style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}>
-                    <div>
-                        <h1 className="text-2xl font-bold text-[#032A33]">Manage Jobs</h1>
-                        <p className="text-[#888888]">View and manage all your posted shifts</p>
-                    </div>
-                    <button 
-                        onClick={() => navigate('/hirer/post-shift')}
-                        className="px-5 py-2.5 gradient-primary text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-[#0B4B54]/30 transition-all flex items-center gap-2"
-                    >
-                        <Plus size={18} />
-                        Post New Shift
-                    </button>
-                </div>
-
-                {/* Search and Tabs */}
-                <div className="glass-card rounded-2xl border border-[#82ACAB]/20 mb-6 opacity-0 animate-fade-in-up" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
-                    <div className="p-4 border-b border-[#82ACAB]/20">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            {/* Tabs */}
-                            <div className="flex gap-2 p-1 bg-[#D3E4E7]/50 rounded-xl w-fit">
-                                {tabs.map((tab) => {
-                                    const Icon = tab.icon;
-                                    return (
-                                        <button
-                                            key={tab.id}
-                                            onClick={() => setActiveTab(tab.id)}
-                                            className={`
-                                                flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all
-                                                ${activeTab === tab.id
-                                                    ? 'bg-white text-[#0B4B54] shadow-sm'
-                                                    : 'text-[#888888] hover:text-[#032A33]'
-                                                }
-                                            `}
-                                        >
-                                            <Icon size={16} />
-                                            {tab.label}
-                                            <span className={`px-2 py-0.5 rounded-full text-xs ${
-                                                activeTab === tab.id ? 'bg-[#0B4B54]/10 text-[#0B4B54]' : 'bg-[#D3E4E7] text-[#888888]'
-                                            }`}>
-                                                {tab.count}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-
-                            {/* Search */}
-                            <div className="relative">
-                                <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#82ACAB]" />
-                                <input
-                                    type="text"
-                                    placeholder="Search jobs..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-10 pr-4 py-2 rounded-lg border border-[#82ACAB]/30 text-sm focus:outline-none focus:border-[#0B4B54] focus:ring-2 focus:ring-[#0B4B54]/10 bg-white/50"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="p-6">
-                        {activeTab === 'active' && renderActiveJobs()}
-                        {activeTab === 'drafts' && renderDrafts()}
-                        {activeTab === 'history' && renderHistory()}
-                    </div>
-                </div>
+        {/* Filters */}
+        <div className="bg-white rounded-xl shadow-sm p-4 mb-6 border border-[#82ACAB]/20">
+          <div className="flex items-center gap-4">
+            <i className="ph ph-funnel text-xl text-[#888888]"></i>
+            <div className="flex gap-2">
+              {["all", "open", "in-progress", "completed", "cancelled"].map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setFilter(status)}
+                  className={`px-4 py-2 rounded-lg font-medium transition ${filter === status
+                      ? "bg-[#0B4B54] text-white"
+                      : "bg-[#D3E4E7] text-[#032A33] hover:bg-[#82ACAB]/30"
+                    }`}
+                >
+                  {status.charAt(0).toUpperCase() + status.slice(1).replace("-", " ")}
+                </button>
+              ))}
             </div>
-        </HirerLayout>
-    );
-};
+          </div>
+        </div>
 
-export default ManageJobs;
+        {/* Shifts List */}
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0B4B54] mx-auto"></div>
+            <p className="text-[#888888] mt-4">Loading shifts...</p>
+          </div>
+        ) : shifts.length === 0 ? (
+          <div className="bg-white rounded-xl shadow-sm p-12 text-center border border-[#82ACAB]/20">
+            <i className="ph ph-briefcase text-6xl text-[#82ACAB] mb-4"></i>
+            <h3 className="text-lg font-medium text-[#032A33] mb-2">No shifts found</h3>
+            <p className="text-[#888888]">
+              {filter === "all" ? "You haven't posted any shifts yet" : `No ${filter} shifts`}
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            {shifts.map((shift) => (
+              <div
+                key={shift._id}
+                className="bg-white rounded-xl shadow-sm p-6 border border-[#82ACAB]/20 hover:border-[#0B4B54] transition"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-xl font-semibold text-[#032A33]">{shift.title}</h3>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${shift.status === "open"
+                            ? "bg-green-100 text-green-700"
+                            : shift.status === "completed"
+                              ? "bg-gray-100 text-gray-700"
+                              : shift.status === "in-progress"
+                                ? "bg-blue-100 text-blue-700"
+                                : "bg-red-100 text-red-700"
+                          }`}
+                      >
+                        {shift.status}
+                      </span>
+                    </div>
+                    <p className="text-[#888888]">{shift.description}</p>
+                  </div>
+                  <span className="bg-[#D3E4E7] text-[#0B4B54] px-3 py-1 rounded-full text-sm font-medium">
+                    {shift.category}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                  <div className="flex items-center gap-2 text-[#888888]">
+                    <i className="ph ph-calendar text-lg"></i>
+                    <span className="text-sm">{formatDate(shift.date)}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[#888888]">
+                    <i className="ph ph-clock text-lg"></i>
+                    <span className="text-sm">
+                      {shift.time.start} - {shift.time.end}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[#888888]">
+                    <i className="ph ph-map-pin text-lg"></i>
+                    <span className="text-sm">{shift.location.city}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[#888888]">
+                    <i className="ph ph-currency-dollar text-lg"></i>
+                    <span className="text-sm">
+                      NPR {shift.pay.min} - {shift.pay.max}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-4 border-t border-[#82ACAB]/20">
+                  <div className="flex items-center gap-2 text-[#888888]">
+                    <i className="ph ph-users text-xl"></i>
+                    <span className="font-medium">
+                      {shift.applicants.length} applicant{shift.applicants.length !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+                  <Link
+                    to={`/hirer/shift/${shift._id}`}
+                    className="text-[#0B4B54] hover:text-[#0D5A65] font-medium"
+                  >
+                    View Details →
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </HirerLayout>
+  );
+}
