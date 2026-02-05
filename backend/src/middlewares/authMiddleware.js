@@ -51,6 +51,8 @@ export const protect = async (req, res, next) => {
  * Checks if the authenticated user has admin role
  * Must be used after protect middleware
  */
+
+
 export const verifyAdmin = (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({ message: "Not authorized. No user." });

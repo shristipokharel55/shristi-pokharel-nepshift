@@ -199,7 +199,8 @@ export const getPendingVerifications = async (req, res) => {
   try {
     const { page = 1, limit = 10, status = 'all' } = req.query;
 
-    const query = {};
+    // Only show workers/helpers in this endpoint (hirers have separate endpoint)
+    const query = { role: 'helper' };
 
     if (status !== 'all') {
       query.verificationStatus = status;
@@ -234,12 +235,12 @@ export const getPendingVerifications = async (req, res) => {
 
     const total = await User.countDocuments(query);
 
-    // Get stats
+    // Get stats (only for helpers/workers)
     const stats = {
-      total: await User.countDocuments(),
-      pending: await User.countDocuments({ verificationStatus: 'pending' }),
-      approved: await User.countDocuments({ verificationStatus: 'approved' }),
-      rejected: await User.countDocuments({ verificationStatus: 'rejected' })
+      total: await User.countDocuments({ role: 'helper' }),
+      pending: await User.countDocuments({ role: 'helper', verificationStatus: 'pending' }),
+      approved: await User.countDocuments({ role: 'helper', verificationStatus: 'approved' }),
+      rejected: await User.countDocuments({ role: 'helper', verificationStatus: 'rejected' })
     };
 
     res.status(200).json({
@@ -616,6 +617,214 @@ export const getRecentActivity = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error fetching activity",
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Get Hirer Verification Requests
+ * @route GET /api/admin/hirer-verifications
+ * @access Admin only
+ */
+export const getHirerVerificationRequests = async (req, res) => {
+  try {
+    const { status = 'pending' } = req.query;
+
+    const query = { 
+      role: 'hirer',
+      verificationStatus: { $ne: 'unverified' } // Only show hirers who have submitted for verification
+    };
+    
+    if (status !== 'all') {
+      query.verificationStatus = status;
+    }
+
+    const hirers = await User.find(query)
+      .select('fullName email phone bio address verificationDocs verificationStatus isVerified createdAt rejectionReason totalHires')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: hirers.length,
+      data: hirers
+    });
+  } catch (error) {
+    console.error("getHirerVerificationRequests error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching hirer verification requests",
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Approve Hirer Verification
+ * @route PUT /api/admin/approve-hirer/:id
+ * @access Admin only
+ */
+export const approveHirerVerification = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    console.log('=== APPROVE HIRER REQUEST ===');
+    console.log('Hirer ID:', id);
+    console.log('Admin User:', req.user);
+
+    const hirer = await User.findById(id);
+
+    if (!hirer) {
+      console.log('ERROR: Hirer not found');
+      return res.status(404).json({
+        success: false,
+        message: 'Hirer not found'
+      });
+    }
+
+    console.log('Found Hirer:', {
+      id: hirer._id,
+      name: hirer.fullName,
+      role: hirer.role,
+      currentStatus: hirer.verificationStatus
+    });
+
+    if (hirer.role !== 'hirer') {
+      console.log('ERROR: User is not a hirer, role is:', hirer.role);
+      return res.status(400).json({
+        success: false,
+        message: 'User is not a hirer'
+      });
+    }
+
+    // Validate admin user exists
+    if (!req.user || !req.user._id) {
+      console.log('ERROR: Admin user not found in request');
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication error: Admin user not found'
+      });
+    }
+
+    // Update verification status
+    hirer.isVerified = true;
+    hirer.verificationStatus = 'approved';
+    hirer.verifiedAt = new Date();
+    
+    // Only set verifiedBy if admin is a real database user (not 'admin' string)
+    if (req.user._id !== 'admin') {
+      hirer.verifiedBy = req.user._id;
+    }
+    // If admin is logged in via env (id='admin'), leave verifiedBy as undefined
+    
+    hirer.rejectionReason = undefined; // Clear any previous rejection reason
+
+    console.log('Saving hirer with new status...');
+    await hirer.save();
+    console.log('SUCCESS: Hirer approved successfully');
+
+    // TODO: Send email notification to hirer
+    // You can add email notification here using sendEmail utility
+
+    res.status(200).json({
+      success: true,
+      message: 'Hirer verification approved successfully',
+      data: {
+        id: hirer._id,
+        fullName: hirer.fullName,
+        email: hirer.email,
+        isVerified: hirer.isVerified,
+        verificationStatus: hirer.verificationStatus,
+        verifiedAt: hirer.verifiedAt
+      }
+    });
+  } catch (error) {
+    console.error("=== ERROR in approveHirer ===");
+    console.error("Error message:", error.message);
+    console.error("Error stack:", error.stack);
+    res.status(500).json({
+      success: false,
+      message: "Error approving hirer verification",
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Reject Hirer Verification
+ * @route PUT /api/admin/reject-hirer/:id
+ * @access Admin only
+ */
+export const rejectHirerVerification = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    if (!reason || reason.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Rejection reason is required'
+      });
+    }
+
+    const hirer = await User.findById(id);
+
+    if (!hirer) {
+      return res.status(404).json({
+        success: false,
+        message: 'Hirer not found'
+      });
+    }
+
+    if (hirer.role !== 'hirer') {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not a hirer'
+      });
+    }
+
+    // Validate admin user exists
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication error: Admin user not found'
+      });
+    }
+
+    // Update verification status
+    hirer.isVerified = false;
+    hirer.verificationStatus = 'rejected';
+    hirer.rejectionReason = reason;
+    hirer.verifiedAt = undefined;
+    
+    // Only set verifiedBy if admin is a real database user (not 'admin' string)
+    if (req.user._id !== 'admin') {
+      hirer.verifiedBy = req.user._id;
+    }
+    // If admin is logged in via env (id='admin'), leave verifiedBy as undefined
+
+    await hirer.save();
+
+    // TODO: Send email notification to hirer with rejection reason
+    // You can add email notification here using sendEmail utility
+
+    res.status(200).json({
+      success: true,
+      message: 'Hirer verification rejected',
+      data: {
+        id: hirer._id,
+        fullName: hirer.fullName,
+        email: hirer.email,
+        isVerified: hirer.isVerified,
+        verificationStatus: hirer.verificationStatus,
+        rejectionReason: hirer.rejectionReason
+      }
+    });
+  } catch (error) {
+    console.error("rejectHirerVerification error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error rejecting hirer verification",
       error: error.message
     });
   }

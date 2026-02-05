@@ -1,7 +1,9 @@
+import { Briefcase, Calendar, CheckCircle, Shield, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
 import HirerLayout from "../../components/hirer/HirerLayout";
+import VerifiedBadge from "../../components/ui/VerifiedBadge";
+import { useAuth } from "../../context/AuthContext";
 import api from "../../utils/api";
 
 // Stat Card Component  
@@ -11,7 +13,7 @@ const StatCard = ({ title, value, icon, trend, trendValue, delay }) => (
     style={{ animationDelay: `${delay}ms`, animationFillMode: "forwards" }}
   >
     <div className="flex items-start justify-between mb-4">
-      <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg bg-gradient-to-br from-[#0B4B54] to-[#0D5A65]">
+      <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg bg-linear-to-br from-[#0B4B54] to-[#0D5A65]">
         <i className={`ph ${icon} text-2xl text-white`}></i>
       </div>
       {trend && (
@@ -36,6 +38,12 @@ export default function HirerDashboard() {
   // State to store the hirer's posted shifts
   const [myShifts, setMyShifts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [profileData, setProfileData] = useState({
+    isVerified: false,
+    verificationStatus: 'unverified',
+    totalHires: 0,
+    memberSince: null
+  });
   const [stats, setStats] = useState({
     totalShifts: 0,
     openShifts: 0,
@@ -45,10 +53,28 @@ export default function HirerDashboard() {
 
   const firstName = user?.fullName?.split(" ")[0] || "Employer";
 
-  // Fetch my shifts when component loads
+  // Fetch my shifts and profile data when component loads
   useEffect(() => {
     fetchMyShifts();
+    fetchProfileData();
   }, []);
+
+  const fetchProfileData = async () => {
+    try {
+      const response = await api.get("/helper/hirer/profile");
+      if (response.data.success) {
+        const { user: userData, stats: profileStats } = response.data.data;
+        setProfileData({
+          isVerified: userData.isVerified || false,
+          verificationStatus: userData.verificationStatus || 'unverified',
+          totalHires: userData.totalHires || 0,
+          memberSince: profileStats.memberSince || userData.joinedAt || userData.createdAt
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch profile data:", error);
+    }
+  };
 
   const fetchMyShifts = async () => {
     try {
@@ -108,7 +134,7 @@ export default function HirerDashboard() {
             </div>
             <button
               onClick={() => navigate("/hirer/post-shift")}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0B4B54] to-[#0F6974] text-white font-semibold flex items-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all"
+              className="px-5 py-2.5 rounded-xl bg-linear-to-r from-[#0B4B54] to-[#0F6974] text-white font-semibold flex items-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all"
             >
               <i className="ph ph-plus-circle text-lg"></i>
               Post a Shift
@@ -138,12 +164,61 @@ export default function HirerDashboard() {
           <StatCard title="Completed" value={stats.completedShifts} icon="ph-check-circle" delay={400} />
         </div>
 
+        {/* Trust Indicators Card */}
+        <div className="glass-card rounded-2xl p-6 mb-8 animate-fade-in-up" style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#0B4B54] to-[#82ACAB] flex items-center justify-center">
+                <Shield className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-lg font-semibold text-[#032A33]">{user?.fullName}</h3>
+                  <VerifiedBadge isVerified={profileData.isVerified} size="sm" variant="badge" />
+                </div>
+                <div className="flex flex-wrap items-center gap-3 text-sm text-[#888888]">
+                  {profileData.totalHires > 0 ? (
+                    <div className="flex items-center gap-1">
+                      <Users className="w-4 h-4" />
+                      <span className="font-medium text-[#032A33]">{profileData.totalHires}</span> Total Hires
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1">
+                      <Briefcase className="w-4 h-4" />
+                      <span className="text-[#032A33]">New Hirer {profileData.isVerified && '- Identity Verified'}. Ready to post first shift!</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4" />
+                    Member Since {new Date(profileData.memberSince).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  </div>
+                  {profileData.isVerified && (
+                    <div className="flex items-center gap-1 text-emerald-600">
+                      <CheckCircle className="w-4 h-4" />
+                      Identity Verified
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            {!profileData.isVerified && (
+              <button
+                onClick={() => navigate("/hirer/profile/edit")}
+                className="px-5 py-2.5 rounded-xl bg-amber-500 text-white font-semibold hover:bg-amber-600 transition-all flex items-center gap-2 whitespace-nowrap"
+              >
+                <Shield className="w-5 h-5" />
+                Get Verified
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Quick Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Post New Shift Card */}
           <Link
             to="/hirer/post-shift"
-            className="bg-gradient-to-r from-[#0B4B54] to-[#0F6974] rounded-xl shadow-sm p-6 text-white hover:shadow-lg transition group"
+            className="bg-linear-to-r from-[#0B4B54] to-[#0F6974] rounded-xl shadow-sm p-6 text-white hover:shadow-lg transition group"
           >
             <div className="flex items-center justify-between">
               <div>

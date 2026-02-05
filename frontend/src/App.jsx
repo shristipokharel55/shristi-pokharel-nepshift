@@ -1,7 +1,7 @@
 import {
-  Route,
-  BrowserRouter as Router,
-  Routes
+    Route,
+    BrowserRouter as Router,
+    Routes
 } from "react-router-dom";
 import ProtectedRoute from "./middleware/ProtectedRoute";
 import Home from "./pages/Home/Home";
@@ -30,6 +30,7 @@ import Applicants from "./pages/hirer/Applicants";
 import HirerDashboard from "./pages/hirer/HirerDashboard";
 import HirerPayments from "./pages/hirer/HirerPayments";
 import HirerProfile from "./pages/hirer/HirerProfile";
+import HirerProfileEdit from "./pages/hirer/HirerProfileEdit";
 import ManageJobs from "./pages/hirer/ManageJobs";
 import PostShift from "./pages/hirer/PostShift";
 import ShiftDetails from "./pages/hirer/ShiftDetails";
@@ -40,6 +41,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import AdminLayout from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminFinancials from "./pages/admin/AdminFinancials";
+import AdminHirerVerification from "./pages/admin/AdminHirerVerification";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminVerification from "./pages/admin/AdminVerification";
@@ -226,6 +228,14 @@ function App() {
           }
         />
         <Route
+          path="/hirer/profile/edit"
+          element={
+            <ProtectedRoute requiredRole="hirer">
+              <HirerProfileEdit />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/hirer/shift/:id"
           element={
             <ProtectedRoute requiredRole="hirer">
@@ -247,6 +257,7 @@ function App() {
         >
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="verification" element={<AdminVerification />} />
+          <Route path="hirer-verification" element={<AdminHirerVerification />} />
           <Route path="users" element={<AdminUsers />} />
           <Route path="financials" element={<AdminFinancials />} />
           <Route path="settings" element={<AdminSettings />} />

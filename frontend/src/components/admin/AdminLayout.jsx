@@ -1,9 +1,7 @@
 import {
     Bell,
     CheckCircle,
-    ChevronDown,
     Clock,
-    CreditCard,
     Info,
     LayoutDashboard,
     LogOut,
@@ -37,10 +35,15 @@ const navGroups = [
         title: 'MANAGEMENT',
         items: [
             {
-                name: 'Verification',
+                name: 'Worker Verification',
                 path: '/admin/verification',
                 icon: ShieldCheck,
                 badge: 5,
+            },
+            {
+                name: 'Hirer Verification',
+                path: '/admin/hirer-verification',
+                icon: ShieldCheck,
             },
             {
                 name: 'Users',

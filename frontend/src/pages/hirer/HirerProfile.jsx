@@ -1,3 +1,5 @@
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import {
     Briefcase,
     Calendar,
@@ -11,27 +13,83 @@ import {
     Shield,
     Star,
     User
-} from 'lucide-react';
-import { useState } from 'react';
-import HirerLayout from '../../components/hirer/HirerLayout';
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { Marker, useMapEvents } from "react-leaflet";
+import HirerLayout from "../../components/hirer/HirerLayout";
+import VerifiedBadge from "../../components/ui/VerifiedBadge";
+import api from "../../utils/api";
+
+// Fix for default marker icons in Leaflet
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+});
+
+// Map marker component
+function LocationMarker({ position, setPosition }) {
+  useMapEvents({
+    click(e) {
+      setPosition({
+        latitude: e.latlng.lat,
+        longitude: e.latlng.lng,
+      });
+    },
+  });
+
+  return position && position.latitude && position.longitude ? (
+    <Marker position={[position.latitude, position.longitude]} />
+  ) : null;
+}
 
 const HirerProfile = () => {
     const [isEditing, setIsEditing] = useState(false);
-    
+    const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState({
-        name: 'Nepshift Restaurant',
-        email: 'contact@nepshift.com',
-        phone: '+977 9801234567',
-        location: 'Lalitpur, Nepal',
-        website: 'www.nepshift.com',
-        description: 'We are a family-owned restaurant chain looking for reliable kitchen and service staff for our growing team. We value punctuality, teamwork, and a positive attitude.',
+        name: '',
+        email: '',
+        phone: '',
+        location: '',
+        website: '',
+        description: '',
         industry: 'Food & Hospitality',
         companySize: '50-100 employees',
-        verified: true,
+        verified: false,
         rating: 4.8,
-        totalHires: 156,
+        totalHires: 0,
         memberSince: 'January 2024'
     });
+
+    useEffect(() => {
+        fetchProfile();
+    }, []);
+
+    const fetchProfile = async () => {
+        try {
+            setLoading(true);
+            const response = await api.get('/helper/hirer/profile');
+            
+            if (response.data.success) {
+                const data = response.data.data;
+                setProfile({
+                    name: data.fullName || '',
+                    email: data.email || '',
+                    phone: data.phone || '',
+                    location: data.address ? `${data.address.municipality || ''}, ${data.address.district || ''}`.trim().replace(/^,|,$/g, '') : '',
+                    bio: data.bio || '',
+                    verified: data.isVerified || false,
+                    totalHires: data.totalHires || 0,
+                    memberSince: new Date(data.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+                });
+            }
+        } catch (error) {
+            console.error('Failed to fetch profile:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const stats = [
         { label: 'Total Hires', value: profile.totalHires, icon: Briefcase, color: 'blue' },
@@ -74,13 +132,8 @@ const HirerProfile = () => {
                             {/* Name & Badge */}
                             <div className="flex-1 pt-2">
                                 <div className="flex items-center gap-3 mb-1">
-                                    <h1 className="text-2xl font-bold text-gray-800">{profile.name}</h1>
-                                    {profile.verified && (
-                                        <span className="flex items-center gap-1 px-2.5 py-0.5 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
-                                            <Shield size={12} />
-                                            Verified
-                                        </span>
-                                    )}
+                                    <h1 className="text-2xl font-bold text-gray-800">{profile.name || 'Hirer Name'}</h1>
+                                    <VerifiedBadge isVerified={profile.verified} size="md" variant="badge" />
                                 </div>
                                 <p className="text-gray-500">{profile.industry} • {profile.companySize}</p>
                             </div>
@@ -131,12 +184,12 @@ const HirerProfile = () => {
                             <h3 className="font-semibold text-gray-800 mb-4">About</h3>
                             {isEditing ? (
                                 <textarea
-                                    value={profile.description}
-                                    onChange={(e) => setProfile({ ...profile, description: e.target.value })}
+                                    value={profile.bio}
+                                    onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
                                     className="w-full h-32 p-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#1F4E5F] focus:ring-2 focus:ring-[#1F4E5F]/10 resize-none"
                                 />
                             ) : (
-                                <p className="text-gray-600 leading-relaxed">{profile.description}</p>
+                                <p className="text-gray-600 leading-relaxed">{profile.bio || 'No bio added yet.'}</p>
                             )}
                         </div>
 
@@ -248,20 +301,43 @@ const HirerProfile = () => {
                         </div>
 
                         {/* Verification Status */}
-                        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6">
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                                    <Shield size={18} className="text-emerald-600" />
+                        {profile.verified ? (
+                            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+                                        <Shield size={18} className="text-emerald-600" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-semibold text-emerald-800">Verified Employer</h4>
+                                        <p className="text-sm text-emerald-600">Identity confirmed</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h4 className="font-semibold text-emerald-800">Verified Employer</h4>
-                                    <p className="text-sm text-emerald-600">Identity confirmed</p>
-                                </div>
+                                <p className="text-sm text-emerald-700">
+                                    Your business has been verified. Workers can trust that you're a legitimate employer.
+                                </p>
                             </div>
-                            <p className="text-sm text-emerald-700">
-                                Your business has been verified. Workers can trust that you're a legitimate employer.
-                            </p>
-                        </div>
+                        ) : (
+                            <div className="bg-amber-50 border border-amber-200 rounded-xl p-6">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+                                        <Shield size={18} className="text-amber-600" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-semibold text-amber-800">Not Verified Yet</h4>
+                                        <p className="text-sm text-amber-600">Complete verification</p>
+                                    </div>
+                                </div>
+                                <p className="text-sm text-amber-700 mb-3">
+                                    Get verified to build trust with workers and increase your hires.
+                                </p>
+                                <a
+                                    href="/hirer/profile/edit"
+                                    className="inline-block px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 transition-colors"
+                                >
+                                    Get Verified
+                                </a>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

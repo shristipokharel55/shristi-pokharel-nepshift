@@ -4,14 +4,20 @@ import multer from "multer";
 import path from "path";
 import {
     canBidOnShifts,
+    getAllWorkers,
     getHelperProfile,
     getVerificationStatus,
     submitVerification,
     updateHelperLocation,
     updateHelperProfile,
-    uploadImage,
-    getAllWorkers
+    uploadImage
 } from "../controllers/helperController.js";
+import {
+    getHirerProfile,
+    submitForVerification,
+    updateHirerProfile,
+    uploadVerificationDocuments
+} from "../controllers/hirerProfileController.js";
 import { authorizeRoles, protect } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
@@ -44,28 +50,24 @@ const upload = multer({
   fileFilter: fileFilter
 });
 
-// All routes require authentication and helper role
-router.use(protect);
-router.use(authorizeRoles('helper'));
-
 // Public route for hirers to browse workers
 router.get('/workers', protect, authorizeRoles('hirer'), getAllWorkers);
 
-// Profile routes
-router.get('/profile', getHelperProfile);
-router.put('/profile', updateHelperProfile);
+// Helper routes - require authentication and helper role
+router.get('/profile', protect, authorizeRoles('helper'), getHelperProfile);
+router.put('/profile', protect, authorizeRoles('helper'), updateHelperProfile);
+router.put('/location', protect, authorizeRoles('helper'), updateHelperLocation);
+router.post('/verify', protect, authorizeRoles('helper'), submitVerification);
+router.get('/verification-status', protect, authorizeRoles('helper'), getVerificationStatus);
+router.post('/upload', protect, authorizeRoles('helper'), upload.single('image'), uploadImage);
 
-// Location route
-router.put('/location', updateHelperLocation);
+// Hirer profile routes - require authentication and hirer role
+router.get('/hirer/profile', protect, authorizeRoles('hirer'), getHirerProfile);
+router.put('/hirer/profile', protect, authorizeRoles('hirer'), updateHirerProfile);
+router.post('/hirer/upload-documents', protect, authorizeRoles('hirer'), uploadVerificationDocuments);
+router.post('/hirer/submit-verification', protect, authorizeRoles('hirer'), submitForVerification);
 
-// Verification routes
-router.post('/verify', submitVerification);
-router.get('/verification-status', getVerificationStatus);
-
-// File upload route
-router.post('/upload', upload.single('image'), uploadImage);
-
-// Check if can bid
-router.get('/can-bid', canBidOnShifts);
+// Check if helper can bid on shifts
+router.get('/can-bid', protect, authorizeRoles('helper'), canBidOnShifts);
 
 export default router;
