@@ -195,7 +195,10 @@ const DocumentViewModal = ({ isOpen, onClose, request, onApprove, onReject, isLo
                         </div>
                     )}
 
-                    {request.status === 'pending' && (
+                    {/* Show approve/reject buttons for pending, unverified, or when documents are uploaded */}
+                    {(request.status === 'pending' || request.status === 'unverified' || 
+                      (request.citizenshipFront || request.citizenshipBack || request.selfieWithId)) && 
+                     request.status !== 'approved' && (
                         <div className="flex flex-col gap-3 pt-4 border-t border-slate-200">
                             {!showRejectForm ? (
                                 <div className="flex gap-3">
@@ -297,17 +300,19 @@ const StatusBadge = ({ status }) => {
         pending: 'bg-amber-50 text-amber-600 border-amber-200',
         approved: 'bg-emerald-50 text-emerald-600 border-emerald-200',
         rejected: 'bg-red-50 text-red-600 border-red-200',
+        unverified: 'bg-slate-50 text-slate-600 border-slate-200',
     };
 
     const labels = {
         pending: 'Pending',
         approved: 'Approved',
         rejected: 'Rejected',
+        unverified: 'Not Submitted',
     };
 
     return (
-        <span className={`px-3 py-1 text-xs font-medium rounded-full border ${styles[status]}`}>
-            {labels[status]}
+        <span className={`px-3 py-1 text-xs font-medium rounded-full border ${styles[status] || styles.unverified}`}>
+            {labels[status] || status}
         </span>
     );
 };

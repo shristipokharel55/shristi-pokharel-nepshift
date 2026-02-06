@@ -1,6 +1,6 @@
+import { Briefcase, Loader2, MapPin, Search, Shield, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, Star, Briefcase, Shield, Search, Filter, Loader2 } from "lucide-react";
 import HirerLayout from "../../components/hirer/HirerLayout";
 import api from "../../utils/api";
 
@@ -91,7 +91,7 @@ const WorkerCard = ({ worker, delay }) => {
       {/* Actions */}
       <div className="flex gap-3 pt-4 border-t border-[#82ACAB]/20">
         <button
-          onClick={() => navigate(`/hirer/workers/${worker._id}`)}
+          onClick={() => navigate(`/hirer/worker/${worker._id}`)}
           className="flex-1 bg-[#0B4B54] text-white py-2 rounded-lg font-medium hover:bg-[#0D5A65] transition"
         >
           View Profile

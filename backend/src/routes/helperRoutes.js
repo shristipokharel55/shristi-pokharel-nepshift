@@ -7,6 +7,7 @@ import {
     getAllWorkers,
     getHelperProfile,
     getVerificationStatus,
+    getWorkerStats,
     submitVerification,
     updateHelperLocation,
     updateHelperProfile,
@@ -16,6 +17,7 @@ import {
     getHirerProfile,
     submitForVerification,
     updateHirerProfile,
+    uploadPhoto,
     uploadVerificationDocuments
 } from "../controllers/hirerProfileController.js";
 import { authorizeRoles, protect } from "../middlewares/authMiddleware.js";
@@ -60,11 +62,13 @@ router.put('/location', protect, authorizeRoles('helper'), updateHelperLocation)
 router.post('/verify', protect, authorizeRoles('helper'), submitVerification);
 router.get('/verification-status', protect, authorizeRoles('helper'), getVerificationStatus);
 router.post('/upload', protect, authorizeRoles('helper'), upload.single('image'), uploadImage);
+router.get('/stats', protect, authorizeRoles('helper'), getWorkerStats);
 
 // Hirer profile routes - require authentication and hirer role
 router.get('/hirer/profile', protect, authorizeRoles('hirer'), getHirerProfile);
 router.put('/hirer/profile', protect, authorizeRoles('hirer'), updateHirerProfile);
 router.post('/hirer/upload-documents', protect, authorizeRoles('hirer'), uploadVerificationDocuments);
+router.post('/hirer/upload-photo', protect, authorizeRoles('hirer'), uploadPhoto);
 router.post('/hirer/submit-verification', protect, authorizeRoles('hirer'), submitForVerification);
 
 // Check if helper can bid on shifts

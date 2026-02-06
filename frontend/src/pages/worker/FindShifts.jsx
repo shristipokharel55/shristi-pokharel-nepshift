@@ -331,18 +331,18 @@ const FindShifts = () => {
                             <ShiftCard
                                 key={shift._id}
                                 shift={{
+                                    ...shift, // Spread raw data first so formatted props below override it
                                     id: shift._id,
-                                    title: shift.title,
+                                    title: shift.title || 'Untitled Position',
                                     company: shift.hirerId?.fullName || 'Employer',
                                     description: shift.description || 'No description provided',
-                                    location: shift.location.city,
+                                    location: shift.location?.city || 'Location not specified',
                                     distance: '-- km',
-                                    time: `${shift.time.start} - ${shift.time.end}`,
-                                    pay: `${shift.pay.min}-${shift.pay.max}`,
+                                    time: shift.time ? `${shift.time.start} - ${shift.time.end}` : 'Flexible Timing',
+                                    pay: shift.pay ? `${shift.pay.min}-${shift.pay.max}` : 'Negotiable',
                                     rating: 4.5,
                                     reviews: 0,
                                     tag: 'New',
-                                    ...shift // Include all shift data for the modal
                                 }}
                                 delay={index * 100}
                                 canApply={canBid}

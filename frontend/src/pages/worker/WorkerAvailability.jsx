@@ -2,9 +2,10 @@ import {
     CheckCircle,
     ChevronLeft,
     ChevronRight,
-    MinusCircle,
-    Plus
+    MinusCircle
 } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'react-hot-toast';
 import WorkerLayout from '../../components/worker/WorkerLayout';
 
 const WorkerAvailability = () => {
@@ -16,15 +17,28 @@ const WorkerAvailability = () => {
         { time: '6:00 PM - 10:00 PM', label: 'Evening' },
     ];
 
-    // Sample availability data
-    const availability = {
-        Mon: [true, true, false, false],
-        Tue: [true, true, true, false],
-        Wed: [false, true, true, true],
-        Thu: [true, false, false, true],
-        Fri: [true, true, true, true],
-        Sat: [true, true, false, false],
+    // Start with empty availability - user can set their own schedule
+    const [availability, setAvailability] = useState({
+        Mon: [false, false, false, false],
+        Tue: [false, false, false, false],
+        Wed: [false, false, false, false],
+        Thu: [false, false, false, false],
+        Fri: [false, false, false, false],
+        Sat: [false, false, false, false],
         Sun: [false, false, false, false],
+    });
+
+    const toggleAvailability = (day, slotIndex) => {
+        setAvailability(prev => ({
+            ...prev,
+            [day]: prev[day].map((val, idx) => idx === slotIndex ? !val : val)
+        }));
+    };
+
+    const saveAvailability = () => {
+        // TODO: Implement API call to save availability to backend
+        toast.success('Availability updated successfully!');
+        console.log('Saving availability:', availability);
     };
 
     return (
@@ -36,9 +50,12 @@ const WorkerAvailability = () => {
                         <h1 className="text-3xl font-bold text-[#032A33] mb-2">Availability & Schedule</h1>
                         <p className="text-[#888888]">Set your available time slots for work</p>
                     </div>
-                    <button className="px-6 py-3 rounded-xl bg-[#0B4B54] text-white font-semibold hover:bg-[#0D5A65] transition-colors flex items-center gap-2 shadow-lg shadow-[#0B4B54]/20">
-                        <Plus size={18} />
-                        Add Time Slot
+                    <button 
+                        onClick={saveAvailability}
+                        className="px-6 py-3 rounded-xl bg-[#0B4B54] text-white font-semibold hover:bg-[#0D5A65] transition-colors flex items-center gap-2 shadow-lg shadow-[#0B4B54]/20"
+                    >
+                        <CheckCircle size={18} />
+                        Save Schedule
                     </button>
                 </div>
 
@@ -75,6 +92,7 @@ const WorkerAvailability = () => {
                                         {days.map(day => (
                                             <td key={day} className="p-3 text-center">
                                                 <button
+                                                    onClick={() => toggleAvailability(day, slotIndex)}
                                                     className={`
                             w-10 h-10 rounded-xl flex items-center justify-center transition-all
                             ${availability[day][slotIndex]

@@ -9,6 +9,15 @@ export const getNotifications = async (req, res) => {
   try {
     const userId = req.user._id || req.user.id;
     
+    // Handle admin user - return empty notifications
+    if (userId === 'admin' || req.user.role === 'admin') {
+      return res.status(200).json({
+        success: true,
+        data: [],
+        unreadCount: 0
+      });
+    }
+    
     const notifications = await Notification.find({ recipient: userId })
       .sort({ createdAt: -1 }) // Newest first
       .limit(20);
@@ -41,6 +50,14 @@ export const markAsRead = async (req, res) => {
   try {
     const userId = req.user._id || req.user.id;
     const { id } = req.params;
+
+    // Handle admin user
+    if (userId === 'admin' || req.user.role === 'admin') {
+      return res.status(404).json({
+        success: false,
+        message: "Notification not found"
+      });
+    }
 
     const notification = await Notification.findOneAndUpdate(
       { _id: id, recipient: userId },
@@ -76,6 +93,14 @@ export const markAllAsRead = async (req, res) => {
   try {
     const userId = req.user._id || req.user.id;
 
+    // Handle admin user
+    if (userId === 'admin' || req.user.role === 'admin') {
+      return res.status(200).json({
+        success: true,
+        message: "All notifications marked as read"
+      });
+    }
+
     await Notification.updateMany(
       { recipient: userId, read: false },
       { read: true }
@@ -102,6 +127,14 @@ export const deleteNotification = async (req, res) => {
   try {
     const userId = req.user._id || req.user.id;
     const { id } = req.params;
+
+    // Handle admin user
+    if (userId === 'admin' || req.user.role === 'admin') {
+      return res.status(404).json({
+        success: false,
+        message: "Notification not found"
+      });
+    }
 
     await Notification.findOneAndDelete({ _id: id, recipient: userId });
 

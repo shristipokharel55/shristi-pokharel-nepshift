@@ -1,7 +1,7 @@
 import {
-    Route,
-    BrowserRouter as Router,
-    Routes
+  Route,
+  BrowserRouter as Router,
+  Routes
 } from "react-router-dom";
 import ProtectedRoute from "./middleware/ProtectedRoute";
 import Home from "./pages/Home/Home";
@@ -14,6 +14,7 @@ import ResetPassword from "./pages/auth/ResetPassword";
 import VerifyOTP from "./pages/auth/VerifyOtp";
 
 // Worker Dashboard Pages
+import AppliedShifts from "./pages/worker/AppliedShifts";
 import CompleteProfile from "./pages/worker/CompleteProfile";
 import FindShifts from "./pages/worker/FindShifts";
 import HelperVerification from "./pages/worker/HelperVerification";
@@ -34,6 +35,8 @@ import HirerProfileEdit from "./pages/hirer/HirerProfileEdit";
 import ManageJobs from "./pages/hirer/ManageJobs";
 import PostShift from "./pages/hirer/PostShift";
 import ShiftDetails from "./pages/hirer/ShiftDetails";
+import ViewApplicants from "./pages/hirer/ViewApplicants";
+import WorkerProfileView from "./pages/hirer/WorkerProfileView";
 import Workers from "./pages/hirer/Workers";
 
 // Admin Dashboard Pages
@@ -167,6 +170,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/worker/applied-shifts"
+          element={
+            <ProtectedRoute requiredRole="helper">
+              <AppliedShifts />
+            </ProtectedRoute>
+          }
+        />
 
         {/* ================================== */}
         {/* HIRER DASHBOARD ROUTES */}
@@ -208,6 +219,22 @@ function App() {
           element={
             <ProtectedRoute requiredRole="hirer">
               <Applicants />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hirer/applicants/:shiftId"
+          element={
+            <ProtectedRoute requiredRole="hirer">
+              <ViewApplicants />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hirer/worker/:id"
+          element={
+            <ProtectedRoute requiredRole="hirer">
+              <WorkerProfileView />
             </ProtectedRoute>
           }
         />

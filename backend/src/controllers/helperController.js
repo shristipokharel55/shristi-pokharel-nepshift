@@ -434,3 +434,62 @@ export const canBidOnShifts = async (req, res) => {
     });
   }
 };
+
+/**
+ * Get worker dashboard statistics
+ * @route GET /api/helper/stats
+ * @access Private (helper only)
+ */
+export const getWorkerStats = async (req, res) => {
+  try {
+    const userId = req.user._id || req.user.id;
+    const Bid = (await import("../models/bid.js")).default;
+    const Shift = (await import("../models/shift.js")).default;
+
+    // Get all worker's bids
+    const allBids = await Bid.find({ workerId: userId }).populate('shiftId');
+
+    // Calculate stats
+    const pendingBids = allBids.filter(bid => bid.status === 'pending').length;
+    const acceptedBids = allBids.filter(bid => bid.status === 'accepted');
+    const activeBids = acceptedBids.filter(bid => 
+      bid.shiftId && ['open', 'in-progress'].includes(bid.shiftId.status)
+    ).length;
+
+    // Count completed shifts (accepted bids with completed shifts)
+    const completedShifts = acceptedBids.filter(bid => 
+      bid.shiftId && bid.shiftId.status === 'completed'
+    ).length;
+
+    // Calculate total earnings from completed shifts
+    const totalEarnings = acceptedBids.reduce((sum, bid) => {
+      if (bid.shiftId && bid.shiftId.status === 'completed') {
+        return sum + bid.bidAmount;
+      }
+      return sum;
+    }, 0);
+
+    // Get profile for additional stats
+    const profile = await HelperProfile.findOne({ user: userId });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        completed: completedShifts,
+        active: activeBids,
+        pending: pendingBids,
+        earnings: totalEarnings,
+        totalBids: allBids.length,
+        averageRating: profile?.averageRating || 0,
+        totalJobsCompleted: profile?.totalJobsCompleted || completedShifts
+      }
+    });
+  } catch (error) {
+    console.error("getWorkerStats error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching worker stats",
+      error: error.message
+    });
+  }
+};

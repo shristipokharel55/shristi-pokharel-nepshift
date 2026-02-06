@@ -12,6 +12,12 @@ import transporter from "../utils/sendEmail.js";
  * @route GET /api/admin/stats
  * @access Admin only
  */
+/**
+ * Get Dashboard Statistics
+ * Returns zero-base counts that automatically update as data is added
+ * @route GET /api/admin/stats
+ * @access Admin only
+ */
 export const getDashboardStats = async (req, res) => {
   try {
     // User counts - will be 0 on fresh DB
@@ -25,33 +31,43 @@ export const getDashboardStats = async (req, res) => {
     const rejectedUsers = await User.countDocuments({ verificationStatus: 'rejected' });
 
     // Shift counts - will be 0 if no shifts exist
-    const activeShifts = await Shift.countDocuments({ status: { $in: ['active', 'in_progress'] } });
+    const activeShifts = await Shift.countDocuments({ status: { $in: ['in-progress'] } });
     const openShifts = await Shift.countDocuments({ status: 'open' });
     const completedShifts = await Shift.countDocuments({ status: 'completed' });
     const totalShifts = await Shift.countDocuments();
 
-    // Calculate revenue from completed shifts
+    // Calculate revenue from completed shifts (Estimating as average of pay range since real transaction data is limited)
     const revenueResult = await Shift.aggregate([
-      { $match: { status: 'completed', paymentStatus: 'paid' } },
-      { $group: { _id: null, totalRevenue: { $sum: '$totalPay' } } }
+      { $match: { status: 'completed' } },
+      {
+        $addFields: {
+          avgPay: { $avg: ["$pay.min", "$pay.max"] }
+        }
+      },
+      { $group: { _id: null, totalRevenue: { $sum: '$avgPay' } } }
     ]);
-    const totalRevenue = revenueResult.length > 0 ? revenueResult[0].totalRevenue : 0;
+    const totalRevenue = revenueResult.length > 0 ? Math.round(revenueResult[0].totalRevenue) : 0;
 
     // Monthly revenue for chart (last 12 months)
     const monthlyRevenue = await Shift.aggregate([
       {
         $match: {
           status: 'completed',
-          completedAt: { $gte: new Date(new Date().setMonth(new Date().getMonth() - 12)) }
+          updatedAt: { $gte: new Date(new Date().setMonth(new Date().getMonth() - 12)) }
+        }
+      },
+      {
+        $addFields: {
+          avgPay: { $avg: ["$pay.min", "$pay.max"] }
         }
       },
       {
         $group: {
           _id: {
-            year: { $year: '$completedAt' },
-            month: { $month: '$completedAt' }
+            year: { $year: '$updatedAt' },
+            month: { $month: '$updatedAt' }
           },
-          revenue: { $sum: '$totalPay' }
+          revenue: { $sum: '$avgPay' }
         }
       },
       { $sort: { '_id.year': 1, '_id.month': 1 } }
@@ -110,7 +126,7 @@ export const getDashboardStats = async (req, res) => {
           helpers: totalHelpers,
           hirers: totalHirers,
           pendingVerification: pendingVerifications,
-          inactive: await User.countDocuments({ isVerified: false, verificationStatus: { $ne: 'pending' } })
+          inactive: await User.countDocuments({ isVerified: false, verificationStatus: 'unverified' })
         },
 
         // Recent verification requests for dashboard preview
@@ -379,8 +395,8 @@ export const updateVerificationStatus = async (req, res) => {
       recipient: user._id,
       type: action === 'approve' ? 'success' : 'error',
       title: action === 'approve' ? 'Profile Verified' : 'Verification Rejected',
-      message: action === 'approve' 
-        ? 'Your profile verification has been approved! You can now apply for shifts.' 
+      message: action === 'approve'
+        ? 'Your profile verification has been approved! You can now apply for shifts.'
         : `Your verification was rejected. Reason: ${reason || 'Contact support'}`,
     });
 
@@ -427,8 +443,8 @@ export const getUserById = async (req, res) => {
     // Get user's shift history
     const shifts = await Shift.find({
       $or: [
-        { postedBy: userId },
-        { assignedTo: userId }
+        { hirerId: userId },
+        { selectedWorker: userId }
       ]
     }).limit(10).sort({ createdAt: -1 });
 
@@ -438,7 +454,7 @@ export const getUserById = async (req, res) => {
         user,
         shifts,
         shiftCount: await Shift.countDocuments({
-          $or: [{ postedBy: userId }, { assignedTo: userId }]
+          $or: [{ hirerId: userId }, { selectedWorker: userId }]
         })
       }
     });
@@ -559,24 +575,28 @@ export const getRecentActivity = async (req, res) => {
     const recentUsers = await User.find()
       .select('fullName email role createdAt verificationStatus')
       .sort({ createdAt: -1 })
-      .limit(5);
+      .limit(5)
+      .lean(); // Use lean for better performance
 
     // Get recent shifts
     const recentShifts = await Shift.find()
-      .populate('postedBy', 'fullName')
-      .populate('assignedTo', 'fullName')
-      .select('title status createdAt completedAt')
+      .populate('hirerId', 'fullName')
+      .populate('selectedWorker', 'fullName')
+      .select('title status createdAt updatedAt')
       .sort({ createdAt: -1 })
-      .limit(5);
+      .limit(5)
+      .lean(); // Use lean for better performance
 
     // Combine and format activity
     const activity = [];
 
     recentUsers.forEach(user => {
+      // Ensure fullName exists
+      const fullName = user.fullName || 'Unknown User';
       activity.push({
         type: 'user_registered',
         title: 'New user registered',
-        description: `${user.fullName} joined as a ${user.role}`,
+        description: `${fullName} joined as a ${user.role}`,
         timestamp: user.createdAt,
         icon: 'UserCheck',
         iconBg: 'bg-emerald-500'
@@ -584,12 +604,14 @@ export const getRecentActivity = async (req, res) => {
     });
 
     recentShifts.forEach(shift => {
+      // Ensure title exists
+      const title = shift.title || 'Untitled Shift';
       if (shift.status === 'completed') {
         activity.push({
           type: 'shift_completed',
           title: 'Shift completed',
-          description: shift.title,
-          timestamp: shift.completedAt || shift.createdAt,
+          description: title,
+          timestamp: shift.updatedAt || shift.createdAt,
           icon: 'CheckCircle',
           iconBg: 'bg-emerald-500'
         });
@@ -597,7 +619,7 @@ export const getRecentActivity = async (req, res) => {
         activity.push({
           type: 'shift_posted',
           title: 'New shift posted',
-          description: shift.title,
+          description: title,
           timestamp: shift.createdAt,
           icon: 'Briefcase',
           iconBg: 'bg-blue-500'
@@ -614,6 +636,7 @@ export const getRecentActivity = async (req, res) => {
     });
   } catch (error) {
     console.error("getRecentActivity error:", error);
+    console.error("Error stack:", error.stack);
     res.status(500).json({
       success: false,
       message: "Error fetching activity",
@@ -631,12 +654,13 @@ export const getHirerVerificationRequests = async (req, res) => {
   try {
     const { status = 'pending' } = req.query;
 
-    const query = { 
-      role: 'hirer',
-      verificationStatus: { $ne: 'unverified' } // Only show hirers who have submitted for verification
+    const query = {
+      role: 'hirer'
+      // Show all hirers regardless of verification status
     };
-    
-    if (status !== 'all') {
+
+    // Filter by status if specified
+    if (status && status !== 'all') {
       query.verificationStatus = status;
     }
 
@@ -667,7 +691,7 @@ export const getHirerVerificationRequests = async (req, res) => {
 export const approveHirerVerification = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     console.log('=== APPROVE HIRER REQUEST ===');
     console.log('Hirer ID:', id);
     console.log('Admin User:', req.user);
@@ -710,13 +734,13 @@ export const approveHirerVerification = async (req, res) => {
     hirer.isVerified = true;
     hirer.verificationStatus = 'approved';
     hirer.verifiedAt = new Date();
-    
+
     // Only set verifiedBy if admin is a real database user (not 'admin' string)
     if (req.user._id !== 'admin') {
       hirer.verifiedBy = req.user._id;
     }
     // If admin is logged in via env (id='admin'), leave verifiedBy as undefined
-    
+
     hirer.rejectionReason = undefined; // Clear any previous rejection reason
 
     console.log('Saving hirer with new status...');
@@ -796,7 +820,7 @@ export const rejectHirerVerification = async (req, res) => {
     hirer.verificationStatus = 'rejected';
     hirer.rejectionReason = reason;
     hirer.verifiedAt = undefined;
-    
+
     // Only set verifiedBy if admin is a real database user (not 'admin' string)
     if (req.user._id !== 'admin') {
       hirer.verifiedBy = req.user._id;

@@ -15,6 +15,13 @@ const UserSchema = new mongoose.Schema({
 
   // Hirer-specific fields
   bio: { type: String, maxlength: 500 },
+  profilePhoto: { type: String }, // URL to profile photo
+  coverPhoto: { type: String }, // URL to cover photo
+  
+  // Rating system
+  rating: { type: Number, default: 0, min: 0, max: 5 },
+  totalRatings: { type: Number, default: 0 },
+  ratingSum: { type: Number, default: 0 },
   
   // Precise address with coordinates
   address: {

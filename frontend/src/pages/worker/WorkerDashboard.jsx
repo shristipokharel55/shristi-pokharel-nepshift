@@ -25,11 +25,11 @@ import api from '../../utils/api';
 // Profile Completion Banner Component
 const ProfileCompletionBanner = ({ percentage, onComplete }) => {
     const isComplete = percentage >= 100;
-    
+
     if (isComplete) return null;
-    
+
     return (
-        <div 
+        <div
             className="glass-card rounded-2xl p-5 mb-6 border-l-4 border-[#0B4B54] animate-fade-in-up"
             style={{ animationFillMode: 'forwards' }}
         >
@@ -48,13 +48,13 @@ const ProfileCompletionBanner = ({ percentage, onComplete }) => {
                 <div className="flex items-center gap-4 w-full sm:w-auto">
                     <div className="flex-1 sm:w-32">
                         <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                            <div 
+                            <div
                                 className="h-full bg-gradient-to-r from-[#0B4B54] to-[#82ACAB] rounded-full transition-all duration-500"
                                 style={{ width: `${percentage}%` }}
                             />
                         </div>
                     </div>
-                    <button 
+                    <button
                         onClick={onComplete}
                         className="flex items-center gap-1 px-4 py-2 rounded-xl bg-[#0B4B54] text-white text-sm font-semibold hover:bg-[#0D5A65] transition-colors"
                     >
@@ -70,7 +70,7 @@ const ProfileCompletionBanner = ({ percentage, onComplete }) => {
 // Verification Status Banner Component
 const VerificationBanner = ({ status, onVerify }) => {
     if (status === 'verified') return null;
-    
+
     const bannerConfig = {
         'not_submitted': {
             bgColor: 'bg-amber-50',
@@ -106,12 +106,12 @@ const VerificationBanner = ({ status, onVerify }) => {
             buttonColor: 'bg-red-500 hover:bg-red-600'
         }
     };
-    
+
     const config = bannerConfig[status] || bannerConfig['not_submitted'];
     const IconComponent = config.icon;
-    
+
     return (
-        <div 
+        <div
             className={`rounded-2xl p-5 mb-6 border-l-4 ${config.bgColor} ${config.borderColor} animate-fade-in-up`}
             style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}
         >
@@ -125,7 +125,7 @@ const VerificationBanner = ({ status, onVerify }) => {
                         <p className="text-sm text-[#888888]">{config.message}</p>
                     </div>
                 </div>
-                <button 
+                <button
                     onClick={onVerify}
                     className={`flex items-center gap-1 px-4 py-2 rounded-xl text-white text-sm font-semibold transition-colors ${config.buttonColor}`}
                 >
@@ -360,7 +360,7 @@ const RecommendedJobCard = ({ job, delay, shift, onApply }) => (
                 <Star size={14} className="text-yellow-500 fill-yellow-500" />
                 <span className="text-sm font-medium text-[#032A33]">{job.rating}</span>
             </div>
-            <button 
+            <button
                 onClick={() => onApply && onApply(shift)}
                 className="
         px-4 py-2 rounded-xl
@@ -382,12 +382,12 @@ const WorkerDashboard = () => {
 
     const [currentTime, setCurrentTime] = useState(new Date());
     const [stats, setStats] = useState({
-        completed: 24,
-        active: 3,
-        pending: 5,
-        earnings: 45600
+        completed: 0,
+        active: 0,
+        pending: 0,
+        earnings: 0
     });
-    
+
     // Profile and verification states
     const [profileData, setProfileData] = useState({
         profileCompletionPercentage: 0,
@@ -395,12 +395,33 @@ const WorkerDashboard = () => {
         isVerified: false
     });
     const [loadingProfile, setLoadingProfile] = useState(true);
+    const [loadingStats, setLoadingStats] = useState(true);
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
         return () => clearInterval(timer);
     }, []);
-    
+
+    // Fetch worker stats from backend
+    useEffect(() => {
+        const fetchWorkerStats = async () => {
+            try {
+                setLoadingStats(true);
+                const response = await api.get('/helper/stats');
+                if (response.data.success) {
+                    setStats(response.data.data);
+                }
+            } catch (error) {
+                console.error('Error fetching worker stats:', error);
+                toast.error('Failed to load statistics');
+            } finally {
+                setLoadingStats(false);
+            }
+        };
+
+        fetchWorkerStats();
+    }, []);
+
     // Fetch profile and verification status
     useEffect(() => {
         const fetchProfileStatus = async () => {
@@ -410,7 +431,7 @@ const WorkerDashboard = () => {
                     api.get('/helper/profile'),
                     api.get('/helper/verification-status')
                 ]);
-                
+
                 setProfileData({
                     profileCompletionPercentage: profileRes.data?.data?.profileCompletionPercentage || 0,
                     verificationStatus: verificationRes.data?.data?.verificationStatus || 'not_submitted',
@@ -428,7 +449,7 @@ const WorkerDashboard = () => {
                 setLoadingProfile(false);
             }
         };
-        
+
         fetchProfileStatus();
     }, []);
 
@@ -451,7 +472,7 @@ const WorkerDashboard = () => {
     // State for real shift data
     const [recommendedShifts, setRecommendedShifts] = useState([]);
     const [loadingShifts, setLoadingShifts] = useState(true);
-    
+
     // Bid modal state
     const [selectedShift, setSelectedShift] = useState(null);
     const [showBidModal, setShowBidModal] = useState(false);
@@ -472,59 +493,44 @@ const WorkerDashboard = () => {
                 setLoadingShifts(false);
             }
         };
-        
+
         fetchShifts();
     }, []);
-    
+
     // Handle bid modal
     const handleApplyShift = (shift) => {
         setSelectedShift(shift);
         setShowBidModal(true);
     };
-    
+
     const handleBidSuccess = (message) => {
         toast.success(message || 'Bid placed successfully!');
         setShowBidModal(false);
         setSelectedShift(null);
+        // Refresh stats after successful bid
+        api.get('/helper/stats').then(response => {
+            if (response.data.success) {
+                setStats(response.data.data);
+            }
+        });
     };
-
-    // Chart data - keeping for now but could be fetched from backend later
-    const jobsChartData = [
-        { label: 'Mon', value: 3 },
-        { label: 'Tue', value: 5 },
-        { label: 'Wed', value: 2 },
-        { label: 'Thu', value: 7 },
-        { label: 'Fri', value: 4 },
-        { label: 'Sat', value: 6 },
-        { label: 'Sun', value: 3 },
-    ];
-
-    const earningsData = [
-        { day: 'Mon', amount: 1200 },
-        { day: 'Tue', amount: 1800 },
-        { day: 'Wed', amount: 1400 },
-        { day: 'Thu', amount: 2200 },
-        { day: 'Fri', amount: 1900 },
-        { day: 'Sat', amount: 2500 },
-        { day: 'Sun', amount: 1600 },
-    ];
 
     return (
         <WorkerLayout>
             {/* Profile Completion and Verification Banners */}
             {!loadingProfile && (
                 <>
-                    <ProfileCompletionBanner 
-                        percentage={profileData.profileCompletionPercentage} 
+                    <ProfileCompletionBanner
+                        percentage={profileData.profileCompletionPercentage}
                         onComplete={() => navigate('/worker/complete-profile')}
                     />
-                    <VerificationBanner 
-                        status={profileData.verificationStatus} 
+                    <VerificationBanner
+                        status={profileData.verificationStatus}
                         onVerify={() => navigate('/worker/verification')}
                     />
                 </>
             )}
-            
+
             {/* Greeting Section */}
             <div className="mb-8 animate-fade-in-up">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -589,43 +595,34 @@ const WorkerDashboard = () => {
                 />
             </div>
 
-            {/* Quick Actions and Charts Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                {/* Quick Actions */}
-                <div className="lg:col-span-1 space-y-4">
-                    <h3 className="font-semibold text-[#032A33] text-lg mb-4">Quick Actions</h3>
+            {/* Quick Actions */}
+            <div className="mb-8">
+                <h3 className="font-semibold text-[#032A33] text-lg mb-4">Quick Actions</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <QuickActionButton
-                        title="Update Availability"
-                        description="Set your work schedule"
-                        icon={Calendar}
-                        onClick={() => navigate('/worker/availability')}
+                        title="Find Shifts"
+                        description="Browse available jobs"
+                        icon={Briefcase}
+                        onClick={() => navigate('/worker/find-shifts')}
                         color="#0B4B54"
                         delay={200}
                     />
                     <QuickActionButton
-                        title="View Nearby Jobs"
-                        description="Find jobs around you"
-                        icon={MapPin}
-                        onClick={() => navigate('/worker/nearby-jobs')}
+                        title="My Shifts"
+                        description="View your applications"
+                        icon={Calendar}
+                        onClick={() => navigate('/worker/my-shifts')}
                         color="#82ACAB"
                         delay={300}
                     />
                     <QuickActionButton
-                        title="Check Earnings"
+                        title="Wallet"
                         description="View payment history"
                         icon={DollarSign}
-                        onClick={() => navigate('/worker/earnings')}
+                        onClick={() => navigate('/worker/wallet')}
                         color="#032A33"
                         delay={400}
                     />
-                </div>
-
-                {/* Charts Section */}
-                <div className="lg:col-span-2 space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <SimpleBarChart data={jobsChartData} title="Jobs This Week" />
-                        <EarningsChart data={earningsData} />
-                    </div>
                 </div>
             </div>
 
@@ -646,30 +643,24 @@ const WorkerDashboard = () => {
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0B4B54] mx-auto"></div>
                         <p className="text-[#888888] mt-4">Loading shifts...</p>
                     </div>
-                ) : recommendedShifts.length === 0 ? (
-                    <div className="text-center py-12 glass-card rounded-2xl">
-                        <Briefcase size={48} className="text-[#82ACAB] mx-auto mb-4" />
-                        <h4 className="font-semibold text-[#032A33] mb-2">No Shifts Available</h4>
-                        <p className="text-[#888888]">Check back later for new opportunities</p>
-                    </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {recommendedShifts.map((shift, index) => (
-                            <RecommendedJobCard 
-                                key={shift._id} 
+                            <RecommendedJobCard
+                                key={shift._id}
                                 job={{
                                     id: shift._id,
-                                    title: shift.title,
+                                    title: shift.title || 'Untitled Position',
                                     company: shift.hirerId?.fullName || 'Employer',
-                                    location: shift.location.city,
-                                    time: `${shift.time.start} - ${shift.time.end}`,
-                                    pay: `${shift.pay.min}-${shift.pay.max}`,
+                                    location: shift.location?.city || 'Location not specified',
+                                    time: shift.time ? `${shift.time.start} - ${shift.time.end}` : 'Flexible Timing',
+                                    pay: shift.pay ? `${shift.pay.min}-${shift.pay.max}` : 'Negotiable',
                                     rating: 4.5,
                                     tag: 'New'
-                                }} 
+                                }}
                                 shift={shift}
                                 onApply={handleApplyShift}
-                                delay={600 + (index * 100)} 
+                                delay={600 + (index * 100)}
                             />
                         ))}
                     </div>

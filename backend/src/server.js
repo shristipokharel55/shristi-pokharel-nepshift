@@ -7,11 +7,13 @@ import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
 import { errorHandler, notFound } from "./middlewares/errorMiddleware.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import applicationRoutes from "./routes/applicationRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import bidRoutes from "./routes/bidRoutes.js";
 import helperRoutes from "./routes/helperRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import shiftRoutes from "./routes/shiftRoutes.js";
-import bidRoutes from "./routes/bidRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 // ES Module directory name
 const __filename = fileURLToPath(import.meta.url);
@@ -65,6 +67,8 @@ app.use("/api/helper", helperRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/shifts", shiftRoutes);
 app.use("/api/bids", bidRoutes);
+app.use("/api/applications", applicationRoutes);
+app.use("/api/users", userRoutes);
 
 // Test Route
 app.get("/", (req, res) => {

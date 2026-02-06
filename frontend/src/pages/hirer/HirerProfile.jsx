@@ -1,65 +1,61 @@
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 import {
     Briefcase,
     Calendar,
     Camera,
-    Check,
     Edit2,
-    Globe,
+    Loader2,
     Mail,
     MapPin,
     Phone,
+    Save,
     Shield,
     Star,
-    User
+    Upload
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Marker, useMapEvents } from "react-leaflet";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "react-hot-toast";
 import HirerLayout from "../../components/hirer/HirerLayout";
 import VerifiedBadge from "../../components/ui/VerifiedBadge";
 import api from "../../utils/api";
 
-// Fix for default marker icons in Leaflet
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-});
-
-// Map marker component
-function LocationMarker({ position, setPosition }) {
-  useMapEvents({
-    click(e) {
-      setPosition({
-        latitude: e.latlng.lat,
-        longitude: e.latlng.lng,
-      });
-    },
-  });
-
-  return position && position.latitude && position.longitude ? (
-    <Marker position={[position.latitude, position.longitude]} />
-  ) : null;
-}
-
 const HirerProfile = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [uploadingPhoto, setUploadingPhoto] = useState(false);
+    const [uploadingCover, setUploadingCover] = useState(false);
+    const profilePhotoRef = useRef(null);
+    const coverPhotoRef = useRef(null);
+    
     const [profile, setProfile] = useState({
-        name: '',
+        fullName: '',
         email: '',
         phone: '',
-        location: '',
-        website: '',
-        description: '',
-        industry: 'Food & Hospitality',
-        companySize: '50-100 employees',
-        verified: false,
-        rating: 4.8,
+        bio: '',
+        profilePhoto: null,
+        coverPhoto: null,
+        address: {
+            municipality: '',
+            district: '',
+            ward: '',
+            street: ''
+        },
+        isVerified: false,
+        rating: 0,
         totalHires: 0,
-        memberSince: 'January 2024'
+        createdAt: null
+    });
+
+    const [formData, setFormData] = useState({
+        fullName: '',
+        phone: '',
+        bio: '',
+        address: {
+            municipality: '',
+            district: '',
+            ward: '',
+            street: ''
+        }
     });
 
     useEffect(() => {
@@ -69,275 +65,508 @@ const HirerProfile = () => {
     const fetchProfile = async () => {
         try {
             setLoading(true);
-            const response = await api.get('/helper/hirer/profile');
+            const response = await api.get('/hirer/profile');
             
             if (response.data.success) {
-                const data = response.data.data;
+                const data = response.data.data.user || response.data.data;
                 setProfile({
-                    name: data.fullName || '',
+                    fullName: data.fullName || '',
                     email: data.email || '',
                     phone: data.phone || '',
-                    location: data.address ? `${data.address.municipality || ''}, ${data.address.district || ''}`.trim().replace(/^,|,$/g, '') : '',
                     bio: data.bio || '',
-                    verified: data.isVerified || false,
+                    profilePhoto: data.profilePhoto || null,
+                    coverPhoto: data.coverPhoto || null,
+                    address: data.address || {
+                        municipality: '',
+                        district: '',
+                        ward: '',
+                        street: ''
+                    },
+                    isVerified: data.isVerified || false,
+                    rating: data.rating || 0,
                     totalHires: data.totalHires || 0,
-                    memberSince: new Date(data.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+                    createdAt: data.createdAt || data.joinedAt
+                });
+
+                setFormData({
+                    fullName: data.fullName || '',
+                    phone: data.phone || '',
+                    bio: data.bio || '',
+                    address: data.address || {
+                        municipality: '',
+                        district: '',
+                        ward: '',
+                        street: ''
+                    }
                 });
             }
         } catch (error) {
             console.error('Failed to fetch profile:', error);
+            toast.error('Failed to load profile');
         } finally {
             setLoading(false);
         }
     };
 
-    const stats = [
-        { label: 'Total Hires', value: profile.totalHires, icon: Briefcase, color: 'blue' },
-        { label: 'Rating', value: `★ ${profile.rating}`, icon: Star, color: 'amber' },
-        { label: 'Member Since', value: profile.memberSince, icon: Calendar, color: 'emerald' },
-    ];
+    const handleSaveProfile = async () => {
+        try {
+            setSaving(true);
+            const response = await api.put('/hirer/profile', formData);
+            
+            if (response.data.success) {
+                toast.success('Profile updated successfully!');
+                setIsEditing(false);
+                await fetchProfile();
+            }
+        } catch (error) {
+            console.error('Failed to update profile:', error);
+            toast.error(error.response?.data?.message || 'Failed to update profile');
+        } finally {
+            setSaving(false);
+        }
+    };
 
-    const recentHires = [
-        { name: 'Hari Bahadur', role: 'Kitchen Helper', date: 'Jan 28, 2026', rating: 5 },
-        { name: 'Maya Tamang', role: 'Event Staff', date: 'Jan 25, 2026', rating: 4 },
-        { name: 'Gita Gurung', role: 'Server', date: 'Jan 22, 2026', rating: 5 },
-    ];
+    const handlePhotoUpload = async (file, type) => {
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            toast.error('Please upload an image file');
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error('Image size must be less than 5MB');
+            return;
+        }
+
+        const formDataObj = new FormData();
+        formDataObj.append('file', file);
+        formDataObj.append('type', type);
+
+        try {
+            if (type === 'profile') {
+                setUploadingPhoto(true);
+            } else {
+                setUploadingCover(true);
+            }
+
+            const response = await api.post('/hirer/upload-photo', formDataObj, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
+            if (response.data.success) {
+                toast.success(`${type === 'profile' ? 'Profile' : 'Cover'} photo updated!`);
+                await fetchProfile();
+            }
+        } catch (error) {
+            console.error('Failed to upload photo:', error);
+            toast.error(error.response?.data?.message || 'Failed to upload photo');
+        } finally {
+            if (type === 'profile') {
+                setUploadingPhoto(false);
+            } else {
+                setUploadingCover(false);
+            }
+        }
+    };
+
+    const getImageUrl = (imagePath) => {
+        if (!imagePath) return null;
+        if (imagePath.startsWith('http')) return imagePath;
+        if (imagePath.startsWith('/')) {
+            return `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'}${imagePath}`;
+        }
+        return imagePath;
+    };
+
+    const getMemberSinceDate = () => {
+        if (!profile.createdAt) return 'N/A';
+        try {
+            return new Date(profile.createdAt).toLocaleDateString('en-US', { 
+                month: 'long', 
+                year: 'numeric' 
+            });
+        } catch (error) {
+            return 'N/A';
+        }
+    };
+
+    const getLocationString = () => {
+        const { municipality, district } = profile.address;
+        if (!municipality && !district) return 'Not specified';
+        return [municipality, district].filter(Boolean).join(', ');
+    };
+
+    if (loading) {
+        return (
+            <HirerLayout>
+                <div className="flex items-center justify-center h-96">
+                    <Loader2 className="w-8 h-8 animate-spin text-[#4A9287]" />
+                </div>
+            </HirerLayout>
+        );
+    }
 
     return (
         <HirerLayout>
-            <div className="max-w-4xl mx-auto">
-                {/* Profile Header */}
-                <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden mb-6">
-                    {/* Cover */}
-                    <div className="h-32 bg-gradient-to-r from-[#1F4E5F] to-[#2D6A7A] relative">
-                        <button className="absolute right-4 top-4 px-3 py-1.5 bg-white/20 backdrop-blur-sm text-white text-sm rounded-lg hover:bg-white/30 transition-colors flex items-center gap-2">
-                            <Camera size={14} />
-                            Change Cover
+            <div className="max-w-5xl mx-auto px-4 py-6">
+                {/* Profile Header Card */}
+                <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-6">
+                    {/* Cover Photo */}
+                    <div className="h-48 bg-gradient-to-br from-[#4A9287] via-[#3d7a71] to-[#2d6a61] relative">
+                        <input
+                            ref={coverPhotoRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handlePhotoUpload(e.target.files[0], 'cover')}
+                            className="hidden"
+                        />
+                        {profile.coverPhoto && (
+                            <img 
+                                src={getImageUrl(profile.coverPhoto)} 
+                                alt="Cover" 
+                                className="w-full h-full object-cover"
+                            />
+                        )}
+                        <button 
+                            onClick={() => coverPhotoRef.current?.click()}
+                            disabled={uploadingCover}
+                            className="absolute top-4 right-4 px-4 py-2 bg-black/30 backdrop-blur-sm text-white text-sm font-medium rounded-lg hover:bg-black/40 transition-colors flex items-center gap-2 disabled:opacity-50"
+                        >
+                            {uploadingCover ? (
+                                <>
+                                    <Loader2 size={16} className="animate-spin" />
+                                    Uploading...
+                                </>
+                            ) : (
+                                <>
+                                    <Camera size={16} />
+                                    Change Cover
+                                </>
+                            )}
                         </button>
                     </div>
                     
                     {/* Profile Info */}
-                    <div className="px-6 pb-6 relative">
-                        <div className="flex flex-col md:flex-row md:items-end gap-4 -mt-12">
-                            {/* Avatar */}
-                            <div className="relative">
-                                <div className="w-24 h-24 rounded-xl bg-[#1F4E5F]/10 border-4 border-white shadow-lg flex items-center justify-center text-3xl font-bold text-[#1F4E5F]">
-                                    NR
+                    <div className="px-6 pb-6">
+                        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 -mt-16">
+                            {/* Avatar Section */}
+                            <div className="flex items-end gap-6">
+                                <div className="relative">
+                                    <input
+                                        ref={profilePhotoRef}
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => handlePhotoUpload(e.target.files[0], 'profile')}
+                                        className="hidden"
+                                    />
+                                    <div className="w-32 h-32 rounded-2xl bg-white border-4 border-white shadow-xl overflow-hidden">
+                                        {profile.profilePhoto ? (
+                                            <img 
+                                                src={getImageUrl(profile.profilePhoto)} 
+                                                alt={profile.fullName}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full bg-gradient-to-br from-[#4A9287] to-[#3d7a71] flex items-center justify-center text-4xl font-bold text-white">
+                                                {profile.fullName?.charAt(0)?.toUpperCase() || 'H'}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <button 
+                                        onClick={() => profilePhotoRef.current?.click()}
+                                        disabled={uploadingPhoto}
+                                        className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#4A9287] text-white rounded-xl flex items-center justify-center hover:bg-[#3d7a71] transition-colors shadow-lg disabled:opacity-50"
+                                    >
+                                        {uploadingPhoto ? (
+                                            <Loader2 size={18} className="animate-spin" />
+                                        ) : (
+                                            <Camera size={18} />
+                                        )}
+                                    </button>
                                 </div>
-                                <button className="absolute -bottom-1 -right-1 w-8 h-8 bg-[#1F4E5F] text-white rounded-lg flex items-center justify-center hover:bg-[#2D6A7A] transition-colors">
-                                    <Camera size={14} />
-                                </button>
-                            </div>
-                            
-                            {/* Name & Badge */}
-                            <div className="flex-1 pt-2">
-                                <div className="flex items-center gap-3 mb-1">
-                                    <h1 className="text-2xl font-bold text-gray-800">{profile.name || 'Hirer Name'}</h1>
-                                    <VerifiedBadge isVerified={profile.verified} size="md" variant="badge" />
+                                
+                                {/* Name & Verification */}
+                                <div className="pb-2">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <h1 className="text-3xl font-bold text-slate-800">
+                                            {profile.fullName || 'Hirer Name'}
+                                        </h1>
+                                        <VerifiedBadge 
+                                            isVerified={profile.isVerified} 
+                                            size="lg" 
+                                            variant="badge" 
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-4 text-slate-600">
+                                        <div className="flex items-center gap-1.5">
+                                            <Star size={16} className="fill-amber-400 text-amber-400" />
+                                            <span className="font-semibold text-slate-800">
+                                                {profile.rating?.toFixed(1) || '0.0'}
+                                            </span>
+                                            <span className="text-sm">Rating</span>
+                                        </div>
+                                        <span className="text-slate-300">•</span>
+                                        <div className="flex items-center gap-1.5">
+                                            <Briefcase size={16} />
+                                            <span className="font-semibold text-slate-800">
+                                                {profile.totalHires || 0}
+                                            </span>
+                                            <span className="text-sm">Hires</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <p className="text-gray-500">{profile.industry} • {profile.companySize}</p>
                             </div>
                             
                             {/* Edit Button */}
                             <button 
-                                onClick={() => setIsEditing(!isEditing)}
-                                className={`px-4 py-2 rounded-xl font-medium text-sm flex items-center gap-2 transition-colors ${
+                                onClick={() => {
+                                    if (isEditing) {
+                                        handleSaveProfile();
+                                    } else {
+                                        setIsEditing(true);
+                                    }
+                                }}
+                                disabled={saving}
+                                className={`px-6 py-3 rounded-xl font-semibold text-sm flex items-center gap-2 transition-colors ${
                                     isEditing 
-                                        ? 'bg-emerald-500 text-white hover:bg-emerald-600' 
-                                        : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
-                                }`}
+                                        ? 'bg-[#4A9287] text-white hover:bg-[#3d7a71]' 
+                                        : 'border-2 border-slate-200 text-slate-700 hover:bg-slate-50'
+                                } disabled:opacity-50 disabled:cursor-not-allowed`}
                             >
-                                {isEditing ? <Check size={16} /> : <Edit2 size={16} />}
-                                {isEditing ? 'Save Changes' : 'Edit Profile'}
+                                {saving ? (
+                                    <>
+                                        <Loader2 size={18} className="animate-spin" />
+                                        Saving...
+                                    </>
+                                ) : isEditing ? (
+                                    <>
+                                        <Save size={18} />
+                                        Save Changes
+                                    </>
+                                ) : (
+                                    <>
+                                        <Edit2 size={18} />
+                                        Edit Profile
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>
                 </div>
 
-                {/* Stats */}
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                    {stats.map((stat, idx) => {
-                        const Icon = stat.icon;
-                        const colorClasses = {
-                            blue: 'bg-blue-100 text-blue-600',
-                            amber: 'bg-amber-100 text-amber-600',
-                            emerald: 'bg-emerald-100 text-emerald-600',
-                        };
-                        
-                        return (
-                            <div key={idx} className="bg-white rounded-xl border border-gray-100 p-5 text-center">
-                                <div className={`w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center ${colorClasses[stat.color]}`}>
-                                    <Icon size={24} />
-                                </div>
-                                <p className="text-2xl font-bold text-gray-800">{stat.value}</p>
-                                <p className="text-sm text-gray-500">{stat.label}</p>
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div className="bg-white rounded-xl shadow-sm p-6">
+                        <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center">
+                                <Briefcase className="w-7 h-7 text-blue-600" />
                             </div>
-                        );
-                    })}
+                            <div>
+                                <p className="text-3xl font-bold text-slate-800">
+                                    {profile.totalHires || 0}
+                                </p>
+                                <p className="text-sm text-slate-500">Total Hires</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-xl shadow-sm p-6">
+                        <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 bg-amber-50 rounded-xl flex items-center justify-center">
+                                <Star className="w-7 h-7 text-amber-500 fill-amber-500" />
+                            </div>
+                            <div>
+                                <p className="text-3xl font-bold text-slate-800">
+                                    {profile.rating?.toFixed(1) || '0.0'}
+                                </p>
+                                <p className="text-sm text-slate-500">Average Rating</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-xl shadow-sm p-6">
+                        <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 bg-emerald-50 rounded-xl flex items-center justify-center">
+                                <Calendar className="w-7 h-7 text-emerald-600" />
+                            </div>
+                            <div>
+                                <p className="text-lg font-bold text-slate-800">
+                                    {getMemberSinceDate()}
+                                </p>
+                                <p className="text-sm text-slate-500">Member Since</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Main Info */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* About */}
-                        <div className="bg-white rounded-xl border border-gray-100 p-6">
-                            <h3 className="font-semibold text-gray-800 mb-4">About</h3>
+                        <div className="bg-white rounded-xl shadow-sm p-6">
+                            <h3 className="text-lg font-semibold text-slate-800 mb-4">About</h3>
                             {isEditing ? (
                                 <textarea
-                                    value={profile.bio}
-                                    onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                                    className="w-full h-32 p-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#1F4E5F] focus:ring-2 focus:ring-[#1F4E5F]/10 resize-none"
+                                    value={formData.bio}
+                                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                                    placeholder="Tell us about your business or what you're looking for in workers..."
+                                    className="w-full h-32 p-4 border-2 border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-[#4A9287] focus:ring-2 focus:ring-[#4A9287]/20 resize-none"
+                                    maxLength={500}
                                 />
                             ) : (
-                                <p className="text-gray-600 leading-relaxed">{profile.bio || 'No bio added yet.'}</p>
+                                <p className="text-slate-600 leading-relaxed">
+                                    {profile.bio || 'No bio added yet. Click "Edit Profile" to add information about your business.'}
+                                </p>
                             )}
                         </div>
 
                         {/* Contact Info */}
-                        <div className="bg-white rounded-xl border border-gray-100 p-6">
-                            <h3 className="font-semibold text-gray-800 mb-4">Contact Information</h3>
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                                        <Mail size={18} className="text-gray-500" />
+                        <div className="bg-white rounded-xl shadow-sm p-6">
+                            <h3 className="text-lg font-semibold text-slate-800 mb-6">Contact Information</h3>
+                            <div className="space-y-5">
+                                {/* Email */}
+                                <div className="flex items-start gap-4">
+                                    <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center shrink-0">
+                                        <Mail size={20} className="text-slate-600" />
                                     </div>
-                                    {isEditing ? (
-                                        <input
-                                            type="email"
-                                            value={profile.email}
-                                            onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                                            className="flex-1 p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#1F4E5F]"
-                                        />
-                                    ) : (
-                                        <div>
-                                            <p className="text-sm text-gray-500">Email</p>
-                                            <p className="text-gray-800">{profile.email}</p>
-                                        </div>
-                                    )}
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-slate-500 mb-1">Email</p>
+                                        <p className="text-slate-800 font-medium break-all">
+                                            {profile.email || 'Not provided'}
+                                        </p>
+                                    </div>
                                 </div>
-                                
-                                <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                                        <Phone size={18} className="text-gray-500" />
+
+                                {/* Phone */}
+                                <div className="flex items-start gap-4">
+                                    <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center shrink-0">
+                                        <Phone size={20} className="text-slate-600" />
                                     </div>
-                                    {isEditing ? (
-                                        <input
-                                            type="tel"
-                                            value={profile.phone}
-                                            onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                                            className="flex-1 p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#1F4E5F]"
-                                        />
-                                    ) : (
-                                        <div>
-                                            <p className="text-sm text-gray-500">Phone</p>
-                                            <p className="text-gray-800">{profile.phone}</p>
-                                        </div>
-                                    )}
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-slate-500 mb-1">Phone Number</p>
+                                        {isEditing ? (
+                                            <input
+                                                type="tel"
+                                                value={formData.phone}
+                                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                                placeholder="Enter phone number"
+                                                className="w-full px-4 py-2 border-2 border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:border-[#4A9287] focus:ring-2 focus:ring-[#4A9287]/20"
+                                            />
+                                        ) : (
+                                            <p className="text-slate-800 font-medium">
+                                                {profile.phone || 'Not provided'}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
-                                
-                                <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                                        <MapPin size={18} className="text-gray-500" />
+
+                                {/* Location */}
+                                <div className="flex items-start gap-4">
+                                    <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center shrink-0">
+                                        <MapPin size={20} className="text-slate-600" />
                                     </div>
-                                    {isEditing ? (
-                                        <input
-                                            type="text"
-                                            value={profile.location}
-                                            onChange={(e) => setProfile({ ...profile, location: e.target.value })}
-                                            className="flex-1 p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#1F4E5F]"
-                                        />
-                                    ) : (
-                                        <div>
-                                            <p className="text-sm text-gray-500">Location</p>
-                                            <p className="text-gray-800">{profile.location}</p>
-                                        </div>
-                                    )}
-                                </div>
-                                
-                                <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                                        <Globe size={18} className="text-gray-500" />
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-slate-500 mb-1">Location</p>
+                                        {isEditing ? (
+                                            <div className="space-y-2">
+                                                <input
+                                                    type="text"
+                                                    value={formData.address.municipality}
+                                                    onChange={(e) => setFormData({ 
+                                                        ...formData, 
+                                                        address: { ...formData.address, municipality: e.target.value }
+                                                    })}
+                                                    placeholder="Municipality"
+                                                    className="w-full px-4 py-2 border-2 border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:border-[#4A9287] focus:ring-2 focus:ring-[#4A9287]/20"
+                                                />
+                                                <input
+                                                    type="text"
+                                                    value={formData.address.district}
+                                                    onChange={(e) => setFormData({ 
+                                                        ...formData, 
+                                                        address: { ...formData.address, district: e.target.value }
+                                                    })}
+                                                    placeholder="District"
+                                                    className="w-full px-4 py-2 border-2 border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:border-[#4A9287] focus:ring-2 focus:ring-[#4A9287]/20"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <p className="text-slate-800 font-medium">
+                                                {getLocationString()}
+                                            </p>
+                                        )}
                                     </div>
-                                    {isEditing ? (
-                                        <input
-                                            type="text"
-                                            value={profile.website}
-                                            onChange={(e) => setProfile({ ...profile, website: e.target.value })}
-                                            className="flex-1 p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#1F4E5F]"
-                                        />
-                                    ) : (
-                                        <div>
-                                            <p className="text-sm text-gray-500">Website</p>
-                                            <p className="text-[#1F4E5F]">{profile.website}</p>
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Sidebar */}
+                    {/* Right Column - Verification Status */}
                     <div className="space-y-6">
-                        {/* Recent Hires */}
-                        <div className="bg-white rounded-xl border border-gray-100 p-6">
-                            <h3 className="font-semibold text-gray-800 mb-4">Recent Hires</h3>
-                            <div className="space-y-4">
-                                {recentHires.map((hire, idx) => (
-                                    <div key={idx} className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-[#1F4E5F]/10 flex items-center justify-center">
-                                            <User size={18} className="text-[#1F4E5F]" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="font-medium text-gray-800 truncate">{hire.name}</p>
-                                            <p className="text-xs text-gray-500">{hire.role}</p>
-                                        </div>
-                                        <div className="flex items-center text-amber-500 text-sm">
-                                            <Star size={12} className="fill-current" />
-                                            <span className="ml-0.5">{hire.rating}</span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Verification Status */}
-                        {profile.verified ? (
-                            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6">
-                                <div className="flex items-center gap-3 mb-3">
-                                    <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                                        <Shield size={18} className="text-emerald-600" />
+                        {profile.isVerified ? (
+                            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-2 border-emerald-200 rounded-xl p-6">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center">
+                                        <Shield size={24} className="text-white" />
                                     </div>
                                     <div>
-                                        <h4 className="font-semibold text-emerald-800">Verified Employer</h4>
-                                        <p className="text-sm text-emerald-600">Identity confirmed</p>
+                                        <h4 className="font-bold text-emerald-900">Verified Employer</h4>
+                                        <p className="text-sm text-emerald-700">Identity confirmed</p>
                                     </div>
                                 </div>
-                                <p className="text-sm text-emerald-700">
-                                    Your business has been verified. Workers can trust that you're a legitimate employer.
+                                <p className="text-sm text-emerald-800 leading-relaxed">
+                                    Your profile has been verified. Workers can trust that you're a legitimate employer.
                                 </p>
                             </div>
                         ) : (
-                            <div className="bg-amber-50 border border-amber-200 rounded-xl p-6">
-                                <div className="flex items-center gap-3 mb-3">
-                                    <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                                        <Shield size={18} className="text-amber-600" />
+                            <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 border-2 border-amber-200 rounded-xl p-6">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center">
+                                        <Shield size={24} className="text-white" />
                                     </div>
                                     <div>
-                                        <h4 className="font-semibold text-amber-800">Not Verified Yet</h4>
-                                        <p className="text-sm text-amber-600">Complete verification</p>
+                                        <h4 className="font-bold text-amber-900">Not Verified</h4>
+                                        <p className="text-sm text-amber-700">Complete verification</p>
                                     </div>
                                 </div>
-                                <p className="text-sm text-amber-700 mb-3">
-                                    Get verified to build trust with workers and increase your hires.
+                                <p className="text-sm text-amber-800 leading-relaxed mb-4">
+                                    Get verified to build trust with workers and increase your chances of finding quality help.
                                 </p>
                                 <a
-                                    href="/hirer/profile/edit"
-                                    className="inline-block px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 transition-colors"
+                                    href="/hirer/profile/complete"
+                                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-600 text-white text-sm font-semibold rounded-lg hover:bg-amber-700 transition-colors"
                                 >
+                                    <Upload size={16} />
                                     Get Verified
                                 </a>
                             </div>
                         )}
+
+                        {/* Profile Completion Tip */}
+                        <div className="bg-white rounded-xl shadow-sm p-6">
+                            <h4 className="font-semibold text-slate-800 mb-3">💡 Profile Tips</h4>
+                            <ul className="space-y-2 text-sm text-slate-600">
+                                <li className="flex items-start gap-2">
+                                    <span className="text-[#4A9287] mt-0.5">✓</span>
+                                    <span>Add a professional profile photo to build trust</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <span className="text-[#4A9287] mt-0.5">✓</span>
+                                    <span>Write a clear bio about your business</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <span className="text-[#4A9287] mt-0.5">✓</span>
+                                    <span>Keep your contact information up to date</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <span className="text-[#4A9287] mt-0.5">✓</span>
+                                    <span>Complete verification to attract more workers</span>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
