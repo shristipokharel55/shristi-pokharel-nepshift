@@ -48,6 +48,9 @@ const UserSchema = new mongoose.Schema({
     default: 'unverified'
   },
 
+  // Availability tracking - dates when worker is booked
+  bookedDates: [{ type: Date }],
+
   // KYC Documents (array of URLs) - kept for helpers
   documents: [{
     type: { type: String, enum: ['kyc', 'id', 'address', 'business_license'], required: true },

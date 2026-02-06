@@ -66,10 +66,11 @@ const ViewApplicants = () => {
         )
       );
 
-      alert("Applicant approved successfully!");
+      // Show success toast notification
+      showToast("Success! Worker has been hired for this shift.", "success");
     } catch (err) {
       console.error("Error approving applicant:", err);
-      alert(err.response?.data?.message || "Failed to approve applicant");
+      showToast(err.response?.data?.message || "Failed to approve applicant", "error");
     } finally {
       setProcessingId(null); // Remove loading indicator
     }
@@ -94,13 +95,33 @@ const ViewApplicants = () => {
         )
       );
 
-      alert("Applicant rejected");
+      // Show info toast notification
+      showToast("Application rejected", "info");
     } catch (err) {
       console.error("Error rejecting applicant:", err);
-      alert(err.response?.data?.message || "Failed to reject applicant");
+      showToast(err.response?.data?.message || "Failed to reject applicant", "error");
     } finally {
       setProcessingId(null); // Remove loading indicator
     }
+  };
+
+  // Simple toast notification function
+  const showToast = (message, type = "success") => {
+    // Create toast element
+    const toast = document.createElement("div");
+    toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white font-medium z-50 animate-fade-in ${
+      type === "success" ? "bg-green-600" : type === "error" ? "bg-red-600" : "bg-blue-600"
+    }`;
+    toast.textContent = message;
+    
+    // Add to document
+    document.body.appendChild(toast);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+      toast.style.opacity = "0";
+      setTimeout(() => document.body.removeChild(toast), 300);
+    }, 3000);
   };
 
   // Function to get status badge color

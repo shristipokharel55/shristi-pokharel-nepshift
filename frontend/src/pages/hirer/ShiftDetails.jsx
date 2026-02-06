@@ -42,6 +42,48 @@ const ShiftDetails = () => {
         fetchShiftDetails();
     }, [id, navigate]);
 
+    // Handle Accept Application
+    const handleAccept = async (applicationId) => {
+        try {
+            const response = await api.put(`/bids/${applicationId}`, {
+                status: 'accepted'
+            });
+
+            if (response.data.success) {
+                toast.success('Application accepted successfully!');
+                // Refresh shift details to show updated status
+                const updatedShift = await api.get(`/shifts/${id}/details`);
+                if (updatedShift.data.success) {
+                    setShiftData(updatedShift.data.data);
+                }
+            }
+        } catch (error) {
+            console.error('Error accepting application:', error);
+            toast.error(error.response?.data?.message || 'Failed to accept application');
+        }
+    };
+
+    // Handle Reject Application
+    const handleReject = async (applicationId) => {
+        try {
+            const response = await api.put(`/bids/${applicationId}`, {
+                status: 'rejected'
+            });
+
+            if (response.data.success) {
+                toast.success('Application rejected');
+                // Refresh shift details to show updated status
+                const updatedShift = await api.get(`/shifts/${id}/details`);
+                if (updatedShift.data.success) {
+                    setShiftData(updatedShift.data.data);
+                }
+            }
+        } catch (error) {
+            console.error('Error rejecting application:', error);
+            toast.error(error.response?.data?.message || 'Failed to reject application');
+        }
+    };
+
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('en-US', {
             weekday: 'long',
@@ -107,12 +149,12 @@ const ShiftDetails = () => {
                             </div>
                         </div>
                         <span className={`px-4 py-2 rounded-xl text-sm font-semibold ${shift.status === 'open'
-                                ? 'bg-green-100 text-green-700 border border-green-200'
-                                : shift.status === 'in-progress'
-                                    ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                                    : shift.status === 'completed'
-                                        ? 'bg-gray-100 text-gray-700 border border-gray-200'
-                                        : 'bg-red-100 text-red-700 border border-red-200'
+                            ? 'bg-green-100 text-green-700 border border-green-200'
+                            : shift.status === 'in-progress'
+                                ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                                : shift.status === 'completed'
+                                    ? 'bg-gray-100 text-gray-700 border border-gray-200'
+                                    : 'bg-red-100 text-red-700 border border-red-200'
                             }`}>
                             {shift.status.charAt(0).toUpperCase() + shift.status.slice(1)}
                         </span>
@@ -285,10 +327,16 @@ const ShiftDetails = () => {
                                                     </button>
                                                     {bid.status === 'pending' && (
                                                         <>
-                                                            <button className="px-4 py-2 rounded-lg bg-green-500 text-white font-semibold hover:bg-green-600 transition-colors">
+                                                            <button
+                                                                onClick={() => handleAccept(bid._id)}
+                                                                className="px-4 py-2 rounded-lg bg-green-500 text-white font-semibold hover:bg-green-600 transition-colors"
+                                                            >
                                                                 Accept
                                                             </button>
-                                                            <button className="px-4 py-2 rounded-lg bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors">
+                                                            <button
+                                                                onClick={() => handleReject(bid._id)}
+                                                                className="px-4 py-2 rounded-lg bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors"
+                                                            >
                                                                 Reject
                                                             </button>
                                                         </>
@@ -299,10 +347,10 @@ const ShiftDetails = () => {
 
                                         {/* Status Badge */}
                                         <span className={`px-3 py-1 rounded-full text-sm font-semibold ${bid.status === 'pending'
-                                                ? 'bg-yellow-100 text-yellow-700'
-                                                : bid.status === 'accepted'
-                                                    ? 'bg-green-100 text-green-700'
-                                                    : 'bg-red-100 text-red-700'
+                                            ? 'bg-yellow-100 text-yellow-700'
+                                            : bid.status === 'accepted'
+                                                ? 'bg-green-100 text-green-700'
+                                                : 'bg-red-100 text-red-700'
                                             }`}>
                                             {bid.status.charAt(0).toUpperCase() + bid.status.slice(1)}
                                         </span>
@@ -314,7 +362,7 @@ const ShiftDetails = () => {
                 </div>
             </div>
 
-            <style jsx>{`
+            {/* <style jsx>{`
                 @keyframes fadeInUp {
                     from {
                         opacity: 0;
@@ -325,7 +373,7 @@ const ShiftDetails = () => {
                         transform: translateY(0);
                     }
                 }
-            `}</style>
+            `}</style> */}
         </HirerLayout>
     );
 };

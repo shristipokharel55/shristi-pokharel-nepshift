@@ -1,5 +1,7 @@
 // backend/src/controllers/applicationController.js
 import Application from "../models/Application.js";
+import Notification from "../models/Notification.js";
+import User from "../models/user.js";
 
 /**
  * Get all applications for the logged-in worker
@@ -58,14 +60,38 @@ export const createApplication = async (req, res) => {
       });
     }
 
-    // Step 3: Create the new application
+    // Step 3: Get shift details and worker details for notification
+    const Shift = (await import("../models/shift.js")).default;
+    const shift = await Shift.findById(shiftId);
+    
+    if (!shift) {
+      return res.status(404).json({
+        success: false,
+        message: "Shift not found",
+      });
+    }
+
+    const worker = await User.findById(workerId);
+
+    // Step 4: Create the new application
     const newApplication = await Application.create({
       worker: workerId,
       shift: shiftId,
       status: "pending", // Default status
     });
 
-    // Step 4: Return the created application
+    // Step 5: Create notification for the Hirer
+    // The notification is linked to the hirer's User ID (shift.hirerId)
+    // This way, when the hirer logs in, they can see all notifications for them
+    await Notification.create({
+      recipient: shift.hirerId, // Send notification to the shift owner (hirer)
+      type: "info",
+      title: "New Application Received",
+      message: `${worker.fullName} has applied for your shift "${shift.title}"`,
+      relatedId: newApplication._id, // Link to the application for reference
+    });
+
+    // Step 6: Return the created application
     res.status(201).json({
       success: true,
       message: "Application submitted successfully",
@@ -136,6 +162,7 @@ export const getShiftApplicants = async (req, res) => {
 
 /**
  * Update application status (Accept or Reject)
+ * Enhanced with Notifications and Availability Tracking
  * @route PUT /api/applications/:applicationId/status
  * @access Private (Hirer only - shift owner)
  */
@@ -181,7 +208,49 @@ export const updateApplicationStatus = async (req, res) => {
     // Step 6: Populate worker details for response
     await application.populate("worker", "fullName email");
 
-    // Step 7: Send success response
+    // Step 7: Create notification for the Worker
+    // The notification is linked to the worker's User ID (application.worker._id)
+    // When the worker logs in, they can see this notification in their inbox
+    const notificationMessage =
+      status === "approved"
+        ? `Congratulations! Your application for "${application.shift.title}" has been approved.`
+        : `Your application for "${application.shift.title}" has been rejected.`;
+
+    const notificationType = status === "approved" ? "success" : "info";
+
+    await Notification.create({
+      recipient: application.worker._id, // Send notification to the worker
+      type: notificationType,
+      title:
+        status === "approved"
+          ? "Application Approved"
+          : "Application Rejected",
+      message: notificationMessage,
+      relatedId: application._id, // Link to the application
+    });
+
+    // Step 8: Availability Logic - Mark worker as booked if approved
+    if (status === "approved") {
+      // Find the worker and update their booking status
+      const worker = await User.findById(application.worker._id);
+
+      // Initialize bookedDates array if it doesn't exist
+      if (!worker.bookedDates) {
+        worker.bookedDates = [];
+      }
+
+      // Add this shift's date to worker's booked dates
+      // This prevents double-booking on the same date
+      const shiftDate = new Date(application.shift.date).toISOString().split("T")[0];
+      
+      // Check if date is not already in bookedDates array
+      if (!worker.bookedDates.some(date => date.toISOString().split("T")[0] === shiftDate)) {
+        worker.bookedDates.push(new Date(application.shift.date));
+        await worker.save();
+      }
+    }
+
+    // Step 9: Send success response
     res.status(200).json({
       success: true,
       message: `Application ${status} successfully`,
@@ -196,3 +265,11 @@ export const updateApplicationStatus = async (req, res) => {
     });
   }
 };
+
+/**
+ * Alias for updateApplicationStatus - Respond to an application (Accept/Reject)
+ * This is the same function with a more descriptive name as requested
+ * @route PUT /api/applications/:applicationId/respond
+ * @access Private (Hirer only)
+ */
+export const respondToApplication = updateApplicationStatus;

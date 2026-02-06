@@ -37,7 +37,23 @@ export const getPublicWorkerProfile = async (req, res) => {
     // Step 5: Find the worker's detailed profile
     const helperProfile = await HelperProfile.findOne({ user: id });
 
-    // Step 6: Prepare the response data
+    // Step 6: Check if worker has any upcoming approved applications (booked dates)
+    const Application = (await import("../models/Application.js")).default;
+    const currentDate = new Date();
+    
+    // Find approved applications for future shifts
+    const approvedApplications = await Application.find({
+      worker: id,
+      status: "approved",
+    }).populate("shift", "date");
+
+    // Check if worker is booked for any upcoming shifts
+    const hasUpcomingBooking = approvedApplications.some((app) => {
+      if (!app.shift || !app.shift.date) return false;
+      return new Date(app.shift.date) > currentDate;
+    });
+
+    // Step 7: Prepare the response data
     const profileData = {
       // Basic Info from User model
       _id: user._id,
@@ -62,9 +78,13 @@ export const getPublicWorkerProfile = async (req, res) => {
       averageRating: helperProfile?.averageRating || 0,
       totalJobsCompleted: helperProfile?.totalJobsCompleted || 0,
       isAvailable: helperProfile?.isAvailable || true,
+      
+      // Booking status - if worker has upcoming approved shifts
+      hasUpcomingBooking: hasUpcomingBooking,
+      bookedDates: user.bookedDates || [],
     };
 
-    // Step 7: Send the profile data back
+    // Step 8: Send the profile data back
     res.status(200).json({
       success: true,
       data: profileData,

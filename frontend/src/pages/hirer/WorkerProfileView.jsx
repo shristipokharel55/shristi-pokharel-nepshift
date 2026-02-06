@@ -129,7 +129,12 @@ const WorkerProfileView = () => {
 
                 {/* Availability Badge */}
                 <div>
-                  {worker.isAvailable ? (
+                  {/* Show BOOKED badge if worker has upcoming approved applications */}
+                  {worker.hasUpcomingBooking ? (
+                    <span className="px-4 py-2 bg-orange-500 text-white rounded-full text-sm font-semibold">
+                      Booked
+                    </span>
+                  ) : worker.isAvailable ? (
                     <span className="px-4 py-2 bg-green-500 text-white rounded-full text-sm font-semibold">
                       Available
                     </span>
