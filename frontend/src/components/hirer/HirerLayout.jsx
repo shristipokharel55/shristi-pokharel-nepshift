@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../utils/api';
 
 const HirerLayout = ({ children }) => {
     const location = useLocation();
@@ -16,8 +17,63 @@ const HirerLayout = ({ children }) => {
 
     const firstName = user?.fullName?.split(" ")[0] || "Employer";
 
-    // Sample notifications data
-    const notifications = [];
+    // Notifications state
+    const [notifications, setNotifications] = useState([]);
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    // Fetch Notifications
+    const fetchNotifications = async () => {
+        try {
+            const response = await api.get('/notifications');
+            if (response.data.success) {
+                setNotifications(response.data.data);
+                setUnreadCount(response.data.unreadCount);
+            }
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+        }
+    };
+
+    // Initial fetch and polling
+    useEffect(() => {
+        fetchNotifications();
+        const interval = setInterval(fetchNotifications, 30000); // Poll every 30s
+        return () => clearInterval(interval);
+    }, []);
+
+    const handleMarkAllRead = async () => {
+        try {
+            await api.put('/notifications/read-all');
+            setUnreadCount(0);
+            setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+        } catch (error) {
+            console.error('Error marking all as read:', error);
+        }
+    };
+
+    const handleNotificationClick = async () => {
+        setIsNotificationOpen(!isNotificationOpen);
+        setIsProfileDropdownOpen(false);
+        if (!isNotificationOpen && unreadCount > 0) {
+            handleMarkAllRead();
+        }
+    };
+
+    // Calculate time ago
+    const timeAgo = (date) => {
+        const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+        let interval = seconds / 31536000;
+        if (interval > 1) return Math.floor(interval) + " years ago";
+        interval = seconds / 2592000;
+        if (interval > 1) return Math.floor(interval) + " months ago";
+        interval = seconds / 86400;
+        if (interval > 1) return Math.floor(interval) + " days ago";
+        interval = seconds / 3600;
+        if (interval > 1) return Math.floor(interval) + " hours ago";
+        interval = seconds / 60;
+        if (interval > 1) return Math.floor(interval) + " minutes ago";
+        return "Just now";
+    };
 
     // Close dropdowns when clicking outside
     useEffect(() => {
@@ -243,10 +299,7 @@ const HirerLayout = ({ children }) => {
                             {/* Notifications */}
                             <div className="relative" ref={notificationRef}>
                                 <button
-                                    onClick={() => {
-                                        setIsNotificationOpen(!isNotificationOpen);
-                                        setIsProfileDropdownOpen(false);
-                                    }}
+                                    onClick={handleNotificationClick}
                                     className="
                                         relative p-3 rounded-full 
                                         bg-white hover:bg-gray-50 
@@ -256,7 +309,7 @@ const HirerLayout = ({ children }) => {
                                     "
                                 >
                                     <i className="ph ph-bell text-xl"></i>
-                                    <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 border-2 border-white rounded-full"></span>
+                                    {unreadCount > 0 && <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 border-2 border-white rounded-full"></span>}
                                 </button>
 
                                 {/* Notifications Dropdown */}
@@ -265,27 +318,31 @@ const HirerLayout = ({ children }) => {
                                         <div className="p-4 border-b border-gray-100">
                                             <div className="flex items-center justify-between">
                                                 <h3 className="font-semibold text-[#032A33]">Notifications</h3>
-                                                <button className="text-xs text-[#0B4B54] hover:underline">Mark all as read</button>
+                                                <button onClick={handleMarkAllRead} className="text-xs text-[#0B4B54] hover:underline">Mark all as read</button>
                                             </div>
                                         </div>
                                         <div className="max-h-80 overflow-y-auto">
-                                            {notifications.map((notification) => (
-                                                <div
-                                                    key={notification.id}
-                                                    className={`p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0 ${notification.unread ? 'bg-blue-50/30' : ''}`}
-                                                >
-                                                    <div className="flex items-start gap-3">
-                                                        <div className="w-8 h-8 rounded-full bg-[#E0F2F1] flex items-center justify-center shrink-0">
-                                                            <i className="ph ph-info text-[#00695C]"></i>
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <p className="font-medium text-[#032A33] text-sm">{notification.title}</p>
-                                                            <p className="text-[#888888] text-xs mt-0.5 truncate">{notification.message}</p>
-                                                            <p className="text-[#82ACAB] text-[10px] mt-1">{notification.time}</p>
+                                            {notifications.length === 0 ? (
+                                                <div className="p-4 text-center text-gray-500 text-sm">No notifications</div>
+                                            ) : (
+                                                notifications.map((notification) => (
+                                                    <div
+                                                        key={notification._id}
+                                                        className={`p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0 ${!notification.read ? 'bg-blue-50/30' : ''}`}
+                                                    >
+                                                        <div className="flex items-start gap-3">
+                                                            <div className="w-8 h-8 rounded-full bg-[#E0F2F1] flex items-center justify-center shrink-0">
+                                                                <i className="ph ph-info text-[#00695C]"></i>
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="font-medium text-[#032A33] text-sm">{notification.title}</p>
+                                                                <p className="text-[#888888] text-xs mt-0.5 truncate">{notification.message}</p>
+                                                                <p className="text-[#82ACAB] text-[10px] mt-1">{timeAgo(notification.createdAt)}</p>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            ))}
+                                                ))
+                                            )}
                                         </div>
                                         <div className="p-3 bg-gray-50 text-center">
                                             <button

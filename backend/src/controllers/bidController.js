@@ -1,5 +1,7 @@
 import Bid from "../models/bid.js";
 import Shift from "../models/shift.js";
+import Notification from "../models/Notification.js";
+import User from "../models/user.js"; // Import User for name lookup
 
 /**
  * Place a bid on a shift
@@ -23,7 +25,7 @@ export const placeBid = async (req, res) => {
 
     // Find the shift to get the hirer info
     const shift = await Shift.findById(shiftId);
-    
+
     if (!shift) {
       return res.status(404).json({
         success: false,
@@ -41,7 +43,7 @@ export const placeBid = async (req, res) => {
 
     // Check if worker already bid on this shift
     const existingBid = await Bid.findOne({ shiftId, workerId: req.user.id });
-    
+
     if (existingBid) {
       return res.status(400).json({
         success: false,
@@ -64,6 +66,26 @@ export const placeBid = async (req, res) => {
     await bid.populate("workerId", "fullName email phone");
     await bid.populate("shiftId", "title category date");
 
+    // NOTIFICATION FOR HIRER
+    try {
+      // Fetch fresh worker details to ensure we have the name
+      const worker = await User.findById(workerId);
+      const workerName = worker ? worker.fullName : "A worker";
+
+      console.log(`Creating notification for hirer ${shift.hirerId} from worker ${workerName}`);
+
+      await Notification.create({
+        recipient: shift.hirerId, // Notify the hirer
+        type: "info",
+        title: "New Application Received",
+        message: `${workerName} has applied for your shift: "${shift.title}".`,
+        relatedId: shiftId
+      });
+    } catch (notifError) {
+      console.error("Failed to create notification for hirer:", notifError);
+      // Continue execution, don't fail the bid placement
+    }
+
     console.log("Bid placed successfully:", bid._id);
 
     res.status(201).json({
@@ -73,7 +95,7 @@ export const placeBid = async (req, res) => {
     });
   } catch (error) {
     console.error("Place bid error:", error);
-    
+
     // Handle duplicate bid error (in case index catches it)
     if (error.code === 11000) {
       return res.status(400).json({
@@ -157,7 +179,7 @@ export const updateBidStatus = async (req, res) => {
     const hirerId = req.user.id;
 
     // Find the bid
-    const bid = await Bid.findById(id);
+    const bid = await Bid.findById(id).populate('shiftId');
 
     if (!bid) {
       return res.status(404).json({
@@ -177,6 +199,36 @@ export const updateBidStatus = async (req, res) => {
     // Update the status
     bid.status = status;
     await bid.save();
+
+    // NOTIFICATION FOR WORKER
+    try {
+      const shiftTitle = bid.shiftId ? bid.shiftId.title : 'the shift';
+      let notificationTitle = "Application Update";
+      let notificationMessage = `Your application for "${shiftTitle}" has been updated.`;
+      let notificationType = "info";
+
+      if (status === 'accepted') {
+        notificationTitle = "Application Accepted! 🎉";
+        notificationMessage = `Congratulations! Your application for "${shiftTitle}" has been accepted. Please check details.`;
+        notificationType = "success";
+      } else if (status === 'rejected') {
+        notificationTitle = "Application Status Update";
+        notificationMessage = `Your application for "${shiftTitle}" was not selected at this time.`;
+        notificationType = "info"; // Use info instead of error to be less harsh
+      }
+
+      await Notification.create({
+        recipient: bid.workerId, // Notify the worker
+        type: notificationType,
+        title: notificationTitle,
+        message: notificationMessage,
+        relatedId: bid.shiftId._id // Link to the shift
+      });
+
+    } catch (notifError) {
+      console.error("Failed to create notification for worker:", notifError);
+      // Continue execution
+    }
 
     res.status(200).json({
       success: true,
