@@ -10,7 +10,8 @@ import {
     MessageCircle,
     Navigation,
     Phone,
-    Star
+    Star,
+    X
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
@@ -27,6 +28,16 @@ const MyShifts = () => {
         totalEarned: 0,
         avgRating: 0
     });
+
+    const [showRatingModal, setShowRatingModal] = useState(false);
+    const [rating, setRating] = useState(0);
+    const [hoverRating, setHoverRating] = useState(0);
+    const [comment, setComment] = useState('');
+    const [submittingReview, setSubmittingReview] = useState(false);
+    const [reviewShiftId, setReviewShiftId] = useState(null);
+    const [reviewToUserId, setReviewToUserId] = useState(null);
+
+
 
     const tabs = [
         { id: 'requests', label: 'Requests', icon: FileText },
@@ -58,10 +69,10 @@ const MyShifts = () => {
     const calculateStats = (allBids) => {
         const acceptedBids = allBids.filter(bid => bid.status === 'accepted');
         const completedBids = acceptedBids.filter(bid => bid.shiftId?.status === 'completed');
-        
+
         // Calculate total earned from completed shifts
         const totalEarned = completedBids.reduce((sum, bid) => sum + (bid.bidAmount || 0), 0);
-        
+
         // Calculate this month's jobs
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -80,12 +91,12 @@ const MyShifts = () => {
 
     // Filter bids by status
     const pendingBids = bids.filter(bid => bid.status === 'pending');
-    const acceptedBids = bids.filter(bid => 
-        bid.status === 'accepted' && 
+    const acceptedBids = bids.filter(bid =>
+        bid.status === 'accepted' &&
         bid.shiftId?.status !== 'completed'
     );
-    const completedBids = bids.filter(bid => 
-        bid.status === 'accepted' && 
+    const completedBids = bids.filter(bid =>
+        bid.status === 'accepted' &&
         bid.shiftId?.status === 'completed'
     );
 
@@ -108,6 +119,66 @@ const MyShifts = () => {
             day: 'numeric',
             year: 'numeric'
         });
+    };
+
+    const handleStatusChange = async (shiftId, newStatus) => {
+        try {
+            let response;
+            if (newStatus === 'completed') {
+                response = await api.put(`/shifts/${shiftId}/complete`);
+            } else {
+                response = await api.put(`/shifts/${shiftId}`, { status: newStatus });
+            }
+
+            if (response.data.success) {
+                toast.success(`Shift marked as ${newStatus}`);
+                fetchBids(); // Refresh list to move it to history
+            }
+        } catch (error) {
+            console.error("Failed to update status:", error);
+            toast.error(error.response?.data?.message || "Failed to update status");
+        }
+    };
+
+    // Submit rating and review
+    const handleSubmitReview = async () => {
+        if (rating === 0) {
+            toast.error('Please select a rating');
+            return;
+        }
+
+        try {
+            setSubmittingReview(true);
+            const response = await api.post('/reviews', {
+                shiftId: reviewShiftId,
+                toUserId: reviewToUserId,
+                rating,
+                comment
+            });
+
+            if (response.data.success) {
+                toast.success('Review submitted successfully!');
+                setShowRatingModal(false);
+                setRating(0);
+                setComment('');
+                setReviewShiftId(null);
+                setReviewToUserId(null);
+                fetchBids(); // Refresh to potentially show updated state if needed
+            }
+        } catch (error) {
+            console.error('Error submitting review:', error);
+            toast.error(error.response?.data?.message || 'Failed to submit review');
+        } finally {
+            setSubmittingReview(false);
+        }
+    };
+
+    const handleOpenRateModal = (shiftId, hirerId) => {
+        setReviewShiftId(shiftId);
+        setReviewToUserId(hirerId);
+        setRating(0);
+        setComment('');
+        setShowRatingModal(true);
     };
 
     if (loading) {
@@ -204,7 +275,17 @@ const MyShifts = () => {
                                             <h3 className="font-bold text-[#032A33] text-xl">
                                                 {bid.shiftId?.title || 'Shift'}
                                             </h3>
-                                            <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold">Active</span>
+                                            <div className="relative">
+                                                <select
+                                                    value={bid.shiftId?.status || 'in-progress'}
+                                                    onChange={(e) => handleStatusChange(bid.shiftId?._id, e.target.value)}
+                                                    className="appearance-none px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border-none outline-none cursor-pointer hover:bg-emerald-200 transition-colors"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    <option value="in-progress">In Progress</option>
+                                                    <option value="completed">Completed</option>
+                                                </select>
+                                            </div>
                                         </div>
                                         <p className="text-[#0B4B54] font-medium">
                                             {bid.hirerId?.fullName || 'Employer'}
@@ -325,18 +406,13 @@ const MyShifts = () => {
                                     </div>
                                 </div>
                                 <div className="flex flex-col items-end gap-2">
-                                    <div className="flex items-center gap-1">
-                                        {[...Array(5)].map((_, i) => (
-                                            <Star
-                                                key={i}
-                                                size={16}
-                                                className={i < 5 ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}
-                                            />
-                                        ))}
-                                    </div>
-                                    {bid.message && (
-                                        <p className="text-sm text-[#888888] max-w-xs text-right italic">"{bid.message}"</p>
-                                    )}
+                                    <button
+                                        onClick={() => handleOpenRateModal(bid.shiftId?._id, bid.hirerId?._id)}
+                                        className="flex items-center gap-2 px-4 py-2 bg-[#0B4B54] text-white rounded-lg hover:bg-[#0D5A65] transition-colors text-sm font-medium"
+                                    >
+                                        <Star size={16} />
+                                        Rate Hirer
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -381,6 +457,98 @@ const MyShifts = () => {
                 {activeTab === 'requests' && renderRequests()}
                 {activeTab === 'active' && renderActive()}
                 {activeTab === 'history' && renderHistory()}
+
+                {/* Rating Modal */}
+                {showRatingModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-fade-in-up">
+                            {/* Modal Header */}
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-2xl font-bold text-[#032A33]">Rate Employer</h2>
+                                <button
+                                    onClick={() => setShowRatingModal(false)}
+                                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                    aria-label="Close"
+                                >
+                                    <X size={20} className="text-gray-500" />
+                                </button>
+                            </div>
+
+                            {/* Star Rating */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                                    How was your experience?
+                                </label>
+                                <div className="flex items-center gap-2 justify-center py-4">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <button
+                                            key={star}
+                                            type="button"
+                                            onClick={() => setRating(star)}
+                                            onMouseEnter={() => setHoverRating(star)}
+                                            onMouseLeave={() => setHoverRating(0)}
+                                            className="transition-transform hover:scale-110"
+                                        >
+                                            <Star
+                                                size={40}
+                                                className={`${star <= (hoverRating || rating)
+                                                    ? 'fill-yellow-400 text-yellow-400'
+                                                    : 'text-gray-300'
+                                                    } transition-colors`}
+                                            />
+                                        </button>
+                                    ))}
+                                </div>
+                                <p className="text-center text-sm text-gray-500 mt-2">
+                                    {rating === 0 && 'Click to rate'}
+                                    {rating === 1 && 'Poor'}
+                                    {rating === 2 && 'Fair'}
+                                    {rating === 3 && 'Good'}
+                                    {rating === 4 && 'Very Good'}
+                                    {rating === 5 && 'Excellent'}
+                                </p>
+                            </div>
+
+                            {/* Comment */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    Comment (Optional)
+                                </label>
+                                <textarea
+                                    value={comment}
+                                    onChange={(e) => setComment(e.target.value)}
+                                    placeholder="Share your experience with this employer..."
+                                    rows={4}
+                                    maxLength={500}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0B4B54] focus:border-transparent resize-none"
+                                />
+                                <p className="text-xs text-gray-500 mt-1 text-right">
+                                    {comment.length}/500 characters
+                                </p>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setShowRatingModal(false)}
+                                    className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleSubmitReview}
+                                    disabled={submittingReview || rating === 0}
+                                    className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-colors ${submittingReview || rating === 0
+                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                        : 'bg-[#0B4B54] text-white hover:bg-[#0D5A65]'
+                                        }`}
+                                >
+                                    {submittingReview ? 'Submitting...' : 'Submit Review'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </WorkerLayout>
     );

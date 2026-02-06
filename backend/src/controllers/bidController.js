@@ -200,6 +200,17 @@ export const updateBidStatus = async (req, res) => {
     bid.status = status;
     await bid.save();
 
+    // If accepted, update the shift status and worker
+    if (status === 'accepted') {
+      const shiftId = bid.shiftId._id || bid.shiftId;
+      await Shift.findByIdAndUpdate(shiftId, {
+        status: 'reserved',
+        worker: bid.workerId,
+        selectedWorker: bid.workerId // Compatibility
+      });
+      console.log(`✅ Shift ${shiftId} updated with worker ${bid.workerId}`);
+    }
+
     // NOTIFICATION FOR WORKER
     try {
       const shiftTitle = bid.shiftId ? bid.shiftId.title : 'the shift';

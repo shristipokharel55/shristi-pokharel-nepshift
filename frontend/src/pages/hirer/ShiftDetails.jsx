@@ -8,7 +8,8 @@ import {
     MapPin,
     Star,
     User,
-    Users
+    Users,
+    X
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
@@ -21,6 +22,13 @@ const ShiftDetails = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [shiftData, setShiftData] = useState(null);
+    const [showRatingModal, setShowRatingModal] = useState(false);
+    const [rating, setRating] = useState(0);
+    const [hoverRating, setHoverRating] = useState(0);
+    const [comment, setComment] = useState('');
+    const [submittingReview, setSubmittingReview] = useState(false);
+    const [canReview, setCanReview] = useState(false);
+    const [reviewToUserId, setReviewToUserId] = useState(null);
 
     useEffect(() => {
         const fetchShiftDetails = async () => {
@@ -29,6 +37,11 @@ const ShiftDetails = () => {
                 const response = await api.get(`/shifts/${id}/details`);
                 if (response.data.success) {
                     setShiftData(response.data.data);
+
+                    // Check if user can review this shift
+                    if (response.data.data.shift.status === 'completed') {
+                        checkReviewEligibility();
+                    }
                 }
             } catch (error) {
                 console.error('Error fetching shift details:', error);
@@ -41,6 +54,70 @@ const ShiftDetails = () => {
 
         fetchShiftDetails();
     }, [id, navigate]);
+
+    // Check if user can submit a review for this shift
+    const checkReviewEligibility = async () => {
+        try {
+            const response = await api.get(`/reviews/can-review/${id}`);
+            if (response.data.success && response.data.canReview) {
+                setCanReview(true);
+                setReviewToUserId(response.data.toUserId);
+            }
+        } catch (error) {
+            console.error('Error checking review eligibility:', error);
+        }
+    };
+
+    // Complete the shift and update stats
+    const handleCompleteShift = async () => {
+        try {
+            const response = await api.put(`/shifts/${id}/complete`);
+            if (response.data.success) {
+                toast.success('Shift marked as completed! Stats have been updated.');
+
+                // Refresh shift details
+                const updatedShift = await api.get(`/shifts/${id}/details`);
+                if (updatedShift.data.success) {
+                    setShiftData(updatedShift.data.data);
+                    checkReviewEligibility(); // Check if can review now
+                }
+            }
+        } catch (error) {
+            console.error('Error completing shift:', error);
+            toast.error(error.response?.data?.message || 'Failed to complete shift');
+        }
+    };
+
+    // Submit rating and review
+    const handleSubmitReview = async () => {
+        if (rating === 0) {
+            toast.error('Please select a rating');
+            return;
+        }
+
+        try {
+            setSubmittingReview(true);
+            const response = await api.post('/reviews', {
+                shiftId: id,
+                toUserId: reviewToUserId,
+                rating,
+                comment
+            });
+
+            if (response.data.success) {
+                toast.success('Review submitted successfully!');
+                setShowRatingModal(false);
+                setCanReview(false);
+                setRating(0);
+                setComment('');
+            }
+        } catch (error) {
+            console.error('Error submitting review:', error);
+            toast.error(error.response?.data?.message || 'Failed to submit review');
+        } finally {
+            setSubmittingReview(false);
+        }
+    };
 
     // Handle Accept Application
     const handleAccept = async (applicationId) => {
@@ -93,6 +170,36 @@ const ShiftDetails = () => {
         });
     };
 
+    // Handle Status Change
+    const handleStatusChange = async (e) => {
+        const newStatus = e.target.value;
+
+        // If user selects 'completed', use the specialized completion handler
+        if (newStatus === 'completed') {
+            handleCompleteShift();
+            return;
+        }
+
+        try {
+            const response = await api.put(`/shifts/${id}`, { status: newStatus });
+
+            if (response.data.success) {
+                toast.success(`Shift status updated to ${newStatus}`);
+                // Update local state without full reload
+                setShiftData(prev => ({
+                    ...prev,
+                    shift: {
+                        ...prev.shift,
+                        status: newStatus
+                    }
+                }));
+            }
+        } catch (error) {
+            console.error('Error updating status:', error);
+            toast.error(error.response?.data?.message || 'Failed to update status');
+        }
+    };
+
     if (loading) {
         return (
             <HirerLayout>
@@ -122,6 +229,18 @@ const ShiftDetails = () => {
 
     const { shift, bids, totalBids } = shiftData;
 
+    // Helper to get color class for status
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'open': return 'bg-green-100 text-green-700 border-green-200';
+            case 'reserved': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+            case 'in-progress': return 'bg-blue-100 text-blue-700 border-blue-200';
+            case 'completed': return 'bg-gray-100 text-gray-700 border-gray-200';
+            case 'cancelled': return 'bg-red-100 text-red-700 border-red-200';
+            default: return 'bg-gray-100 text-gray-700 border-gray-200';
+        }
+    };
+
     return (
         <HirerLayout>
             <div className="max-w-6xl mx-auto">
@@ -148,16 +267,37 @@ const ShiftDetails = () => {
                                 </span>
                             </div>
                         </div>
-                        <span className={`px-4 py-2 rounded-xl text-sm font-semibold ${shift.status === 'open'
-                            ? 'bg-green-100 text-green-700 border border-green-200'
-                            : shift.status === 'in-progress'
-                                ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                                : shift.status === 'completed'
-                                    ? 'bg-gray-100 text-gray-700 border border-gray-200'
-                                    : 'bg-red-100 text-red-700 border border-red-200'
-                            }`}>
-                            {shift.status.charAt(0).toUpperCase() + shift.status.slice(1)}
-                        </span>
+                        <div className="flex flex-col items-end gap-3">
+                            <div className="relative">
+                                <select
+                                    value={shift.status}
+                                    onChange={handleStatusChange}
+                                    className={`appearance-none px-4 py-2 pr-8 rounded-xl text-sm font-semibold border cursor-pointer outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-300 transition-all ${getStatusColor(shift.status)}`}
+                                >
+                                    <option value="open">Open</option>
+                                    <option value="reserved">Reserved</option>
+                                    <option value="in-progress">In Progress</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                    <svg className="w-4 h-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            {/* Rate Worker Button - Show for completed shifts if can review */}
+                            {shift.status === 'completed' && canReview && (
+                                <button
+                                    onClick={() => setShowRatingModal(true)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-[#0B4B54] text-white rounded-lg hover:bg-[#0D5A65] transition-colors"
+                                >
+                                    <Star size={18} />
+                                    <span>Rate Worker</span>
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     {/* Description */}
@@ -361,6 +501,97 @@ const ShiftDetails = () => {
                     )}
                 </div>
             </div>
+
+            {/* Rating Modal */}
+            {showRatingModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-2xl font-bold text-[#032A33]">Rate Worker</h2>
+                            <button
+                                onClick={() => setShowRatingModal(false)}
+                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                <X size={20} className="text-gray-500" />
+                            </button>
+                        </div>
+
+                        {/* Star Rating */}
+                        <div className="mb-6">
+                            <label className="block text-sm font-semibold text-gray-700 mb-3">
+                                How was your experience?
+                            </label>
+                            <div className="flex items-center gap-2 justify-center py-4">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                    <button
+                                        key={star}
+                                        type="button"
+                                        onClick={() => setRating(star)}
+                                        onMouseEnter={() => setHoverRating(star)}
+                                        onMouseLeave={() => setHoverRating(0)}
+                                        className="transition-transform hover:scale-110"
+                                    >
+                                        <Star
+                                            size={40}
+                                            className={`${star <= (hoverRating || rating)
+                                                    ? 'fill-yellow-400 text-yellow-400'
+                                                    : 'text-gray-300'
+                                                } transition-colors`}
+                                        />
+                                    </button>
+                                ))}
+                            </div>
+                            <p className="text-center text-sm text-gray-500 mt-2">
+                                {rating === 0 && 'Click to rate'}
+                                {rating === 1 && 'Poor'}
+                                {rating === 2 && 'Fair'}
+                                {rating === 3 && 'Good'}
+                                {rating === 4 && 'Very Good'}
+                                {rating === 5 && 'Excellent'}
+                            </p>
+                        </div>
+
+                        {/* Comment */}
+                        <div className="mb-6">
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Comment (Optional)
+                            </label>
+                            <textarea
+                                value={comment}
+                                onChange={(e) => setComment(e.target.value)}
+                                placeholder="Share your experience with this worker..."
+                                rows={4}
+                                maxLength={500}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0B4B54] focus:border-transparent resize-none"
+                            />
+                            <p className="text-xs text-gray-500 mt-1 text-right">
+                                {comment.length}/500 characters
+                            </p>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowRatingModal(false)}
+                                className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSubmitReview}
+                                disabled={submittingReview || rating === 0}
+                                className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-colors ${submittingReview || rating === 0
+                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                        : 'bg-[#0B4B54] text-white hover:bg-[#0D5A65]'
+                                    }`}
+                            >
+                                {submittingReview ? 'Submitting...' : 'Submit Review'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* <style jsx>{`
                 @keyframes fadeInUp {

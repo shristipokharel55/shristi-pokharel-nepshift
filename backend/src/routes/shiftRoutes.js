@@ -1,16 +1,17 @@
 import express from "express";
 import {
-  createShift,
-  getAllShifts,
-  getMyShifts,
-  getShiftById,
-  updateShift,
-  deleteShift,
-  getAllApplicants,
-  getAllOpenShifts,
-  getShiftDetails,
+    completeShift,
+    createShift,
+    deleteShift,
+    getAllApplicants,
+    getAllOpenShifts,
+    getAllShifts,
+    getMyShifts,
+    getShiftById,
+    getShiftDetails,
+    updateShift,
 } from "../controllers/shiftController.js";
-import { protect, authorizeRoles } from "../middlewares/authMiddleware.js";
+import { authorizeRoles, protect } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
@@ -29,6 +30,9 @@ router.get("/open", getAllOpenShifts);
 
 // Get shift details WITH bids (for hirers) - MUST come BEFORE /:id
 router.get("/:id/details", protect, authorizeRoles("hirer"), getShiftDetails);
+
+// Complete a shift and update stats (for hirers and assigned workers) - MUST come BEFORE /:id
+router.put("/:shiftId/complete", protect, completeShift);
 
 // Only hirers can post shifts
 router.post("/", protect, authorizeRoles("hirer"), createShift);

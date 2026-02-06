@@ -12,6 +12,7 @@ import authRoutes from "./routes/authRoutes.js";
 import bidRoutes from "./routes/bidRoutes.js";
 import helperRoutes from "./routes/helperRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
 import shiftRoutes from "./routes/shiftRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 
@@ -69,6 +70,7 @@ app.use("/api/shifts", shiftRoutes);
 app.use("/api/bids", bidRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 // Test Route
 app.get("/", (req, res) => {

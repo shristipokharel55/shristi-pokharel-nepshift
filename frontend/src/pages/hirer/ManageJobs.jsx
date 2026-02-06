@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from 'react-hot-toast';
 import HirerLayout from "../../components/hirer/HirerLayout";
 import api from "../../utils/api";
 
@@ -30,12 +31,42 @@ export default function ManageJobs() {
     }
   };
 
+  const handleStatusChange = async (shiftId, newStatus) => {
+    try {
+      let response;
+      if (newStatus === 'completed') {
+        response = await api.put(`/shifts/${shiftId}/complete`);
+      } else {
+        response = await api.put(`/shifts/${shiftId}`, { status: newStatus });
+      }
+
+      if (response.data.success) {
+        toast.success(`Shift marked as ${newStatus}`);
+        fetchShifts(); // Refresh list
+      }
+    } catch (error) {
+      console.error("Failed to update status:", error);
+      toast.error(error.response?.data?.message || "Failed to update status");
+    }
+  };
+
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
     });
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'open': return 'bg-green-100 text-green-700';
+      case 'reserved': return 'bg-yellow-100 text-yellow-700';
+      case 'in-progress': return 'bg-blue-100 text-blue-700';
+      case 'completed': return 'bg-gray-100 text-gray-700';
+      case 'cancelled': return 'bg-red-100 text-red-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
   };
 
   return (
@@ -61,13 +92,13 @@ export default function ManageJobs() {
           <div className="flex items-center gap-4">
             <i className="ph ph-funnel text-xl text-[#888888]"></i>
             <div className="flex gap-2">
-              {["all", "open", "in-progress", "completed", "cancelled"].map((status) => (
+              {["all", "open", "reserved", "in-progress", "completed", "cancelled"].map((status) => (
                 <button
                   key={status}
                   onClick={() => setFilter(status)}
                   className={`px-4 py-2 rounded-lg font-medium transition ${filter === status
-                      ? "bg-[#0B4B54] text-white"
-                      : "bg-[#D3E4E7] text-[#032A33] hover:bg-[#82ACAB]/30"
+                    ? "bg-[#0B4B54] text-white"
+                    : "bg-[#D3E4E7] text-[#032A33] hover:bg-[#82ACAB]/30"
                     }`}
                 >
                   {status.charAt(0).toUpperCase() + status.slice(1).replace("-", " ")}
@@ -102,18 +133,26 @@ export default function ManageJobs() {
                   <div>
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-xl font-semibold text-[#032A33]">{shift.title}</h3>
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${shift.status === "open"
-                            ? "bg-green-100 text-green-700"
-                            : shift.status === "completed"
-                              ? "bg-gray-100 text-gray-700"
-                              : shift.status === "in-progress"
-                                ? "bg-blue-100 text-blue-700"
-                                : "bg-red-100 text-red-700"
-                          }`}
-                      >
-                        {shift.status}
-                      </span>
+
+                      {/* Interactive Status Dropdown */}
+                      <div className="relative">
+                        <select
+                          value={shift.status}
+                          onChange={(e) => handleStatusChange(shift._id, e.target.value)}
+                          className={`
+                                appearance-none px-3 py-1 rounded-full text-xs font-medium 
+                                border-none outline-none cursor-pointer
+                                ${getStatusColor(shift.status)}
+                            `}
+                        >
+                          <option value="open">Open</option>
+                          <option value="reserved">Reserved</option>
+                          <option value="in-progress">In Progress</option>
+                          <option value="completed">Completed</option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
+                      </div>
+
                     </div>
                     <p className="text-[#888888]">{shift.description}</p>
                   </div>

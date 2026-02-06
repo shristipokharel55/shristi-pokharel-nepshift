@@ -106,9 +106,14 @@ const ShiftSchema = new mongoose.Schema({
   },
 
   // Track the shift status
+  // open: Available for applications
+  // reserved: A worker has been selected but shift hasn't started
+  // in-progress: Shift is currently happening
+  // completed: Shift is done, ready for mutual reviews
+  // cancelled: Shift was cancelled
   status: {
     type: String,
-    enum: ["open", "in-progress", "completed", "cancelled"],
+    enum: ["open", "reserved", "in-progress", "completed", "cancelled"],
     default: "open",
   },
 
@@ -131,7 +136,13 @@ const ShiftSchema = new mongoose.Schema({
     },
   ],
 
-  // If a worker is selected/hired
+  // The worker who was hired for this shift (set when application is accepted)
+  worker: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+
+  // If a worker is selected/hired (legacy field - kept for backward compatibility)
   selectedWorker: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",

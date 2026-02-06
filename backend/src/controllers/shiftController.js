@@ -1,5 +1,7 @@
-import Shift from "../models/shift.js";
 import Bid from "../models/bid.js";
+import HelperProfile from "../models/helperProfile.js";
+import Shift from "../models/shift.js";
+import User from "../models/user.js";
 import { HttpError } from "../utils/httpError.js";
 
 export const createShift = async (req, res, next) => {
@@ -437,3 +439,120 @@ export const getShiftDetails = async (req, res, next) => {
   }
 };
 
+/**
+ * Complete a shift and update statistics
+ * This function:
+ * - Changes shift status to 'completed'
+ * - Updates Worker's jobsCompleted count by +1
+ * - Updates Hirer's totalHires count by +1
+ * @route PUT /api/shifts/:shiftId/complete
+ * @access Private (Hirer only - shift owner)
+ */
+export const completeShift = async (req, res) => {
+  try {
+    const { shiftId } = req.params;
+    const userId = req.user._id || req.user.id;
+
+    // Step 1: Find the shift
+    const shift = await Shift.findById(shiftId);
+
+    if (!shift) {
+      return res.status(404).json({
+        success: false,
+        message: "Shift not found"
+      });
+    }
+
+    // Step 2: Fetch assigned worker if not directly on shift object
+    let assignedWorkerId = shift.worker || shift.selectedWorker;
+
+    if (!assignedWorkerId) {
+      const acceptedBid = await Bid.findOne({ shiftId, status: 'accepted' });
+      if (acceptedBid) {
+        assignedWorkerId = acceptedBid.workerId;
+        // Partially update the shift so future calls are faster
+        await Shift.findByIdAndUpdate(shiftId, {
+          worker: assignedWorkerId,
+          selectedWorker: assignedWorkerId
+        });
+        console.log(`✅ Fixed shift ${shiftId} by adding missing worker ${assignedWorkerId}`);
+      }
+    }
+
+    // Step 3: Security check - hirer OR assigned worker can complete the shift
+    const isHirer = shift.hirerId.toString() === userId.toString();
+    const isWorker = assignedWorkerId && assignedWorkerId.toString() === userId.toString();
+
+    if (!isHirer && !isWorker) {
+      return res.status(403).json({
+        success: false,
+        message: "Only the shift owner or assigned worker can mark it as completed"
+      });
+    }
+
+    // Step 4: Check if shift is already completed
+    if (shift.status === 'completed') {
+      return res.status(200).json({
+        success: true,
+        message: "Shift is already marked as completed",
+        data: {
+          shift: {
+            _id: shift._id,
+            title: shift.title,
+            status: shift.status
+          }
+        }
+      });
+    }
+
+    // Step 5: Final validation
+    if (!assignedWorkerId) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot complete shift without an assigned worker"
+      });
+    }
+
+    // Step 6: Update shift status to 'completed'
+    shift.status = 'completed';
+    await shift.save();
+
+    // Step 7: Update Worker's statistics (jobsCompleted +1)
+    const workerId = assignedWorkerId;
+    const HelperProfile = (await import("../models/helperProfile.js")).default;
+    const helperProfile = await HelperProfile.findOne({ user: workerId });
+    if (helperProfile) {
+      helperProfile.totalJobsCompleted = (helperProfile.totalJobsCompleted || 0) + 1;
+      await helperProfile.save();
+      console.log(`✅ Worker stats updated: jobsCompleted = ${helperProfile.totalJobsCompleted}`);
+    }
+
+    // Step 7: Update Hirer's statistics (totalHires +1)
+    const hirer = await User.findById(shift.hirerId);
+    if (hirer) {
+      hirer.totalHires = (hirer.totalHires || 0) + 1;
+      await hirer.save();
+      console.log(`✅ Hirer stats updated: totalHires = ${hirer.totalHires}`);
+    }
+
+    // Step 8: Send success response
+    res.status(200).json({
+      success: true,
+      message: "Shift marked as completed successfully. Stats have been updated.",
+      data: {
+        shift: {
+          _id: shift._id,
+          title: shift.title,
+          status: shift.status
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error("Error completing shift:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to complete shift", error: error.message
+    });
+  }
+};
