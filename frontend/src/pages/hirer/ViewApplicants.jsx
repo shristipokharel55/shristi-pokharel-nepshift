@@ -1,13 +1,14 @@
 // frontend/src/pages/hirer/ViewApplicants.jsx
 import axios from "axios";
-import { CheckCircle, Clock, User, XCircle } from "lucide-react";
+import { CheckCircle, Clock, MessageCircle, User, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import HirerLayout from "../../components/hirer/HirerLayout";
 
 const ViewApplicants = () => {
   // Get shiftId from URL (e.g., /hirer/applicants/:shiftId)
   const { shiftId } = useParams();
+  const navigate = useNavigate();
 
   // State to store applicants data
   const [applicants, setApplicants] = useState([]);
@@ -288,6 +289,17 @@ const ViewApplicants = () => {
                                 : "Reject"}
                             </button>
                           </div>
+                        )}
+
+                        {/* Chat Button - Only show for approved applications */}
+                        {application.status === "approved" && (
+                          <button
+                            onClick={() => navigate(`/hirer/chat/${application.worker?._id}`)}
+                            className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-[#0B4B54] to-[#0D5A65] text-white rounded-lg hover:from-[#0D5A65] hover:to-[#0B4B54] transition-all shadow-md hover:shadow-lg font-semibold"
+                          >
+                            <MessageCircle size={18} />
+                            <span>Chat with {application.worker?.fullName?.split(' ')[0]}</span>
+                          </button>
                         )}
                       </div>
                     </div>

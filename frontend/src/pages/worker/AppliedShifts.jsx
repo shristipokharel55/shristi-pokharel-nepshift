@@ -1,9 +1,12 @@
 // frontend/src/pages/worker/AppliedShifts.jsx
 import axios from "axios";
+import { MessageCircle } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import WorkerLayout from "../../components/worker/WorkerLayout";
 
 const AppliedShifts = () => {
+  const navigate = useNavigate();
   // State to store the applications data
   const [applications, setApplications] = useState([]);
   // State to track loading status
@@ -150,7 +153,7 @@ const AppliedShifts = () => {
                     </div>
 
                     {/* Right side - Status badge */}
-                    <div>
+                    <div className="flex flex-col items-end gap-3">
                       <span
                         className={`px-4 py-2 rounded-full font-semibold text-sm uppercase ${getStatusColor(
                           application.status
@@ -160,6 +163,24 @@ const AppliedShifts = () => {
                       </span>
                     </div>
                   </div>
+
+                  {/* Chat Button - Only show for approved applications */}
+                  {application.status === "approved" && application.shift?.hirerId && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <button
+                        onClick={() => {
+                          const hirerId = typeof application.shift.hirerId === 'object' 
+                            ? application.shift.hirerId._id 
+                            : application.shift.hirerId;
+                          navigate(`/worker/chat/${hirerId}`);
+                        }}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-[#0B4B54] to-[#0D5A65] text-white rounded-lg hover:from-[#0D5A65] hover:to-[#0B4B54] transition-all shadow-md hover:shadow-lg font-semibold"
+                      >
+                        <MessageCircle size={18} />
+                        <span>Chat with Hirer</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))
             )}

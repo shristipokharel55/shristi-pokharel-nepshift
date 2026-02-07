@@ -1,23 +1,25 @@
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import {
-    AlertCircle,
-    Camera,
-    CheckCircle,
-    FileText,
-    Loader2,
-    MapPin,
-    Phone,
-    Save,
-    Shield,
-    Upload,
-    User
+  AlertCircle,
+  Camera,
+  CheckCircle,
+  FileText,
+  Loader2,
+  MapPin,
+  Phone,
+  Save,
+  Shield,
+  Upload,
+  User
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { MapContainer, Marker, TileLayer, useMapEvents } from "react-leaflet";
 import HirerLayout from "../../components/hirer/HirerLayout";
+import { useAuth } from "../../context/AuthContext";
 import api from "../../utils/api";
+
 import { getDistricts, getMunicipalities, getWards } from "../../utils/nepalLocations";
 
 // Fix for default marker icons in Leaflet
@@ -45,15 +47,16 @@ function LocationMarker({ position, setPosition }) {
 }
 
 export default function HirerProfileEdit() {
+  const { user: authUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [submittingVerification, setSubmittingVerification] = useState(false);
 
   const [profileData, setProfileData] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
+    fullName: authUser?.fullName || "",
+    email: authUser?.email || "",
+    phone: authUser?.phone || "",
     bio: "",
     address: {
       latitude: 27.7172,
@@ -68,9 +71,10 @@ export default function HirerProfileEdit() {
       citizenshipBack: "",
       selfieWithId: ""
     },
-    verificationStatus: "unverified",
-    isVerified: false
+    verificationStatus: authUser?.verificationStatus || "unverified",
+    isVerified: authUser?.isVerified || false
   });
+
 
   const [profileCompletion, setProfileCompletion] = useState(0);
   const [canSubmit, setCanSubmit] = useState(false);
@@ -119,7 +123,7 @@ export default function HirerProfileEdit() {
 
       if (response.data.success) {
         const { user, profileCompletion, canSubmitForVerification } = response.data.data;
-        
+
         setProfileData({
           fullName: user.fullName || "",
           email: user.email || "",
@@ -560,9 +564,9 @@ export default function HirerProfileEdit() {
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
-                <LocationMarker 
-                  position={profileData.address} 
-                  setPosition={handleMapClick} 
+                <LocationMarker
+                  position={profileData.address}
+                  setPosition={handleMapClick}
                 />
               </MapContainer>
             </div>

@@ -1,10 +1,12 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import { ShieldAlert, ArrowRight, Loader2, AlertCircle, CheckCircle } from "lucide-react";
 import api from "../../utils/api";
 import HirerLayout from "../../components/hirer/HirerLayout";
+import { useAuth } from "../../context/AuthContext";
 
 // Fix for default marker icons in Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -31,6 +33,7 @@ function LocationMarker({ position, setPosition }) {
 
 export default function PostShift() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Form state - keeping track of all input values
   const [formData, setFormData] = useState({
@@ -56,6 +59,26 @@ export default function PostShift() {
   // Loading and error states
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isVerified, setIsVerified] = useState(false);
+  const [checkingVerification, setCheckingVerification] = useState(true);
+
+  useEffect(() => {
+    const checkVerificationStatus = async () => {
+      try {
+        setCheckingVerification(true);
+        const response = await api.get('/helper/hirer/profile');
+        if (response.data.success) {
+          setIsVerified(response.data.data.user.verificationStatus === 'approved');
+        }
+      } catch (error) {
+        console.error("Failed to check verification status:", error);
+      } finally {
+        setCheckingVerification(false);
+      }
+    };
+
+    checkVerificationStatus();
+  }, []);
 
   // List of available categories
   const categories = [
@@ -125,8 +148,6 @@ export default function PostShift() {
         skills: formData.skills ? formData.skills.split(",").map((s) => s.trim()).filter(s => s) : [],
       };
 
-      console.log("Posting shift:", shiftData);
-
       // Post to backend
       const response = await api.post("/shifts", shiftData);
 
@@ -142,6 +163,71 @@ export default function PostShift() {
     }
   };
 
+  if (checkingVerification) {
+    return (
+      <HirerLayout>
+        <div className="min-h-screen flex items-center justify-center bg-[#E0F0F3]">
+          <Loader2 className="w-10 h-10 animate-spin text-[#0B4B54]" />
+        </div>
+      </HirerLayout>
+    );
+  }
+
+  if (!isVerified) {
+    return (
+      <HirerLayout>
+        <div className="min-h-screen bg-[#E0F0F3] p-6 flex items-center justify-center">
+          <div className="max-w-xl w-full text-center">
+            <div className="glass-card rounded-3xl p-10 bg-white shadow-xl">
+              <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <ShieldAlert size={40} className="text-amber-600" />
+              </div>
+              <h2 className="text-3xl font-bold text-[#032A33] mb-4">Identity Verification Required</h2>
+              <p className="text-[#888888] mb-8 text-lg font-medium leading-relaxed">
+                To ensure a safe community for workers, all employers must verify their identity before posting shifts.
+                This process only takes a few minutes.
+              </p>
+
+              <div className="space-y-4 mb-8 text-left max-w-sm mx-auto">
+                <div className="flex items-start gap-3">
+                  <CheckCircle size={18} className="text-emerald-500 mt-1 shrink-0" />
+                  <p className="text-sm text-gray-600 font-medium">Upload government-issued ID</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <CheckCircle size={18} className="text-emerald-500 mt-1 shrink-0" />
+                  <p className="text-sm text-gray-600 font-medium">Take a real-time authentication selfie</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <CheckCircle size={18} className="text-emerald-500 mt-1 shrink-0" />
+                  <p className="text-sm text-gray-600 font-medium">Get verified in 24-48 business hours</p>
+                </div>
+              </div>
+
+              <Link
+                to="/hirer/verify"
+                className="w-full inline-flex items-center justify-center gap-3 bg-[#0B4B54] text-white py-4 rounded-2xl font-bold hover:bg-[#032A33] transition-all shadow-lg shadow-[#0B4B54]/20 group"
+              >
+                <span>Get Verified Now</span>
+                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+              </Link>
+
+              <p className="mt-6 text-xs text-[#888888] font-bold uppercase tracking-widest">
+                Safe & Secure via NepShift Trust
+              </p>
+            </div>
+
+            <button
+              onClick={() => navigate('/hirer/dashboard')}
+              className="mt-8 text-[#0B4B54] font-bold hover:underline"
+            >
+              Back to Dashboard
+            </button>
+          </div>
+        </div>
+      </HirerLayout>
+    );
+  }
+
   return (
     <HirerLayout>
       <div className="min-h-screen bg-[#E0F0F3] p-6">
@@ -154,7 +240,8 @@ export default function PostShift() {
 
           {/* Show error message if there's any */}
           {error && (
-            <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-3 font-medium">
+              <AlertCircle size={20} />
               {error}
             </div>
           )}

@@ -1,23 +1,22 @@
 import {
+    AlertCircle,
     Briefcase,
     Calendar,
-    Clock,
+    CheckCircle,
     Mail,
-    MapPin,
+    MessageCircle,
     Phone,
     Search,
-    Star,
-    UserCheck,
     Users,
-    CheckCircle,
-    XCircle,
-    AlertCircle
+    XCircle
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import HirerLayout from '../../components/hirer/HirerLayout';
 import api from '../../utils/api';
 
 const Applicants = () => {
+    const navigate = useNavigate();
     const [applicants, setApplicants] = useState([]);
     const [filteredApplicants, setFilteredApplicants] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -258,6 +257,19 @@ const Applicants = () => {
                                             )}
                                         </div>
                                     </div>
+
+                                    {/* Chat Button - Only for accepted applicants */}
+                                    {applicant.status === 'accepted' && (
+                                        <div className="mt-4 pt-4 border-t border-gray-200">
+                                            <button
+                                                onClick={() => navigate(`/hirer/chat/${applicant.worker.id}`)}
+                                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-[#0B4B54] to-[#0D5A65] text-white rounded-lg hover:from-[#0D5A65] hover:to-[#0B4B54] transition-all shadow-md hover:shadow-lg font-semibold"
+                                            >
+                                                <MessageCircle size={18} />
+                                                <span>Chat with {applicant.worker.name.split(' ')[0]}</span>
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>

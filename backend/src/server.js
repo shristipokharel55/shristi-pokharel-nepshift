@@ -2,15 +2,18 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
+import { createServer } from "http";
 import path from "path";
 import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
+import { initializeSocket } from "./config/socket.js";
 import { errorHandler, notFound } from "./middlewares/errorMiddleware.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import applicationRoutes from "./routes/applicationRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import bidRoutes from "./routes/bidRoutes.js";
 import helperRoutes from "./routes/helperRoutes.js";
+import messageRoutes from "./routes/messageRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import shiftRoutes from "./routes/shiftRoutes.js";
@@ -71,6 +74,7 @@ app.use("/api/bids", bidRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/messages", messageRoutes);
 
 // Test Route
 app.get("/", (req, res) => {
@@ -81,8 +85,14 @@ app.get("/", (req, res) => {
 app.use(notFound);
 app.use(errorHandler);
 
+// Create HTTP server
+const server = createServer(app);
+
+// Initialize Socket.IO
+initializeSocket(server);
+
 // Start Server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () =>
-  console.log(`Server running on port ${PORT}`)
+server.listen(PORT, () =>
+  console.log(`Server running on port ${PORT} with Socket.IO 🚀`)
 );

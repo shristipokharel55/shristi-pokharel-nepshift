@@ -6,6 +6,7 @@ import {
     DollarSign,
     Loader2,
     MapPin,
+    MessageCircle,
     Star,
     User,
     Users,
@@ -482,6 +483,17 @@ const ShiftDetails = () => {
                                                         </>
                                                     )}
                                                 </div>
+
+                                                {/* Chat Button - Only show for accepted bids */}
+                                                {bid.status === 'accepted' && (
+                                                    <button
+                                                        onClick={() => navigate(`/hirer/chat/${bid.worker.id}`)}
+                                                        className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-[#0B4B54] to-[#0D5A65] text-white rounded-lg hover:from-[#0D5A65] hover:to-[#0B4B54] transition-all shadow-md hover:shadow-lg font-semibold"
+                                                    >
+                                                        <MessageCircle size={18} />
+                                                        <span>Chat with {bid.worker.name.split(' ')[0]}</span>
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
 

@@ -15,10 +15,12 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 import WorkerLayout from '../../components/worker/WorkerLayout';
 import api from '../../utils/api';
 
 const MyShifts = () => {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('requests');
     const [loading, setLoading] = useState(true);
     const [bids, setBids] = useState([]);
@@ -326,9 +328,12 @@ const MyShifts = () => {
 
                             {/* Action Buttons */}
                             <div className="flex lg:flex-col gap-2">
-                                <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0B4B54] text-white font-medium hover:bg-[#0D5A65] transition-colors">
+                                <button 
+                                    onClick={() => navigate(`/worker/chat/${bid.hirerId?._id}`)}
+                                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0B4B54] text-white font-medium hover:bg-[#0D5A65] transition-colors"
+                                >
                                     <MessageCircle size={18} />
-                                    <span>Contact</span>
+                                    <span>Chat</span>
                                 </button>
                                 <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#D3E4E7] text-[#032A33] font-medium hover:bg-[#82ACAB]/30 transition-colors">
                                     <Navigation size={18} />

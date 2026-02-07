@@ -15,6 +15,7 @@ import VerifyOTP from "./pages/auth/VerifyOtp";
 
 // Worker Dashboard Pages
 import AppliedShifts from "./pages/worker/AppliedShifts";
+import ChatWithHirer from "./pages/worker/ChatWithHirer";
 import CompleteProfile from "./pages/worker/CompleteProfile";
 import FindShifts from "./pages/worker/FindShifts";
 import HelperVerification from "./pages/worker/HelperVerification";
@@ -28,16 +29,19 @@ import WorkerSupport from "./pages/worker/WorkerSupport";
 
 // Hirer Dashboard Pages
 import Applicants from "./pages/hirer/Applicants";
+import ChatWithWorker from "./pages/hirer/ChatWithWorker";
 import HirerDashboard from "./pages/hirer/HirerDashboard";
 import HirerPayments from "./pages/hirer/HirerPayments";
 import HirerProfile from "./pages/hirer/HirerProfile";
 import HirerProfileEdit from "./pages/hirer/HirerProfileEdit";
+import HirerVerification from "./pages/hirer/HirerVerification";
 import ManageJobs from "./pages/hirer/ManageJobs";
 import PostShift from "./pages/hirer/PostShift";
 import ShiftDetails from "./pages/hirer/ShiftDetails";
 import ViewApplicants from "./pages/hirer/ViewApplicants";
 import WorkerProfileView from "./pages/hirer/WorkerProfileView";
 import Workers from "./pages/hirer/Workers";
+
 
 // Admin Dashboard Pages
 import { GoogleOAuthProvider } from "@react-oauth/google";
@@ -178,6 +182,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/worker/chat/:hirerId"
+          element={
+            <ProtectedRoute requiredRole="helper">
+              <ChatWithHirer />
+            </ProtectedRoute>
+          }
+        />
 
         {/* ================================== */}
         {/* HIRER DASHBOARD ROUTES */}
@@ -239,6 +251,14 @@ function App() {
           }
         />
         <Route
+          path="/hirer/chat/:workerId"
+          element={
+            <ProtectedRoute requiredRole="hirer">
+              <ChatWithWorker />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/hirer/payments"
           element={
             <ProtectedRoute requiredRole="hirer">
@@ -259,6 +279,14 @@ function App() {
           element={
             <ProtectedRoute requiredRole="hirer">
               <HirerProfileEdit />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hirer/verify"
+          element={
+            <ProtectedRoute requiredRole="hirer">
+              <HirerVerification />
             </ProtectedRoute>
           }
         />

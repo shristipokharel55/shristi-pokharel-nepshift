@@ -8,6 +8,16 @@ export const createShift = async (req, res, next) => {
   try {
     const { title, description, category, pay, location, date, time, skills } = req.body;
 
+    // Check if hirer is verified
+    const hirer = await User.findById(req.user.id);
+    if (!hirer || hirer.verificationStatus !== 'approved') {
+      return res.status(403).json({
+        success: false,
+        message: "You must verify your identity before posting a shift"
+      });
+    }
+
+
     // Validate pay range
     if (pay.min > pay.max) {
       return res.status(400).json({

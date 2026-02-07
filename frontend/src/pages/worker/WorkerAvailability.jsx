@@ -1,6 +1,7 @@
 import {
     BadgeCheck,
     Calendar,
+    CalendarOff,
     ChevronLeft,
     ChevronRight,
     Clock,
@@ -13,68 +14,132 @@ import {
     Star,
     TrendingUp
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import WorkerLayout from '../../components/worker/WorkerLayout';
+import api from '../../utils/api';
 
 const WorkerAvailability = () => {
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
     const [searchQuery, setSearchQuery] = useState('');
-    const [currentDate, setCurrentDate] = useState(new Date(2026, 1, 7)); // Feb 7, 2026
+    const [currentDate, setCurrentDate] = useState(new Date());
+    const [selectedDate, setSelectedDate] = useState(null); // For calendar date filtering
+    const [loading, setLoading] = useState(true);
+    const [allShifts, setAllShifts] = useState([]);
+    const [workerStats, setWorkerStats] = useState({
+        totalHours: 0,
+        totalShifts: 0,
+        totalEarnings: 0,
+        averageRating: 0,
+        earningsPotential: 0,
+        earnedThisWeek: 0
+    });
 
-    // Sample shift data - Replace with actual API data
-    const todayShifts = [
-        {
-            id: 1,
-            title: 'Morning Cleaning Service',
-            location: 'Thamel, Kathmandu',
-            time: '8:00 AM - 12:00 PM',
-            pay: 1500,
-            status: 'active',
-            category: 'Cleaning'
-        },
-        {
-            id: 2,
-            title: 'Event Staff Support',
-            location: 'Durbar Marg',
-            time: '2:00 PM - 6:00 PM',
-            pay: 2000,
-            status: 'awaiting',
-            category: 'Event Staff'
-        }
-    ];
+    // Fetch worker shifts and stats
+    useEffect(() => {
+        fetchWorkerShifts();
+    }, []);
 
-    const upcomingShifts = [
-        {
-            id: 3,
-            title: 'Restaurant Helper',
-            location: 'Jhamsikhel, Lalitpur',
-            time: '6:00 PM - 10:00 PM',
-            date: 'Feb 8',
-            pay: 1800,
-            status: 'confirmed',
-            category: 'Customer Service'
-        },
-        {
-            id: 4,
-            title: 'Delivery Assistant',
-            location: 'Baneshwor',
-            time: '10:00 AM - 4:00 PM',
-            date: 'Feb 9',
-            pay: 2200,
-            status: 'confirmed',
-            category: 'Delivery'
-        },
-        {
-            id: 5,
-            title: 'Construction Support',
-            location: 'Bhaktapur',
-            time: '7:00 AM - 3:00 PM',
-            date: 'Feb 10',
-            pay: 2500,
-            status: 'confirmed',
-            category: 'Construction'
+    const fetchWorkerShifts = async () => {
+        try {
+            setLoading(true);
+            // Fetch worker's applied/accepted shifts
+            const response = await api.get('/bids/my-bids');
+            
+            if (response.data.success) {
+                // Filter only accepted bids with shift data
+                const acceptedBids = response.data.data.filter(
+                    bid => bid.status === 'accepted' && bid.shiftId
+                );
+                
+                // Map bids to shift data
+                const shifts = acceptedBids.map(bid => ({
+                    id: bid._id,
+                    shiftId: bid.shiftId?._id,
+                    title: bid.shiftId?.title || 'Untitled Shift',
+                    location: bid.shiftId?.location?.address || 'Location not specified',
+                    time: bid.shiftId?.time ? `${bid.shiftId.time.start} - ${bid.shiftId.time.end}` : 'Time TBD',
+                    date: bid.shiftId?.date ? new Date(bid.shiftId.date) : null,
+                    pay: bid.bidAmount || bid.shiftId?.pay?.max || 0,
+                    status: bid.shiftId?.status || 'pending',
+                    category: bid.shiftId?.category || 'General',
+                    estimatedArrival: bid.estimatedArrivalTime
+                })).filter(shift => shift.date); // Only include shifts with valid dates
+                
+                setAllShifts(shifts);
+                calculateStats(shifts);
+            }
+        } catch (error) {
+            console.error('Failed to fetch shifts:', error);
+            toast.error('Failed to load your shifts');
+        } finally {
+            setLoading(false);
         }
-    ];
+    };
+
+    const calculateStats = (shifts) => {
+        const totalEarnings = shifts.reduce((sum, shift) => sum + shift.pay, 0);
+        const totalShifts = shifts.length;
+        
+        // Calculate potential earnings for upcoming shifts
+        const upcomingPay = shifts
+            .filter(shift => shift.date > new Date())
+            .reduce((sum, shift) => sum + shift.pay, 0);
+        
+        setWorkerStats({
+            totalHours: totalShifts * 6, // Approximate 6 hours per shift
+            totalShifts,
+            totalEarnings,
+            averageRating: 4.8, // This should come from user profile
+            earningsPotential: upcomingPay,
+            earnedThisWeek: totalEarnings * 0.65 // Sample calculation
+        });
+    };
+
+
+    // Filter shifts based on date
+    const getTodayShifts = () => {
+        if (selectedDate) {
+            // Show shifts for selected date
+            return allShifts.filter(shift => 
+                shift.date && isSameDay(shift.date, selectedDate)
+            );
+        }
+        // Show today's shifts
+        const today = new Date();
+        return allShifts.filter(shift => 
+            shift.date && isSameDay(shift.date, today)
+        );
+    };
+
+    const getUpcomingShifts = () => {
+        if (selectedDate) {
+            // When a date is selected, show only that date's shifts
+            return [];
+        }
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return allShifts.filter(shift => 
+            shift.date && shift.date > today
+        ).sort((a, b) => a.date - b.date);
+    };
+
+    const isSameDay = (date1, date2) => {
+        return date1.getDate() === date2.getDate() &&
+               date1.getMonth() === date2.getMonth() &&
+               date1.getFullYear() === date2.getFullYear();
+    };
+
+    const formatShiftDate = (date) => {
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        if (isSameDay(date, today)) return 'Today';
+        if (isSameDay(date, tomorrow)) return 'Tomorrow';
+        
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    };
 
     // Mini calendar generation
     const getDaysInMonth = (date) => {
@@ -86,11 +151,9 @@ const WorkerAvailability = () => {
         const startingDayOfWeek = firstDay.getDay();
 
         const days = [];
-        // Add empty cells for days before month starts
         for (let i = 0; i < startingDayOfWeek; i++) {
             days.push(null);
         }
-        // Add actual days
         for (let i = 1; i <= daysInMonth; i++) {
             days.push(i);
         }
@@ -98,23 +161,65 @@ const WorkerAvailability = () => {
     };
 
     const monthDays = getDaysInMonth(currentDate);
-    const today = currentDate.getDate();
+    const today = new Date().getDate();
+    const isCurrentMonth = currentDate.getMonth() === new Date().getMonth() &&
+                          currentDate.getFullYear() === new Date().getFullYear();
 
-    // Sample shift days - Replace with actual data
-    const shiftDays = [7, 8, 9, 10, 14, 15, 20, 21];
+    // Get days that have shifts
+    const getShiftDays = () => {
+        return allShifts
+            .filter(shift => 
+                shift.date &&
+                shift.date.getMonth() === currentDate.getMonth() &&
+                shift.date.getFullYear() === currentDate.getFullYear()
+            )
+            .map(shift => shift.date.getDate());
+    };
+
+    const shiftDays = getShiftDays();
+
+    const handleDateClick = (day) => {
+        if (!day) return;
+        const clickedDate = new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth(),
+            day
+        );
+        setSelectedDate(clickedDate);
+    };
+
+    const clearDateFilter = () => {
+        setSelectedDate(null);
+    };
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'active':
+            case 'in-progress':
             case 'completed':
-            case 'confirmed':
+            case 'reserved':
                 return 'border-emerald-500';
-            case 'awaiting':
+            case 'open':
                 return 'border-amber-500';
             default:
                 return 'border-gray-300';
         }
     };
+
+    const todayShifts = getTodayShifts();
+    const upcomingShifts = getUpcomingShifts();
+
+    if (loading) {
+        return (
+            <WorkerLayout>
+                <div className="min-h-screen flex items-center justify-center">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0B4B54] mx-auto mb-4"></div>
+                        <div className="text-gray-600">Loading your schedule...</div>
+                    </div>
+                </div>
+            </WorkerLayout>
+        );
+    }
 
     return (
         <WorkerLayout>
@@ -180,129 +285,195 @@ const WorkerAvailability = () => {
 
                 {/* LEFT COLUMN - Shift List */}
                 <div className="lg:col-span-8">
-                    {/* Today Section */}
+                    {/* Selected Date Filter Banner */}
+                    {selectedDate && (
+                        <div className="mb-6 bg-[#0B4B54] text-white p-4 rounded-xl flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <Calendar size={20} />
+                                <span className="font-semibold">
+                                    Showing shifts for {selectedDate.toLocaleDateString('en-US', { 
+                                        weekday: 'long', 
+                                        month: 'long', 
+                                        day: 'numeric',
+                                        year: 'numeric'
+                                    })}
+                                </span>
+                            </div>
+                            <button 
+                                onClick={clearDateFilter}
+                                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-semibold transition-colors"
+                            >
+                                Clear Filter
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Today/Selected Date Section */}
                     <div className="mb-10">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="w-1.5 h-6 bg-[#0B4B54] rounded-full"></div>
-                            <h2 className="text-xl font-bold text-[#032A33]">Today's Shifts</h2>
+                            <h2 className="text-xl font-bold text-[#032A33]">
+                                {selectedDate ? 'Shifts on Selected Date' : "Today's Shifts"}
+                            </h2>
                         </div>
                         <div className="space-y-5">
-                            {todayShifts.map((shift) => (
-                                <div
-                                    key={shift.id}
-                                    className={`bg-white rounded-2xl shadow-sm border border-[#82ACAB]/10 hover:shadow-lg hover:shadow-[#0B4B54]/5 transition-all duration-300 border-l-[6px] ${getStatusColor(shift.status)} relative overflow-hidden group cursor-pointer`}
-                                >
-                                    <div className="p-6">
-                                        <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-4">
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-3 mb-2">
-                                                    <h3 className="font-bold text-xl text-[#032A33] group-hover:text-[#0B4B54] transition-colors">
-                                                        {shift.title}
-                                                    </h3>
-                                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${shift.status === 'active'
-                                                        ? 'bg-emerald-100 text-emerald-700'
-                                                        : 'bg-amber-100 text-amber-700'
+                            {todayShifts.length > 0 ? (
+                                todayShifts.map((shift) => (
+                                    <div
+                                        key={shift.id}
+                                        className={`bg-white rounded-2xl shadow-sm border border-[#82ACAB]/10 hover:shadow-lg hover:shadow-[#0B4B54]/5 transition-all duration-300 border-l-[6px] ${getStatusColor(shift.status)} relative overflow-hidden group cursor-pointer`}
+                                    >
+                                        <div className="p-6">
+                                            <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-4">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-3 mb-2">
+                                                        <h3 className="font-bold text-xl text-[#032A33] group-hover:text-[#0B4B54] transition-colors">
+                                                            {shift.title}
+                                                        </h3>
+                                                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                                                            shift.status === 'in-progress' || shift.status === 'reserved'
+                                                                ? 'bg-emerald-100 text-emerald-700'
+                                                                : 'bg-amber-100 text-amber-700'
                                                         }`}>
-                                                        {shift.status === 'active' ? 'Active' : 'Awaiting'}
+                                                            {shift.status}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-4 text-sm text-[#888888] font-medium">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <MapPin size={16} className="text-[#82ACAB]" />
+                                                            <span>{shift.location}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <Clock size={16} className="text-[#82ACAB]" />
+                                                            <span>{shift.time}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="text-left md:text-right bg-[#D3E4E7]/20 md:bg-transparent p-3 md:p-0 rounded-xl md:rounded-none w-full md:w-auto">
+                                                    <div className="text-[10px] font-bold text-[#888888] uppercase tracking-widest mb-1">Estimated Pay</div>
+                                                    <div className="font-black text-2xl text-[#032A33]">
+                                                        NPR {shift.pay.toLocaleString()}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="pt-4 border-t border-[#82ACAB]/10 flex flex-wrap justify-between items-center gap-4">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xs font-bold text-[#888888] uppercase tracking-widest">Category:</span>
+                                                    <span className="px-3 py-1 bg-[#D3E4E7]/40 text-[#0B4B54] text-xs font-bold rounded-lg uppercase tracking-wide">
+                                                        {shift.category}
                                                     </span>
                                                 </div>
-                                                <div className="flex flex-wrap gap-4 text-sm text-[#888888] font-medium">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <MapPin size={16} className="text-[#82ACAB]" />
-                                                        <span>{shift.location}</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-1.5">
-                                                        <Clock size={16} className="text-[#82ACAB]" />
-                                                        <span>{shift.time}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="text-left md:text-right bg-[#D3E4E7]/20 md:bg-transparent p-3 md:p-0 rounded-xl md:rounded-none w-full md:w-auto">
-                                                <div className="text-[10px] font-bold text-[#888888] uppercase tracking-widest mb-1">Estimated Pay</div>
-                                                <div className="font-black text-2xl text-[#032A33]">
-                                                    NPR {shift.pay.toLocaleString()}
-                                                </div>
+                                                <button className="flex items-center gap-2 text-sm font-bold text-[#0B4B54] hover:text-[#0D5A65] transition-colors group/btn">
+                                                    <span>View Full Details</span>
+                                                    <ChevronRight size={18} className="translate-x-0 group-hover/btn:translate-x-1 transition-transform" />
+                                                </button>
                                             </div>
                                         </div>
-
-                                        <div className="pt-4 border-t border-[#82ACAB]/10 flex flex-wrap justify-between items-center gap-4">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-xs font-bold text-[#888888] uppercase tracking-widest">Category:</span>
-                                                <span className="px-3 py-1 bg-[#D3E4E7]/40 text-[#0B4B54] text-xs font-bold rounded-lg uppercase tracking-wide">
-                                                    {shift.category}
-                                                </span>
-                                            </div>
-                                            <button className="flex items-center gap-2 text-sm font-bold text-[#0B4B54] hover:text-[#0D5A65] transition-colors group/btn">
-                                                <span>View Full Details</span>
-                                                <ChevronRight size={18} className="translate-x-0 group-hover/btn:translate-x-1 transition-transform" />
-                                            </button>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="bg-white rounded-2xl shadow-sm border border-[#82ACAB]/10 p-12 text-center">
+                                    <div className="flex flex-col items-center gap-4">
+                                        <div className="p-4 bg-gray-100 rounded-full">
+                                            <CalendarOff size={48} className="text-gray-400" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-bold text-gray-700 mb-2">
+                                                {selectedDate ? 'No shifts scheduled' : 'No shifts today'}
+                                            </h3>
+                                            <p className="text-gray-500">
+                                                {selectedDate 
+                                                    ? 'You don\'t have any shifts on this date.' 
+                                                    : 'You don\'t have any shifts scheduled for today.'}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
-                            ))}
+                            )}
                         </div>
                     </div>
 
-                    {/* Upcoming Section */}
-                    <div>
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-1.5 h-6 bg-[#82ACAB] rounded-full"></div>
-                            <h2 className="text-xl font-bold text-[#032A33]">Upcoming Schedule</h2>
-                        </div>
-                        <div className="space-y-5">
-                            {upcomingShifts.map((shift) => (
-                                <div
-                                    key={shift.id}
-                                    className="bg-white rounded-2xl shadow-sm border border-[#82ACAB]/10 hover:shadow-lg hover:shadow-[#0B4B54]/5 transition-all duration-300 border-l-[6px] border-[#D3E4E7] relative overflow-hidden group cursor-pointer"
-                                >
-                                    <div className="p-6">
-                                        <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-4">
-                                            <div className="flex-1">
-                                                <div className="flex items-center flex-wrap gap-3 mb-2">
-                                                    <h3 className="font-bold text-xl text-[#032A33] group-hover:text-[#0B4B54] transition-colors">
-                                                        {shift.title}
-                                                    </h3>
-                                                    <div className="flex items-center gap-1.5 px-3 py-1 bg-[#032A33] text-white text-[10px] font-black rounded-full uppercase tracking-wider shadow-sm">
-                                                        <Calendar size={12} />
-                                                        {shift.date}
+                    {/* Upcoming Section - Only show when no date is selected */}
+                    {!selectedDate && (
+                        <div>
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="w-1.5 h-6 bg-[#82ACAB] rounded-full"></div>
+                                <h2 className="text-xl font-bold text-[#032A33]">Upcoming Schedule</h2>
+                            </div>
+                            <div className="space-y-5">
+                                {upcomingShifts.length > 0 ? (
+                                    upcomingShifts.map((shift) => (
+                                        <div
+                                            key={shift.id}
+                                            className="bg-white rounded-2xl shadow-sm border border-[#82ACAB]/10 hover:shadow-lg hover:shadow-[#0B4B54]/5 transition-all duration-300 border-l-[6px] border-[#D3E4E7] relative overflow-hidden group cursor-pointer"
+                                        >
+                                            <div className="p-6">
+                                                <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-4">
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center flex-wrap gap-3 mb-2">
+                                                            <h3 className="font-bold text-xl text-[#032A33] group-hover:text-[#0B4B54] transition-colors">
+                                                                {shift.title}
+                                                            </h3>
+                                                            <div className="flex items-center gap-1.5 px-3 py-1 bg-[#032A33] text-white text-[10px] font-black rounded-full uppercase tracking-wider shadow-sm">
+                                                                <Calendar size={12} />
+                                                                {formatShiftDate(shift.date)}
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex flex-wrap gap-4 text-sm text-[#888888] font-medium tracking-tight">
+                                                            <div className="flex items-center gap-1.5">
+                                                                <MapPin size={16} className="text-[#82ACAB]" />
+                                                                <span>{shift.location}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-1.5">
+                                                                <Clock size={16} className="text-[#82ACAB]" />
+                                                                <span>{shift.time}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-left md:text-right bg-[#D3E4E7]/20 md:bg-transparent p-3 md:p-0 rounded-xl md:rounded-none w-full md:w-auto">
+                                                        <div className="text-[10px] font-bold text-[#888888] uppercase tracking-widest mb-1">Pay on Completion</div>
+                                                        <div className="font-black text-2xl text-[#032A33]">
+                                                            NPR {shift.pay.toLocaleString()}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div className="flex flex-wrap gap-4 text-sm text-[#888888] font-medium tracking-tight">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <MapPin size={16} className="text-[#82ACAB]" />
-                                                        <span>{shift.location}</span>
+
+                                                <div className="pt-4 border-t border-[#82ACAB]/10 flex flex-wrap justify-between items-center gap-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-xs font-bold text-[#888888] uppercase tracking-widest">Status:</span>
+                                                        <span className="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-black rounded-lg uppercase tracking-wide">
+                                                            Confirmed
+                                                        </span>
                                                     </div>
-                                                    <div className="flex items-center gap-1.5">
-                                                        <Clock size={16} className="text-[#82ACAB]" />
-                                                        <span>{shift.time}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="text-left md:text-right bg-[#D3E4E7]/20 md:bg-transparent p-3 md:p-0 rounded-xl md:rounded-none w-full md:w-auto">
-                                                <div className="text-[10px] font-bold text-[#888888] uppercase tracking-widest mb-1">Pay on Completion</div>
-                                                <div className="font-black text-2xl text-[#032A33]">
-                                                    NPR {shift.pay.toLocaleString()}
+                                                    <button className="flex items-center gap-2 text-sm font-bold text-[#0B4B54] hover:text-[#0D5A65] transition-colors group/btn">
+                                                        <span>View Shift Details</span>
+                                                        <ChevronRight size={18} className="translate-x-0 group-hover/btn:translate-x-1 transition-transform" />
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
-
-                                        <div className="pt-4 border-t border-[#82ACAB]/10 flex flex-wrap justify-between items-center gap-4">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-xs font-bold text-[#888888] uppercase tracking-widest">Status:</span>
-                                                <span className="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-black rounded-lg uppercase tracking-wide">
-                                                    Confirmed
-                                                </span>
+                                    ))
+                                ) : (
+                                    <div className="bg-white rounded-2xl shadow-sm border border-[#82ACAB]/10 p-12 text-center">
+                                        <div className="flex flex-col items-center gap-4">
+                                            <div className="p-4 bg-gray-100 rounded-full">
+                                                <Calendar size={48} className="text-gray-400" />
                                             </div>
-                                            <button className="flex items-center gap-2 text-sm font-bold text-[#0B4B54] hover:text-[#0D5A65] transition-colors group/btn">
-                                                <span>View Shift Details</span>
-                                                <ChevronRight size={18} className="translate-x-0 group-hover/btn:translate-x-1 transition-transform" />
-                                            </button>
+                                            <div>
+                                                <h3 className="text-lg font-bold text-gray-700 mb-2">
+                                                    No upcoming shifts
+                                                </h3>
+                                                <p className="text-gray-500">
+                                                    You don't have any shifts scheduled for future dates.
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                )}
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 {/* RIGHT COLUMN - Stats & Calendar */}
@@ -338,23 +509,36 @@ const WorkerAvailability = () => {
                             ))}
                         </div>
                         <div className="grid grid-cols-7 gap-1">
-                            {monthDays.map((day, index) => (
-                                <div
-                                    key={index}
-                                    className={`
-                                        aspect-square flex items-center justify-center text-sm rounded-xl transition-all duration-200
-                                        ${!day ? '' :
-                                            day === today
-                                                ? 'bg-[#0B4B54] text-white font-black shadow-lg scale-110'
-                                                : shiftDays.includes(day)
-                                                    ? 'bg-[#D3E4E7] text-[#0B4B54] font-bold'
+                            {monthDays.map((day, index) => {
+                                const isToday = isCurrentMonth && day === today;
+                                const hasShift = shiftDays.includes(day);
+                                const isSelected = selectedDate && 
+                                    selectedDate.getDate() === day && 
+                                    selectedDate.getMonth() === currentDate.getMonth() &&
+                                    selectedDate.getFullYear() === currentDate.getFullYear();
+                                
+                                return (
+                                    <button
+                                        key={index}
+                                        onClick={() => handleDateClick(day)}
+                                        disabled={!day}
+                                        className={`
+                                            aspect-square flex items-center justify-center text-sm rounded-xl transition-all duration-200
+                                            ${!day ? '' :
+                                                isSelected
+                                                    ? 'bg-[#032A33] text-white font-black shadow-lg ring-2 ring-[#0B4B54] ring-offset-2'
+                                                    : isToday
+                                                    ? 'bg-[#0B4B54] text-white font-black shadow-lg'
+                                                    : hasShift
+                                                    ? 'bg-[#D3E4E7] text-[#0B4B54] font-bold hover:bg-[#0B4B54] hover:text-white'
                                                     : 'text-[#032A33] hover:bg-[#D3E4E7]/30 font-medium'}
-                                        ${day ? 'cursor-pointer' : ''}
-                                    `}
-                                >
-                                    {day}
-                                </div>
-                            ))}
+                                            ${day ? 'cursor-pointer' : 'cursor-default'}
+                                        `}
+                                    >
+                                        {day}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 
@@ -370,25 +554,33 @@ const WorkerAvailability = () => {
                                 </div>
                                 <h3 className="font-bold text-[#82ACAB] uppercase tracking-widest text-[10px]">Total Potential</h3>
                             </div>
-                            <div className="text-4xl font-black mb-2 tracking-tight">NPR 8,000</div>
-                            <p className="text-xs text-[#82ACAB]/70 mb-8 font-medium">Projected for the current work week</p>
-
-                            <div className="space-y-4">
-                                <div className="flex justify-between text-xs font-bold uppercase tracking-widest mb-2">
-                                    <span className="text-[#82ACAB]/60">Progress</span>
-                                    <span className="text-[#82ACAB]">65%</span>
-                                </div>
-                                <div className="w-full bg-white/10 rounded-full h-3">
-                                    <div
-                                        className="bg-gradient-to-r from-[#82ACAB] to-[#0B4B54] h-3 rounded-full shadow-[0_0_15px_rgba(130,172,171,0.3)] transition-all duration-1000"
-                                        style={{ width: '65%' }}
-                                    ></div>
-                                </div>
-                                <div className="flex justify-between text-[10px] font-black uppercase tracking-[0.2em] text-[#82ACAB]/40 pt-2">
-                                    <span>NPR 5,200 earned</span>
-                                    <span>NPR 2,800 left</span>
-                                </div>
+                            <div className="text-4xl font-black mb-2 tracking-tight">
+                                NPR {workerStats.earningsPotential.toLocaleString()}
                             </div>
+                            <p className="text-xs text-[#82ACAB]/70 mb-8 font-medium">Projected for upcoming shifts</p>
+
+                            {workerStats.earningsPotential > 0 && (
+                                <div className="space-y-4">
+                                    <div className="flex justify-between text-xs font-bold uppercase tracking-widest mb-2">
+                                        <span className="text-[#82ACAB]/60">Progress</span>
+                                        <span className="text-[#82ACAB]">
+                                            {Math.round((workerStats.earnedThisWeek / (workerStats.earningsPotential + workerStats.earnedThisWeek)) * 100)}%
+                                        </span>
+                                    </div>
+                                    <div className="w-full bg-white/10 rounded-full h-3">
+                                        <div
+                                            className="bg-gradient-to-r from-[#82ACAB] to-[#0B4B54] h-3 rounded-full shadow-[0_0_15px_rgba(130,172,171,0.3)] transition-all duration-1000"
+                                            style={{ 
+                                                width: `${Math.round((workerStats.earnedThisWeek / (workerStats.earningsPotential + workerStats.earnedThisWeek)) * 100)}%` 
+                                            }}
+                                        ></div>
+                                    </div>
+                                    <div className="flex justify-between text-[10px] font-black uppercase tracking-[0.2em] text-[#82ACAB]/40 pt-2">
+                                        <span>NPR {workerStats.earnedThisWeek.toLocaleString()} earned</span>
+                                        <span>NPR {workerStats.earningsPotential.toLocaleString()} left</span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -398,7 +590,7 @@ const WorkerAvailability = () => {
                             <div className="p-2.5 bg-[#D3E4E7]/40 w-fit rounded-xl mb-4 group-hover:scale-110 transition-transform">
                                 <Clock size={20} className="text-[#0B4B54]" />
                             </div>
-                            <div className="text-3xl font-black text-[#032A33] mb-1">24</div>
+                            <div className="text-3xl font-black text-[#032A33] mb-1">{workerStats.totalHours}</div>
                             <div className="text-[10px] font-black text-[#888888] uppercase tracking-widest">Hours</div>
                         </div>
 
@@ -406,7 +598,7 @@ const WorkerAvailability = () => {
                             <div className="p-2.5 bg-[#D3E4E7]/40 w-fit rounded-xl mb-4 group-hover:scale-110 transition-transform">
                                 <Calendar size={20} className="text-[#0B4B54]" />
                             </div>
-                            <div className="text-3xl font-black text-[#032A33] mb-1">8</div>
+                            <div className="text-3xl font-black text-[#032A33] mb-1">{workerStats.totalShifts}</div>
                             <div className="text-[10px] font-black text-[#888888] uppercase tracking-widest">Shifts</div>
                         </div>
 
@@ -414,7 +606,9 @@ const WorkerAvailability = () => {
                             <div className="p-2.5 bg-[#D3E4E7]/40 w-fit rounded-xl mb-4 group-hover:scale-110 transition-transform">
                                 <DollarSign size={20} className="text-[#0B4B54]" />
                             </div>
-                            <div className="text-3xl font-black text-[#032A33] mb-1">5.2k</div>
+                            <div className="text-3xl font-black text-[#032A33] mb-1">
+                                {(workerStats.totalEarnings / 1000).toFixed(1)}k
+                            </div>
                             <div className="text-[10px] font-black text-[#888888] uppercase tracking-widest">Earnings</div>
                         </div>
 
@@ -422,7 +616,9 @@ const WorkerAvailability = () => {
                             <div className="p-2.5 bg-[#D3E4E7]/40 w-fit rounded-xl mb-4 group-hover:scale-110 transition-transform">
                                 <Star size={20} className="text-amber-500" />
                             </div>
-                            <div className="text-3xl font-black text-[#032A33] mb-1">4.8</div>
+                            <div className="text-3xl font-black text-[#032A33] mb-1">
+                                {workerStats.averageRating.toFixed(1)}
+                            </div>
                             <div className="text-[10px] font-black text-[#888888] uppercase tracking-widest">Rating</div>
                         </div>
                     </div>

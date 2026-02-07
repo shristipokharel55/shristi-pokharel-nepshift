@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client'
 import { Toaster } from 'react-hot-toast'
 import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
+import { SocketProvider } from './context/SocketContext.jsx'
 import './index.css'
 
 const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
@@ -13,8 +14,10 @@ const AppWithProviders = () => {
     return (
       <GoogleOAuthProvider clientId={clientId}>
         <AuthProvider>
-          <Toaster position="top-right" />
-          <App />
+          <SocketProvider>
+            <Toaster position="top-right" />
+            <App />
+          </SocketProvider>
         </AuthProvider>
       </GoogleOAuthProvider>
     );
@@ -23,8 +26,10 @@ const AppWithProviders = () => {
   // If no Google client ID, skip Google OAuth Provider
   return (
     <AuthProvider>
-      <Toaster position="top-right" />
-      <App />
+      <SocketProvider>
+        <Toaster position="top-right" />
+        <App />
+      </SocketProvider>
     </AuthProvider>
   );
 };
