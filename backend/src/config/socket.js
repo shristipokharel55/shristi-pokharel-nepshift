@@ -63,6 +63,12 @@ export const initializeSocket = (server) => {
       console.log(`User ${socket.userId} joined chat: ${chatId}`);
     });
 
+    // Handle leaving a chat room
+    socket.on('leave-chat', ({ chatId }) => {
+      socket.leave(chatId);
+      console.log(`User ${socket.userId} left chat: ${chatId}`);
+    });
+
     // Handle sending messages
     socket.on('send-message', async (data) => {
       try {

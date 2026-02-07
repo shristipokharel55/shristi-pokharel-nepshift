@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
 import { toast } from 'react-hot-toast';
+import { Link, useNavigate } from "react-router-dom";
 import HirerLayout from "../../components/hirer/HirerLayout";
 import api from "../../utils/api";
 
@@ -136,15 +136,8 @@ export default function ManageJobs() {
 
                       {/* Interactive Status Dropdown */}
                       <div className="relative">
-                        <select
-                          value={shift.status}
-                          onChange={(e) => handleStatusChange(shift._id, e.target.value)}
-                          className={`
-                                appearance-none px-3 py-1 rounded-full text-xs font-medium 
-                                border-none outline-none cursor-pointer
-                                ${getStatusColor(shift.status)}
-                            `}
-                        >
+                        <select value={shift.status} onChange={(e) => handleStatusChange(shift._id, e.target.value)}
+                          className={`appearance-none px-3 py-1 rounded-full text-xs font-medium border-none outline-none cursor-pointer ${getStatusColor(shift.status)}`}>
                           <option value="open">Open</option>
                           <option value="reserved">Reserved</option>
                           <option value="in-progress">In Progress</option>

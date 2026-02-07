@@ -200,8 +200,12 @@ const HirerProfile = () => {
                                 {/* Left: Avatar + Name + Member Info */}
                                 <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4">
                                     {/* Circular Avatar */}
-                                    <div className="w-32 h-32 rounded-full bg-white shadow-lg flex items-center justify-center text-4xl font-bold" style={{ color: '#0D4747' }}>
-                                        {getInitials(profile.fullName)}
+                                    <div
+                                        onClick={() => navigate('/hirer/profile/edit')}
+                                        className="w-32 h-32 rounded-full bg-white shadow-lg flex items-center justify-center text-4xl font-bold cursor-pointer transition-all hover:scale-105 active:scale-95 group"
+                                        style={{ color: '#0D4747' }}
+                                    >
+                                        <span className="group-hover:opacity-80">{getInitials(profile.fullName)}</span>
                                     </div>
 
                                     {/* Name, Member Since and Edit Button */}
@@ -216,7 +220,7 @@ const HirerProfile = () => {
                                             </div>
                                             <button
                                                 onClick={() => navigate('/hirer/profile/edit')}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 text-[#0D4747] text-xs font-bold hover:bg-gray-200 transition-colors"
+                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 text-[#0D4747] text-xs font-bold hover:bg-[#0D4747] hover:text-white cursor-pointer transition-all active:scale-95"
                                             >
                                                 <Edit size={12} />
                                                 EDIT PROFILE
@@ -227,10 +231,9 @@ const HirerProfile = () => {
 
                                 {/* Right: Verification Badge */}
                                 <div className="flex justify-center sm:justify-end pb-2">
-                                    <button
+                                    <div
                                         onClick={handleVerifyIdentity}
-                                        disabled={profile.isVerified}
-                                        className={`px-4 py-2 rounded-full text-[11px] uppercase tracking-wider font-bold flex items-center gap-2 transition-all hover:scale-105 active:scale-95 ${profile.isVerified ? 'bg-emerald-500 text-white cursor-default shadow-md shadow-emerald-500/20' :
+                                        className={`px-4 py-2 rounded-full text-[11px] uppercase tracking-wider font-bold flex items-center gap-2 transition-all hover:scale-105 active:scale-95 cursor-pointer ${profile.isVerified ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20' :
                                             profile.verificationStatus === 'pending' ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20' :
                                                 profile.verificationStatus === 'rejected' ? 'bg-red-500 text-white shadow-md shadow-red-500/20' :
                                                     'bg-gray-400 text-white hover:bg-[#0D4747]'
@@ -245,7 +248,7 @@ const HirerProfile = () => {
                                             profile.verificationStatus === 'pending' ? 'Pending Review' :
                                                 profile.verificationStatus === 'rejected' ? 'Rejected' :
                                                     'Get Verified'}
-                                    </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -254,9 +257,12 @@ const HirerProfile = () => {
                     {/* STATS ROW - 4 column grid of square cards */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         {/* Active Shifts */}
-                        <div className="bg-white rounded-xl shadow-sm p-6 text-center">
+                        <div
+                            onClick={() => navigate('/hirer/manage-jobs')}
+                            className="bg-white rounded-xl shadow-sm p-6 text-center cursor-pointer transition-all hover:scale-105 hover:shadow-md active:scale-95 group"
+                        >
                             <div className="flex justify-center mb-3">
-                                <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
+                                <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center group-hover:bg-blue-100 transition-colors">
                                     <Briefcase size={24} className="text-blue-600" />
                                 </div>
                             </div>
@@ -267,7 +273,7 @@ const HirerProfile = () => {
                         </div>
 
                         {/* Total Hires */}
-                        <div className="bg-white rounded-xl shadow-sm p-6 text-center">
+                        <div className="bg-white rounded-xl shadow-sm p-6 text-center transition-all hover:translate-y-[-4px] hover:shadow-md">
                             <div className="flex justify-center mb-3">
                                 <div className="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center">
                                     <Users size={24} className="text-purple-600" />
@@ -280,9 +286,12 @@ const HirerProfile = () => {
                         </div>
 
                         {/* Bids Received */}
-                        <div className="bg-white rounded-xl shadow-sm p-6 text-center">
+                        <div
+                            onClick={() => navigate('/hirer/manage-jobs')}
+                            className="bg-white rounded-xl shadow-sm p-6 text-center cursor-pointer transition-all hover:scale-105 hover:shadow-md active:scale-95 group"
+                        >
                             <div className="flex justify-center mb-3">
-                                <div className="w-12 h-12 bg-teal-50 rounded-lg flex items-center justify-center">
+                                <div className="w-12 h-12 bg-teal-50 rounded-lg flex items-center justify-center group-hover:bg-teal-100 transition-colors">
                                     <MessageSquare size={24} className="text-teal-600" />
                                 </div>
                             </div>
@@ -293,7 +302,7 @@ const HirerProfile = () => {
                         </div>
 
                         {/* Rating */}
-                        <div className="bg-white rounded-xl shadow-sm p-6 text-center">
+                        <div className="bg-white rounded-xl shadow-sm p-6 text-center transition-all hover:translate-y-[-4px] hover:shadow-md">
                             <div className="flex justify-center mb-3">
                                 <div className="w-12 h-12 bg-amber-50 rounded-lg flex items-center justify-center">
                                     <Star size={24} className="text-amber-500" />
@@ -315,7 +324,7 @@ const HirerProfile = () => {
                         <div className="lg:col-span-2 space-y-6">
 
                             {/* ABOUT CARD */}
-                            <div className="bg-white rounded-xl shadow-sm p-6">
+                            <div className="bg-white rounded-xl shadow-sm p-6 transition-all hover:shadow-md border border-transparent hover:border-[#0D4747]/10">
                                 <h2 className="text-xl font-bold mb-4" style={{ color: '#0D4747' }}>
                                     About Me / Business Profile
                                 </h2>
@@ -325,46 +334,46 @@ const HirerProfile = () => {
                             </div>
 
                             {/* CONTACT INFORMATION CARD */}
-                            <div className="bg-white rounded-xl shadow-sm p-6">
+                            <div className="bg-white rounded-xl shadow-sm p-6 transition-all hover:shadow-md border border-transparent hover:border-[#0D4747]/10">
                                 <h2 className="text-xl font-bold mb-6" style={{ color: '#0D4747' }}>
                                     Contact Information
                                 </h2>
 
                                 <div className="space-y-4">
                                     {/* Email */}
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <div className="flex items-start gap-3 group">
+                                        <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100 transition-colors">
                                             <Mail size={20} className="text-blue-600" />
                                         </div>
                                         <div>
                                             <div className="text-sm text-gray-500 mb-1">Email</div>
-                                            <div className="font-semibold" style={{ color: '#0D4747' }}>
+                                            <div className="font-semibold transition-colors group-hover:text-blue-600" style={{ color: '#0D4747' }}>
                                                 {profile.email || 'Not provided'}
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Phone */}
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <div className="flex items-start gap-3 group">
+                                        <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-100 transition-colors">
                                             <Phone size={20} className="text-emerald-600" />
                                         </div>
                                         <div>
                                             <div className="text-sm text-gray-500 mb-1">Phone</div>
-                                            <div className="font-semibold" style={{ color: '#0D4747' }}>
+                                            <div className="font-semibold transition-colors group-hover:text-emerald-600" style={{ color: '#0D4747' }}>
                                                 {profile.phone || 'Not provided'}
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Location */}
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <div className="flex items-start gap-3 group">
+                                        <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-purple-100 transition-colors">
                                             <MapPin size={20} className="text-purple-600" />
                                         </div>
                                         <div>
                                             <div className="text-sm text-gray-500 mb-1">Location</div>
-                                            <div className="font-semibold" style={{ color: '#0D4747' }}>
+                                            <div className="font-semibold transition-colors group-hover:text-purple-600" style={{ color: '#0D4747' }}>
                                                 {(profile.address.district || profile.address.municipality)
                                                     ? `${profile.address.district || profile.address.municipality}${profile.address.ward ? `, Ward ${profile.address.ward}` : ''}`
                                                     : 'Not specified'}
@@ -384,7 +393,7 @@ const HirerProfile = () => {
 
                                 {/* Verification Progress */}
                                 <div
-                                    className="mb-6 cursor-pointer group"
+                                    className="mb-6 cursor-pointer group p-4 border border-transparent rounded-2xl transition-all hover:border-[#0D4747]/20 hover:bg-[#0D4747]/5 active:scale-95"
                                     onClick={handleVerifyIdentity}
                                 >
                                     <div className="flex justify-between text-sm mb-2">
@@ -408,53 +417,65 @@ const HirerProfile = () => {
                                 {/* Verification Checklist */}
                                 <div className="space-y-3 mb-6">
                                     {/* Email verified */}
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-5 h-5 rounded-full flex items-center justify-center ${profile.verification.email ? 'bg-emerald-500' : 'bg-gray-300'
+                                    <div
+                                        className="flex items-center gap-3 cursor-pointer group hover:bg-emerald-50 p-2 rounded-lg transition-colors"
+                                        onClick={handleVerifyIdentity}
+                                    >
+                                        <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 ${profile.verification.email ? 'bg-emerald-500' : 'bg-gray-300'
                                             }`}>
                                             {profile.verification.email && (
                                                 <CheckCircle size={14} className="text-white" />
                                             )}
                                         </div>
-                                        <span className={profile.verification.email ? 'text-gray-700' : 'text-gray-400'}>
+                                        <span className={`text-sm transition-colors ${profile.verification.email ? 'text-gray-700 group-hover:text-emerald-700' : 'text-gray-400'}`}>
                                             Email verified
                                         </span>
                                     </div>
 
                                     {/* Phone verified */}
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-5 h-5 rounded-full flex items-center justify-center ${profile.verification.phone ? 'bg-emerald-500' : 'bg-gray-300'
+                                    <div
+                                        className="flex items-center gap-3 cursor-pointer group hover:bg-emerald-50 p-2 rounded-lg transition-colors"
+                                        onClick={handleVerifyIdentity}
+                                    >
+                                        <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 ${profile.verification.phone ? 'bg-emerald-500' : 'bg-gray-300'
                                             }`}>
                                             {profile.verification.phone && (
                                                 <CheckCircle size={14} className="text-white" />
                                             )}
                                         </div>
-                                        <span className={profile.verification.phone ? 'text-gray-700' : 'text-gray-400'}>
+                                        <span className={`text-sm transition-colors ${profile.verification.phone ? 'text-gray-700 group-hover:text-emerald-700' : 'text-gray-400'}`}>
                                             Phone verified
                                         </span>
                                     </div>
 
                                     {/* Government ID */}
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-5 h-5 rounded-full flex items-center justify-center ${profile.verification.governmentId ? 'bg-emerald-500' : 'bg-gray-300'
+                                    <div
+                                        className="flex items-center gap-3 cursor-pointer group hover:bg-emerald-50 p-2 rounded-lg transition-colors"
+                                        onClick={handleVerifyIdentity}
+                                    >
+                                        <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 ${profile.verification.governmentId ? 'bg-emerald-500' : 'bg-gray-300'
                                             }`}>
                                             {profile.verification.governmentId && (
                                                 <CheckCircle size={14} className="text-white" />
                                             )}
                                         </div>
-                                        <span className={profile.verification.governmentId ? 'text-gray-700' : 'text-gray-400'}>
+                                        <span className={`text-sm transition-colors ${profile.verification.governmentId ? 'text-gray-700 group-hover:text-emerald-700' : 'text-gray-400'}`}>
                                             Government ID
                                         </span>
                                     </div>
 
                                     {/* Business License */}
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-5 h-5 rounded-full flex items-center justify-center ${profile.verification.businessLicense ? 'bg-emerald-500' : 'bg-gray-300'
+                                    <div
+                                        className="flex items-center gap-3 cursor-pointer group hover:bg-emerald-50 p-2 rounded-lg transition-colors"
+                                        onClick={handleVerifyIdentity}
+                                    >
+                                        <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 ${profile.verification.businessLicense ? 'bg-emerald-500' : 'bg-gray-300'
                                             }`}>
                                             {profile.verification.businessLicense && (
                                                 <CheckCircle size={14} className="text-white" />
                                             )}
                                         </div>
-                                        <span className={profile.verification.businessLicense ? 'text-gray-700' : 'text-gray-400'}>
+                                        <span className={`text-sm transition-colors ${profile.verification.businessLicense ? 'text-gray-700 group-hover:text-emerald-700' : 'text-gray-400'}`}>
                                             Selfie with ID
                                         </span>
                                     </div>
@@ -482,9 +503,9 @@ const HirerProfile = () => {
                                     <button
                                         onClick={handleVerifyIdentity}
                                         disabled={profile.verificationStatus === 'pending'}
-                                        className={`w-full py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition-all ${profile.verificationStatus === 'pending'
-                                            ? 'bg-gray-400 cursor-not-allowed'
-                                            : 'hover:opacity-90'
+                                        className={`w-full py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition-all cursor-pointer ${profile.verificationStatus === 'pending'
+                                            ? 'bg-gray-400 cursor-not-allowed opacity-60'
+                                            : 'hover:bg-[#072a2a] hover:shadow-lg shadow-[#0D4747]/20 active:scale-95'
                                             }`}
                                         style={{ backgroundColor: profile.verificationStatus === 'pending' ? undefined : '#0D4747' }}
                                     >

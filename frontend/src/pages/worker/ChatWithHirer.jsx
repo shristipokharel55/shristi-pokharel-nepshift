@@ -31,6 +31,11 @@ const ChatWithHirer = () => {
     };
 
     useEffect(() => {
+        // Reset state when switching to a different hirer
+        setMessages([]);
+        setHirer(null);
+        setLoading(true);
+        setNewMessage('');
         fetchHirerInfo();
         loadChatHistory();
     }, [hirerId]);
@@ -44,9 +49,10 @@ const ChatWithHirer = () => {
         // Join the chat room
         socket.emit('join-chat', { chatId });
 
-        // Listen for incoming messages
-        socket.on('receive-message', (data) => {
-            if (data.chatId === chatId) {
+        // Define handlers with proper closure
+        const handleReceiveMessage = (data) => {
+            const currentChatId = getChatId();
+            if (data.chatId === currentChatId) {
                 setMessages((prev) => {
                     // Avoid duplicates
                     if (prev.some(m => m._id === data.message._id)) return prev;
@@ -54,22 +60,29 @@ const ChatWithHirer = () => {
                 });
                 scrollToBottom();
             }
-        });
+        };
 
-        // Listen for message notifications (when not in chat room)
-        socket.on('new-message-notification', (data) => {
-            if (data.chatId === chatId) {
+        const handleMessageNotification = (data) => {
+            const currentChatId = getChatId();
+            if (data.chatId === currentChatId) {
                 setMessages((prev) => {
                     if (prev.some(m => m._id === data.message._id)) return prev;
                     return [...prev, data.message];
                 });
                 scrollToBottom();
             }
-        });
+        };
+
+        // Listen for incoming messages
+        socket.on('receive-message', handleReceiveMessage);
+        socket.on('new-message-notification', handleMessageNotification);
 
         return () => {
-            socket.off('receive-message');
-            socket.off('new-message-notification');
+            // Leave the chat room
+            socket.emit('leave-chat', { chatId });
+            // Remove specific handlers
+            socket.off('receive-message', handleReceiveMessage);
+            socket.off('new-message-notification', handleMessageNotification);
         };
     }, [socket, hirerId]);
 

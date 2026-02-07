@@ -205,7 +205,7 @@ export default function PostShift() {
 
               <Link
                 to="/hirer/verify"
-                className="w-full inline-flex items-center justify-center gap-3 bg-[#0B4B54] text-white py-4 rounded-2xl font-bold hover:bg-[#032A33] transition-all shadow-lg shadow-[#0B4B54]/20 group"
+                className="w-full inline-flex items-center justify-center gap-3 bg-[#0B4B54] text-white py-4 rounded-2xl font-bold hover:bg-[#032A33] transition-all shadow-lg shadow-[#0B4B54]/20 group cursor-pointer active:scale-95"
               >
                 <span>Get Verified Now</span>
                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
@@ -218,7 +218,7 @@ export default function PostShift() {
 
             <button
               onClick={() => navigate('/hirer/dashboard')}
-              className="mt-8 text-[#0B4B54] font-bold hover:underline"
+              className="mt-8 text-[#0B4B54] font-bold hover:underline cursor-pointer transition-all active:scale-95"
             >
               Back to Dashboard
             </button>
@@ -451,14 +451,14 @@ export default function PostShift() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-[#0B4B54] text-white py-3 rounded-lg font-medium hover:bg-[#0D5A65] transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="flex-1 bg-[#0B4B54] text-white py-3 rounded-lg font-medium hover:bg-[#0D5A65] transition-all disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer active:scale-95 shadow-md hover:shadow-lg"
               >
                 {loading ? "Posting..." : "Post Shift"}
               </button>
               <button
                 type="button"
                 onClick={() => navigate("/hirer/dashboard")}
-                className="px-8 py-3 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition"
+                className="px-8 py-3 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-all cursor-pointer active:scale-95"
               >
                 Cancel
               </button>
