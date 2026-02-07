@@ -53,10 +53,35 @@ const MyShifts = () => {
     const fetchBids = async () => {
         try {
             setLoading(true);
-            const response = await api.get('/bids/my-bids');
-            if (response.data.success) {
-                setBids(response.data.data);
-                calculateStats(response.data.data);
+            const [bidsRes, statsRes] = await Promise.all([
+                api.get('/bids/my-bids'),
+                api.get('/helper/stats')
+            ]);
+
+            if (bidsRes.data.success) {
+                setBids(bidsRes.data.data);
+
+                // Base stats from bids
+                const acceptedBids = bidsRes.data.data.filter(bid => bid.status === 'accepted');
+                const completedBids = acceptedBids.filter(bid => bid.shiftId?.status === 'completed');
+                const totalEarned = completedBids.reduce((sum, bid) => sum + (bid.bidAmount || 0), 0);
+
+                const now = new Date();
+                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                const thisMonth = completedBids.filter(bid => {
+                    const bidDate = new Date(bid.createdAt);
+                    return bidDate >= startOfMonth;
+                }).length;
+
+                // Combine with backend stats for rating
+                const backendStats = statsRes.data.success ? statsRes.data.data : {};
+
+                setStats({
+                    totalJobs: completedBids.length,
+                    thisMonth: thisMonth,
+                    totalEarned: totalEarned,
+                    avgRating: backendStats.averageRating || 0
+                });
             }
         } catch (error) {
             console.error('Error fetching bids:', error);
@@ -66,28 +91,8 @@ const MyShifts = () => {
         }
     };
 
-    const calculateStats = (allBids) => {
-        const acceptedBids = allBids.filter(bid => bid.status === 'accepted');
-        const completedBids = acceptedBids.filter(bid => bid.shiftId?.status === 'completed');
-
-        // Calculate total earned from completed shifts
-        const totalEarned = completedBids.reduce((sum, bid) => sum + (bid.bidAmount || 0), 0);
-
-        // Calculate this month's jobs
-        const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const thisMonth = completedBids.filter(bid => {
-            const bidDate = new Date(bid.createdAt);
-            return bidDate >= startOfMonth;
-        }).length;
-
-        setStats({
-            totalJobs: completedBids.length,
-            thisMonth: thisMonth,
-            totalEarned: totalEarned,
-            avgRating: 4.9 // TODO: Calculate from actual ratings
-        });
-    };
+    // Remove old calculateStats if it's no longer used
+    // (I moved logic into fetchBids for simplicity)
 
     // Filter bids by status
     const pendingBids = bids.filter(bid => bid.status === 'pending');

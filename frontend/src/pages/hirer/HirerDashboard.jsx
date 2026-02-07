@@ -168,7 +168,7 @@ export default function HirerDashboard() {
         <div className="glass-card rounded-2xl p-6 mb-8 animate-fade-in-up" style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#0B4B54] to-[#82ACAB] flex items-center justify-center">
+              <div className="w-16 h-16 rounded-xl bg-linear-to-br from-[#0B4B54] to-[#82ACAB] flex items-center justify-center">
                 <Shield className="w-8 h-8 text-white" />
               </div>
               <div>

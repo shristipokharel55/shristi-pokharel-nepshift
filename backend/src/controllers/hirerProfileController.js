@@ -56,12 +56,24 @@ export const getHirerProfile = async (req, res) => {
 
     // Get actual statistics from database
     const totalHires = user.totalHires || 0;
-    
+
     // Get completed shifts count
     const completedShifts = await Shift.countDocuments({
       hirerId: user._id,
       status: 'completed'
     });
+
+    // Get active shifts (open, reserved, or in-progress)
+    const activeShifts = await Shift.countDocuments({
+      hirerId: user._id,
+      status: { $in: ['open', 'reserved', 'in-progress'] }
+    });
+
+    // Get total bids received across all shifts
+    const Bid = (await import("../models/bid.js")).default;
+    const allShifts = await Shift.find({ hirerId: user._id }).select('_id');
+    const shiftIds = allShifts.map(s => s._id);
+    const totalBidsReceived = await Bid.countDocuments({ shiftId: { $in: shiftIds } });
 
     res.status(200).json({
       success: true,
@@ -71,6 +83,10 @@ export const getHirerProfile = async (req, res) => {
         stats: {
           totalHires,
           completedShifts,
+          activeShifts,
+          totalBidsReceived,
+          averageRating: user.rating || 0,
+          totalRatings: user.totalRatings || 0,
           memberSince: user.joinedAt || user.createdAt
         },
         canSubmitForVerification: canSubmitForVerification(user)
@@ -108,7 +124,7 @@ export const updateHirerProfile = async (req, res) => {
     if (fullName) user.fullName = fullName;
     if (phone) user.phone = phone;
     if (bio !== undefined) user.bio = bio;
-    
+
     if (address) {
       user.address = {
         latitude: address.latitude || user.address?.latitude,
@@ -282,7 +298,7 @@ export const uploadPhoto = [
   async (req, res) => {
     try {
       const { type } = req.body; // 'profile' or 'cover'
-      
+
       if (!req.file) {
         return res.status(400).json({
           success: false,

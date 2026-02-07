@@ -97,6 +97,14 @@ const WorkerProfile = () => {
     const phone = user?.phone || "+977 9841234567";
 
     const [profileData, setProfileData] = useState(null);
+    const [stats, setStats] = useState({
+        completed: 0,
+        active: 0,
+        pending: 0,
+        earnings: 0,
+        averageRating: 0,
+        totalJobsCompleted: 0
+    });
     const [loading, setLoading] = useState(true);
     const [verificationStatus, setVerificationStatus] = useState('not_submitted');
     const [profileExists, setProfileExists] = useState(true);
@@ -105,9 +113,10 @@ const WorkerProfile = () => {
         const fetchProfile = async () => {
             try {
                 setLoading(true);
-                const [profileRes, verificationRes] = await Promise.all([
+                const [profileRes, verificationRes, statsRes] = await Promise.all([
                     api.get('/helper/profile'),
-                    api.get('/helper/verification-status')
+                    api.get('/helper/verification-status'),
+                    api.get('/helper/stats')
                 ]);
 
                 if (profileRes.data.profileExists === false) {
@@ -116,6 +125,10 @@ const WorkerProfile = () => {
                 } else {
                     setProfileExists(true);
                     setProfileData(profileRes.data?.data || null);
+                }
+
+                if (statsRes.data.success) {
+                    setStats(statsRes.data.data);
                 }
 
                 setVerificationStatus(verificationRes.data?.data?.verificationStatus || 'not_submitted');
@@ -137,8 +150,8 @@ const WorkerProfile = () => {
         {
             icon: Award,
             title: 'Top Performer',
-            description: '10+ jobs completed with 5-star rating',
-            earned: true
+            description: '10+ jobs completed with 4.5+ rating',
+            earned: (stats.totalJobsCompleted >= 10 && stats.averageRating >= 4.5)
         },
         {
             icon: Shield,
@@ -149,8 +162,8 @@ const WorkerProfile = () => {
         {
             icon: Star,
             title: 'Trusted Helper',
-            description: 'Consistent positive reviews',
-            earned: true
+            description: 'Maintain 4.0+ rating and 1+ job',
+            earned: (stats.averageRating >= 4.0 && stats.totalJobsCompleted >= 1)
         },
     ];
 
@@ -272,10 +285,26 @@ const WorkerProfile = () => {
                 {/* Stats Row */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                     {[
-                        { label: 'Jobs Completed', value: '24', color: '#0B4B54' },
-                        { label: 'Rating', value: '4.9', color: '#F59E0B' },
-                        { label: 'Experience', value: '2 Years', color: '#82ACAB' },
-                        { label: 'Response Rate', value: '98%', color: '#10B981' },
+                        {
+                            label: 'Jobs Completed',
+                            value: stats.totalJobsCompleted || 0,
+                            color: '#0B4B54'
+                        },
+                        {
+                            label: 'Rating',
+                            value: typeof stats.averageRating === 'number' ? stats.averageRating.toFixed(1) : '0.0',
+                            color: '#F59E0B'
+                        },
+                        {
+                            label: 'Experience',
+                            value: (profileData?.yearsOfExperience || 0) + (profileData?.yearsOfExperience === 1 ? ' Year' : ' Years'),
+                            color: '#82ACAB'
+                        },
+                        {
+                            label: 'Total Earned',
+                            value: `Rs ${(stats.earnings || 0).toLocaleString()}`,
+                            color: '#10B981'
+                        },
                     ].map((stat, index) => (
                         <div
                             key={index}
@@ -313,8 +342,8 @@ const WorkerProfile = () => {
                                 <div
                                     key={index}
                                     className={`flex items-center gap-4 p-4 rounded-xl transition-colors ${achievement.earned
-                                            ? 'bg-[#D3E4E7]/30 hover:bg-[#D3E4E7]/50'
-                                            : 'bg-gray-100/50 opacity-60'
+                                        ? 'bg-[#D3E4E7]/30 hover:bg-[#D3E4E7]/50'
+                                        : 'bg-gray-100/50 opacity-60'
                                         }`}
                                     onClick={() => {
                                         if (!achievement.earned && achievement.title === 'Verified Worker') {
