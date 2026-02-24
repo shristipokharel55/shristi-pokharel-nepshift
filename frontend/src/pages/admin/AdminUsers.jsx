@@ -1,3 +1,5 @@
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import {
     AlertCircle,
     Download,
@@ -301,6 +303,7 @@ const AdminUsers = () => {
     const fetchUsers = async () => {
         try {
             setLoading(true);
+            setError(null);
             const response = await api.get('/admin/users');
             const usersData = response.data.data || [];
             // Transform data for display
@@ -318,7 +321,9 @@ const AdminUsers = () => {
             setUsers(transformed);
         } catch (err) {
             console.error('Failed to fetch users:', err);
-            setError(err.response?.data?.message || 'Failed to load users');
+            const errorMessage = err.response?.data?.message || 'Could not load users';
+            setError(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -367,6 +372,79 @@ const AdminUsers = () => {
         }
     };
 
+    // handles exporting the user list to PDF
+    const handleExportReport = () => {
+        // checking if there's any data to export
+        if (filteredUsers.length === 0) {
+            toast.error('No users to export');
+            return;
+        }
+
+        try {
+            // starting up a new PDF document
+            const doc = new jsPDF();
+
+            // adding the company branding at the top
+            doc.setFontSize(20);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(11, 75, 84); // NepShift brand color
+            doc.text('NepShift', 14, 20);
+
+            // adding the report title
+            doc.setFontSize(14);
+            doc.setTextColor(60, 60, 60);
+            doc.text('Users Report', 14, 28);
+
+            // getting today's date for the report
+            const today = new Date().toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            doc.setFontSize(10);
+            doc.setTextColor(120, 120, 120);
+            doc.text(`Generated: ${today}`, 14, 35);
+
+            // gathering the list of users to put into the PDF table
+            const tableData = filteredUsers.map(user => [
+                user.fullName,
+                user.email,
+                user.role.charAt(0).toUpperCase() + user.role.slice(1),
+                user.isVerified ? 'Verified' : 'Pending'
+            ]);
+
+            // creating the table with our user data
+            autoTable(doc, {
+                head: [['Name', 'Email', 'Role', 'Status']],
+                body: tableData,
+                startY: 42,
+                theme: 'striped',
+                headStyles: {
+                    fillColor: [11, 75, 84], // brand color for headers
+                    textColor: [255, 255, 255],
+                    fontSize: 10,
+                    fontStyle: 'bold'
+                },
+                bodyStyles: {
+                    fontSize: 9,
+                    textColor: [50, 50, 50]
+                },
+                alternateRowStyles: {
+                    fillColor: [248, 251, 250] // light background for alternate rows
+                }
+            });
+
+            // saving the PDF file with a standard name
+            doc.save('Nepshift_Users.pdf');
+
+            // letting the user know it worked
+            toast.success('Report downloaded!');
+        } catch (error) {
+            console.error('Failed to generate PDF:', error);
+            toast.error('Failed to generate report');
+        }
+    };
+
     const stats = {
         total: users.length,
         helpers: users.filter(u => u.role === 'helper').length,
@@ -385,6 +463,8 @@ const AdminUsers = () => {
         return matchesStatus && matchesRole && matchesSearch;
     });
 
+    
+
     return (
         <div className="space-y-8 animate-fade-in-up" style={{ fontFamily: "'Inter', sans-serif" }}>
             {/* Page Header */}
@@ -398,9 +478,12 @@ const AdminUsers = () => {
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button className="px-5 py-2 bg-white text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors flex items-center gap-2 border border-slate-200 show-sm">
+                    <button 
+                        onClick={handleExportReport}
+                        className="px-5 py-2 bg-white text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors flex items-center gap-2 border border-slate-200 shadow-sm"
+                    >
                         <Download size={16} />
-                        Export
+                        Export Report
                     </button>
                     <button className="px-5 py-2 bg-[#3B82F6] text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20 flex items-center gap-2">
                         <Plus size={16} />
