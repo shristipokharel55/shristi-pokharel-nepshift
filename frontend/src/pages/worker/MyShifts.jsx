@@ -38,6 +38,7 @@ const MyShifts = () => {
     const [submittingReview, setSubmittingReview] = useState(false);
     const [reviewShiftId, setReviewShiftId] = useState(null);
     const [reviewToUserId, setReviewToUserId] = useState(null);
+    const [paymentsMap, setPaymentsMap] = useState({}); // shiftId -> payment info
 
 
 
@@ -55,9 +56,10 @@ const MyShifts = () => {
     const fetchBids = async () => {
         try {
             setLoading(true);
-            const [bidsRes, statsRes] = await Promise.all([
+            const [bidsRes, statsRes, paymentsRes] = await Promise.all([
                 api.get('/bids/my-bids'),
-                api.get('/helper/stats')
+                api.get('/helper/stats'),
+                api.get('/payments/my-transactions')
             ]);
 
             if (bidsRes.data.success) {
@@ -84,6 +86,21 @@ const MyShifts = () => {
                     totalEarned: totalEarned,
                     avgRating: backendStats.averageRating || 0
                 });
+            }
+
+            // Build a map: shiftId -> payment info
+            if (paymentsRes.data.success) {
+                const map = {};
+                paymentsRes.data.data.transactions.forEach(p => {
+                    if (p.shiftId) map[p.shiftId] = p;
+                });
+                setPaymentsMap(map);
+
+                // Update totalEarned to reflect real received payments
+                setStats(prev => ({
+                    ...prev,
+                    totalEarned: paymentsRes.data.data.totalEarnings,
+                }));
             }
         } catch (error) {
             console.error('Error fetching bids:', error);
@@ -416,6 +433,27 @@ const MyShifts = () => {
                                     </div>
                                 </div>
                                 <div className="flex flex-col items-end gap-2">
+                                    {/* Payment status */}
+                                    {paymentsMap[bid.shiftId?._id] ? (
+                                        <div className="flex flex-col items-end gap-1">
+                                            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-lg">
+                                                <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                                <span className="text-emerald-700 text-xs font-semibold">Payment Received</span>
+                                            </div>
+                                            <p className="text-base font-bold text-emerald-600">
+                                                Rs {paymentsMap[bid.shiftId?._id].amount?.toLocaleString()}
+                                            </p>
+                                            <p className="text-xs text-gray-400">
+                                                {paymentsMap[bid.shiftId?._id].date}
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <span className="px-3 py-1.5 bg-yellow-50 border border-yellow-200 text-yellow-700 text-xs font-semibold rounded-lg">
+                                            Payment Pending
+                                        </span>
+                                    )}
                                     <button
                                         onClick={() => handleOpenRateModal(bid.shiftId?._id, bid.hirerId?._id)}
                                         className="flex items-center gap-2 px-4 py-2 bg-[#0B4B54] text-white rounded-lg hover:bg-[#0D5A65] transition-colors text-sm font-medium"
