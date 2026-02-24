@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { ShieldAlert, ArrowRight, Loader2, AlertCircle, CheckCircle } from "lucide-react";
-import api from "../../utils/api";
+import "leaflet/dist/leaflet.css";
+import { AlertCircle, ArrowRight, CheckCircle, Loader2, Locate, ShieldAlert } from "lucide-react";
+import { useEffect, useState } from "react";
+import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from "react-leaflet";
+import { Link, useNavigate } from "react-router-dom";
 import HirerLayout from "../../components/hirer/HirerLayout";
 import { useAuth } from "../../context/AuthContext";
+import locationData from "../../data/alllocation.json";
+import api from "../../utils/api";
 
 // Fix for default marker icons in Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -15,6 +16,17 @@ L.Icon.Default.mergeOptions({
   iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
+
+// Fly map to new coordinates when they change
+function RecenterMap({ lat, lng }) {
+  const map = useMap();
+  useEffect(() => {
+    if (lat && lng) {
+      map.flyTo([lat, lng], map.getZoom(), { duration: 1 });
+    }
+  }, [lat, lng, map]);
+  return null;
+}
 
 // Component to handle map clicks and update marker position
 function LocationMarker({ position, setPosition }) {
@@ -42,8 +54,9 @@ export default function PostShift() {
     category: "",
     payMin: "",
     payMax: "",
-    address: "",
-    city: "",
+    province: "",
+    district: "",
+    municipality: "",
     date: "",
     startTime: "",
     endTime: "",
@@ -59,8 +72,34 @@ export default function PostShift() {
   // Loading and error states
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [locating, setLocating] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [checkingVerification, setCheckingVerification] = useState(true);
+
+  // Cascading location data
+  const provinces = locationData.provinceList;
+  const [districts, setDistricts] = useState([]);
+  const [municipalities, setMunicipalities] = useState([]);
+
+  useEffect(() => {
+    if (formData.province) {
+      const prov = provinces.find((p) => p.name === formData.province);
+      setDistricts(prov ? prov.districtList : []);
+      setMunicipalities([]);
+    } else {
+      setDistricts([]);
+      setMunicipalities([]);
+    }
+  }, [formData.province]);
+
+  useEffect(() => {
+    if (formData.district) {
+      const dist = districts.find((d) => d.name === formData.district);
+      setMunicipalities(dist ? dist.municipalityList : []);
+    } else {
+      setMunicipalities([]);
+    }
+  }, [formData.district, districts]);
 
   useEffect(() => {
     const checkVerificationStatus = async () => {
@@ -94,13 +133,40 @@ export default function PostShift() {
     "Other",
   ];
 
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      setError("Geolocation is not supported by your browser");
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setMapPosition({ lat: latitude, lng: longitude });
+        setLocating(false);
+      },
+      (err) => {
+        console.error(err);
+        setError("Unable to retrieve location. Please allow location access.");
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
   // Update form fields as user types
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    // Reset dependent fields on parent change
+    if (name === "province") {
+      setFormData((prev) => ({ ...prev, province: value, district: "", municipality: "" }));
+      return;
+    }
+    if (name === "district") {
+      setFormData((prev) => ({ ...prev, district: value, municipality: "" }));
+      return;
+    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   // When user submits the form
@@ -133,8 +199,11 @@ export default function PostShift() {
           max: Number(formData.payMax),
         },
         location: {
-          address: formData.address || "Location on map",
-          city: formData.city || "Kathmandu",
+          address: [formData.municipality, formData.district, formData.province].filter(Boolean).join(", "),
+          city: formData.district || "Kathmandu",
+          province: formData.province,
+          district: formData.district,
+          municipality: formData.municipality,
           coordinates: {
             lat: mapPosition.lat,
             lng: mapPosition.lng,
@@ -337,7 +406,27 @@ export default function PostShift() {
               <label className="block text-sm font-medium text-[#032A33] mb-2">
                 Select Location on Map <span className="text-red-500">*</span>
               </label>
-              <p className="text-sm text-[#888888] mb-3">Click on the map to set the exact location for this shift</p>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm text-[#888888]">Click on the map to set the exact location for this shift</p>
+                <button
+                  type="button"
+                  onClick={handleGetLocation}
+                  disabled={locating}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#0B4B54] text-white text-sm font-medium rounded-lg hover:bg-[#0D5A65] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {locating ? (
+                    <>
+                      <Loader2 size={15} className="animate-spin" />
+                      Detecting...
+                    </>
+                  ) : (
+                    <>
+                      <Locate size={15} />
+                      Use My Location
+                    </>
+                  )}
+                </button>
+              </div>
 
               {/* Leaflet Map */}
               <div className="h-96 rounded-lg overflow-hidden border border-gray-300">
@@ -350,6 +439,7 @@ export default function PostShift() {
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   />
+                  <RecenterMap lat={mapPosition.lat} lng={mapPosition.lng} />
                   <LocationMarker position={mapPosition} setPosition={setMapPosition} />
                 </MapContainer>
               </div>
@@ -360,29 +450,60 @@ export default function PostShift() {
               </p>
             </div>
 
-            {/* Address and City (Optional) */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Province / District / Municipality */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-[#032A33] mb-2">Address (Optional)</label>
-                <input
-                  type="text"
-                  name="address"
-                  value={formData.address}
+                <label className="block text-sm font-medium text-[#032A33] mb-2">
+                  Province <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="province"
+                  value={formData.province}
                   onChange={handleChange}
-                  placeholder="e.g., Thamel, Kathmandu"
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0B4B54] focus:border-transparent"
-                />
+                  required
+                >
+                  <option value="">Select Province</option>
+                  {provinces.map((p) => (
+                    <option key={p.id} value={p.name}>{p.name}</option>
+                  ))}
+                </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#032A33] mb-2">City</label>
-                <input
-                  type="text"
-                  name="city"
-                  value={formData.city}
+                <label className="block text-sm font-medium text-[#032A33] mb-2">
+                  District <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="district"
+                  value={formData.district}
                   onChange={handleChange}
-                  placeholder="e.g., Kathmandu"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0B4B54] focus:border-transparent"
-                />
+                  disabled={!formData.province}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0B4B54] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  required
+                >
+                  <option value="">Select District</option>
+                  {districts.map((d) => (
+                    <option key={d.id} value={d.name}>{d.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#032A33] mb-2">
+                  Municipality <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="municipality"
+                  value={formData.municipality}
+                  onChange={handleChange}
+                  disabled={!formData.district}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0B4B54] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  required
+                >
+                  <option value="">Select Municipality</option>
+                  {municipalities.map((m) => (
+                    <option key={m.id} value={m.name}>{m.name}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
