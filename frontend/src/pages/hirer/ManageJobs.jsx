@@ -1,14 +1,61 @@
-import { useEffect, useState } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import { Loader2, Navigation, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from 'react-hot-toast';
+import { MapContainer, Marker, Polyline, TileLayer, useMap } from "react-leaflet";
 import { Link, useNavigate } from "react-router-dom";
 import HirerLayout from "../../components/hirer/HirerLayout";
 import api from "../../utils/api";
+
+// Colored markers
+const destIcon = L.divIcon({
+  html: `<div style="background:#e53e3e;width:16px;height:16px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4)"></div>`,
+  className: '',
+  iconSize: [16, 16],
+  iconAnchor: [8, 8],
+});
+const userIcon = L.divIcon({
+  html: `<div style="background:#3182ce;width:16px;height:16px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4)"></div>`,
+  className: '',
+  iconSize: [16, 16],
+  iconAnchor: [8, 8],
+});
+
+function FitBounds({ destCoords, userCoords }) {
+  const map = useMap();
+  const fitted = useRef(false);
+  useEffect(() => {
+    if (!destCoords) return;
+    if (userCoords && !fitted.current) {
+      map.fitBounds(
+        L.latLngBounds([[destCoords.lat, destCoords.lng], [userCoords.lat, userCoords.lng]]),
+        { padding: [50, 50] }
+      );
+      fitted.current = true;
+    } else if (!userCoords && !fitted.current) {
+      map.setView([destCoords.lat, destCoords.lng], 15);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [destCoords?.lat, destCoords?.lng, userCoords?.lat, userCoords?.lng]);
+  return null;
+}
 
 export default function ManageJobs() {
   const navigate = useNavigate();
   const [shifts, setShifts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all"); // all, open, completed, cancelled
+  const [filter, setFilter] = useState("all");
+
+  // Navigation modal state
+  const [showNavModal, setShowNavModal] = useState(false);
+  const [navShiftCoords, setNavShiftCoords] = useState(null);
+  const [navUserCoords, setNavUserCoords] = useState(null);
+  const [navPathHistory, setNavPathHistory] = useState([]);
+  const [navLoading, setNavLoading] = useState(false);
+  const [navShiftTitle, setNavShiftTitle] = useState("");
+  const [navShiftAddress, setNavShiftAddress] = useState("");
+  const navWatchIdRef = useRef(null);
 
   useEffect(() => {
     fetchShifts();
@@ -50,6 +97,54 @@ export default function ManageJobs() {
     }
   };
 
+  const handleCloseNav = () => {
+    if (navWatchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(navWatchIdRef.current);
+      navWatchIdRef.current = null;
+    }
+    setShowNavModal(false);
+    setNavShiftCoords(null);
+    setNavUserCoords(null);
+    setNavPathHistory([]);
+  };
+
+  const handleNavigate = (shift) => {
+    const coords = shift.location?.coordinates;
+    if (!coords?.lat || !coords?.lng) {
+      toast.error("Shift location coordinates are not available.");
+      return;
+    }
+    // Clear any previous watch
+    if (navWatchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(navWatchIdRef.current);
+    }
+    setNavShiftTitle(shift.title);
+    setNavShiftAddress(shift.location?.address || shift.location?.city || "");
+    setNavShiftCoords({ lat: coords.lat, lng: coords.lng });
+    setNavUserCoords(null);
+    setNavPathHistory([]);
+    setNavLoading(true);
+    setShowNavModal(true);
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser.");
+      setNavLoading(false);
+      return;
+    }
+    navWatchIdRef.current = navigator.geolocation.watchPosition(
+      (pos) => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        setNavUserCoords({ lat, lng });
+        setNavPathHistory((prev) => [...prev, [lat, lng]]);
+        setNavLoading(false);
+      },
+      () => {
+        toast.error("Could not get your location. Map shows shift location only.");
+        setNavLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString("en-US", {
       month: "short",
@@ -61,7 +156,6 @@ export default function ManageJobs() {
   const getStatusColor = (status) => {
     switch (status) {
       case 'open': return 'bg-green-100 text-green-700';
-      case 'reserved': return 'bg-yellow-100 text-yellow-700';
       case 'in-progress': return 'bg-blue-100 text-blue-700';
       case 'completed': return 'bg-gray-100 text-gray-700';
       case 'cancelled': return 'bg-red-100 text-red-700';
@@ -92,7 +186,7 @@ export default function ManageJobs() {
           <div className="flex items-center gap-4">
             <i className="ph ph-funnel text-xl text-[#888888]"></i>
             <div className="flex gap-2">
-              {["all", "open", "reserved", "in-progress", "completed", "cancelled"].map((status) => (
+              {["all", "open", "in-progress", "completed", "cancelled"].map((status) => (
                 <button
                   key={status}
                   onClick={() => setFilter(status)}
@@ -139,7 +233,6 @@ export default function ManageJobs() {
                         <select value={shift.status} onChange={(e) => handleStatusChange(shift._id, e.target.value)}
                           className={`appearance-none px-3 py-1 rounded-full text-xs font-medium border-none outline-none cursor-pointer ${getStatusColor(shift.status)}`}>
                           <option value="open">Open</option>
-                          <option value="reserved">Reserved</option>
                           <option value="in-progress">In Progress</option>
                           <option value="completed">Completed</option>
                           <option value="cancelled">Cancelled</option>
@@ -184,18 +277,116 @@ export default function ManageJobs() {
                       {shift.applicants.length} applicant{shift.applicants.length !== 1 ? "s" : ""}
                     </span>
                   </div>
-                  <Link
-                    to={`/hirer/shift/${shift._id}`}
-                    className="text-[#0B4B54] hover:text-[#0D5A65] font-medium"
-                  >
-                    View Details →
-                  </Link>
+                  <div className="flex items-center gap-3">
+                    {shift.status === 'in-progress' && (
+                      <button
+                        onClick={() => handleNavigate(shift)}
+                        className="flex items-center gap-2 px-4 py-2 bg-[#D3E4E7] text-[#032A33] rounded-lg hover:bg-[#82ACAB]/40 transition font-medium text-sm"
+                      >
+                        <Navigation size={16} />
+                        Navigate
+                      </button>
+                    )}
+                    <Link
+                      to={`/hirer/shift/${shift._id}`}
+                      className="text-[#0B4B54] hover:text-[#0D5A65] font-medium"
+                    >
+                      View Details →
+                    </Link>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Navigation Modal */}
+      {showNavModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b">
+              <div>
+                <h3 className="font-bold text-[#032A33] text-lg flex items-center gap-2">
+                  <Navigation size={18} className="text-[#0B4B54]" />
+                  Navigate to Shift
+                </h3>
+                <p className="text-sm text-[#888888]">{navShiftTitle}</p>
+              </div>
+              <button
+                onClick={() => handleCloseNav()}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X size={20} className="text-gray-500" />
+              </button>
+            </div>
+            <div className="h-80 w-full relative">
+              {navShiftCoords && (
+                <MapContainer
+                  center={[navShiftCoords.lat, navShiftCoords.lng]}
+                  zoom={14}
+                  style={{ height: "100%", width: "100%" }}
+                  zoomControl={true}
+                >
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  <FitBounds destCoords={navShiftCoords} userCoords={navUserCoords} />
+                  <Marker position={[navShiftCoords.lat, navShiftCoords.lng]} icon={destIcon} />
+                  {navUserCoords && (
+                    <>
+                      <Marker position={[navUserCoords.lat, navUserCoords.lng]} icon={userIcon} />
+                      {/* Traveled path */}
+                      {navPathHistory.length > 1 && (
+                        <Polyline
+                          positions={navPathHistory}
+                          pathOptions={{ color: '#3182ce', weight: 4, opacity: 0.8 }}
+                        />
+                      )}
+                      {/* Remaining path to destination */}
+                      <Polyline
+                        positions={[[navUserCoords.lat, navUserCoords.lng], [navShiftCoords.lat, navShiftCoords.lng]]}
+                        pathOptions={{ color: '#e53e3e', weight: 3, dashArray: '8 6', opacity: 0.8 }}
+                      />
+                    </>
+                  )}
+                </MapContainer>
+              )}
+              {navLoading && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/70 gap-2">
+                  <Loader2 size={28} className="animate-spin text-[#0B4B54]" />
+                  <p className="text-sm font-medium text-[#032A33]">Getting your location...</p>
+                </div>
+              )}
+            </div>
+            <div className="px-6 py-3 bg-gray-50 border-t flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4 text-xs text-[#888888]">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded-full bg-red-500 border-2 border-white shadow inline-block"></span>
+                  {navShiftAddress || "Shift location"}
+                </span>
+                {navUserCoords && (
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-3 h-3 rounded-full bg-blue-500 border-2 border-white shadow inline-block"></span>
+                    You
+                  </span>
+                )}
+              </div>
+              {navShiftCoords && (
+                <a
+                  href={`https://www.google.com/maps/dir/${navUserCoords ? `${navUserCoords.lat},${navUserCoords.lng}` : ''}/${navShiftCoords.lat},${navShiftCoords.lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-semibold text-[#0B4B54] hover:underline whitespace-nowrap"
+                >
+                  Open in Google Maps →
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </HirerLayout>
   );
 }
