@@ -1,7 +1,7 @@
 import {
-  Route,
-  BrowserRouter as Router,
-  Routes
+    Route,
+    BrowserRouter as Router,
+    Routes
 } from "react-router-dom";
 import ProtectedRoute from "./middleware/ProtectedRoute";
 import Home from "./pages/Home/Home";
@@ -36,6 +36,8 @@ import HirerProfile from "./pages/hirer/HirerProfile";
 import HirerProfileEdit from "./pages/hirer/HirerProfileEdit";
 import HirerVerification from "./pages/hirer/HirerVerification";
 import ManageJobs from "./pages/hirer/ManageJobs";
+import PaymentFailure from "./pages/hirer/PaymentFailure";
+import PaymentSuccess from "./pages/hirer/PaymentSuccess";
 import PostShift from "./pages/hirer/PostShift";
 import ShiftDetails from "./pages/hirer/ShiftDetails";
 import ViewApplicants from "./pages/hirer/ViewApplicants";
@@ -295,6 +297,22 @@ function App() {
           element={
             <ProtectedRoute requiredRole="hirer">
               <ShiftDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hirer/payment/success"
+          element={
+            <ProtectedRoute requiredRole="hirer">
+              <PaymentSuccess />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hirer/payment/failure"
+          element={
+            <ProtectedRoute requiredRole="hirer">
+              <PaymentFailure />
             </ProtectedRoute>
           }
         />
