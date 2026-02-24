@@ -31,6 +31,12 @@ const ShiftDetails = () => {
     const [canReview, setCanReview] = useState(false);
     const [reviewToUserId, setReviewToUserId] = useState(null);
 
+    // Payment state
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [processingPayment, setProcessingPayment] = useState(false);
+    const [paymentAmount, setPaymentAmount] = useState('');
+    const [paymentStatus, setPaymentStatus] = useState(null); // {isPaid, amount, transactionCode, paidAt}
+
     useEffect(() => {
         const fetchShiftDetails = async () => {
             try {
@@ -42,6 +48,7 @@ const ShiftDetails = () => {
                     // Check if user can review this shift
                     if (response.data.data.shift.status === 'completed') {
                         checkReviewEligibility();
+                        fetchPaymentStatus(response.data.data.shift._id);
                     }
                 }
             } catch (error) {
@@ -69,6 +76,18 @@ const ShiftDetails = () => {
         }
     };
 
+    // Fetch payment status for a completed shift
+    const fetchPaymentStatus = async (shiftId) => {
+        try {
+            const response = await api.get(`/payments/shift/${shiftId}`);
+            if (response.data.success) {
+                setPaymentStatus(response.data);
+            }
+        } catch (error) {
+            console.error('Error fetching payment status:', error);
+        }
+    };
+
     // Complete the shift and update stats
     const handleCompleteShift = async () => {
         try {
@@ -81,6 +100,7 @@ const ShiftDetails = () => {
                 if (updatedShift.data.success) {
                     setShiftData(updatedShift.data.data);
                     checkReviewEligibility(); // Check if can review now
+                    fetchPaymentStatus(id);
                 }
             }
         } catch (error) {
@@ -171,6 +191,57 @@ const ShiftDetails = () => {
         });
     };
 
+    // Handle eSewa Payment
+    const handleEsewaPayment = async () => {
+        const acceptedBid = bids?.find(b => b.status === 'accepted');
+        if (!paymentAmount || Number(paymentAmount) <= 0) {
+            toast.error('Please enter a valid amount');
+            return;
+        }
+        try {
+            setProcessingPayment(true);
+            const response = await api.post('/payments/esewa/initiate', {
+                shiftId: id,
+                amount: Number(paymentAmount),
+                workerId: acceptedBid?.worker?.id
+            });
+            if (!response.data.success) {
+                toast.error('Failed to initiate payment');
+                return;
+            }
+            const { transactionUuid, signature, merchantCode, amount } = response.data.data;
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'https://rc-epay.esewa.com.np/api/epay/main/v2/form';
+            const fields = {
+                amount: amount,
+                tax_amount: 0,
+                total_amount: amount,
+                transaction_uuid: transactionUuid,
+                product_code: merchantCode,
+                product_service_charge: 0,
+                product_delivery_charge: 0,
+                success_url: `${window.location.origin}/hirer/payment/success`,
+                failure_url: `${window.location.origin}/hirer/payment/failure`,
+                signed_field_names: 'total_amount,transaction_uuid,product_code',
+                signature: signature
+            };
+            Object.entries(fields).forEach(([key, value]) => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = value;
+                form.appendChild(input);
+            });
+            document.body.appendChild(form);
+            form.submit();
+        } catch (error) {
+            console.error('eSewa payment error:', error);
+            toast.error('Payment initiation failed');
+            setProcessingPayment(false);
+        }
+    };
+
     // Handle Status Change
     const handleStatusChange = async (e) => {
         const newStatus = e.target.value;
@@ -229,6 +300,7 @@ const ShiftDetails = () => {
     }
 
     const { shift, bids, totalBids } = shiftData;
+    const acceptedBid = bids?.find(b => b.status === 'accepted');
 
     // Helper to get color class for status
     const getStatusColor = (status) => {
@@ -297,6 +369,41 @@ const ShiftDetails = () => {
                                     <Star size={18} />
                                     <span>Rate Worker</span>
                                 </button>
+                            )}
+
+                            {/* Pay via eSewa Button - Show for completed shifts with an accepted bid */}
+                            {shift.status === 'completed' && acceptedBid && (
+                                paymentStatus?.isPaid ? (
+                                    // Paid badge
+                                    <div className="flex flex-col items-end gap-1">
+                                        <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-lg">
+                                            <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            <span className="text-emerald-700 font-semibold text-sm">Paid via eSewa</span>
+                                        </div>
+                                        <p className="text-lg font-bold text-emerald-600">Rs {paymentStatus.amount?.toLocaleString()}</p>
+                                        {paymentStatus.paidAt && (
+                                            <p className="text-xs text-gray-400">
+                                                {new Date(paymentStatus.paidAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                            </p>
+                                        )}
+                                        {paymentStatus.transactionCode && (
+                                            <p className="text-xs text-gray-400">Txn: {paymentStatus.transactionCode}</p>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => {
+                                            setPaymentAmount(acceptedBid.bidAmount);
+                                            setShowPaymentModal(true);
+                                        }}
+                                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
+                                    >
+                                        <DollarSign size={18} />
+                                        <span>Pay via eSewa</span>
+                                    </button>
+                                )
                             )}
                         </div>
                     </div>
@@ -599,6 +706,76 @@ const ShiftDetails = () => {
                                     }`}
                             >
                                 {submittingReview ? 'Submitting...' : 'Submit Review'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* eSewa Payment Modal */}
+            {showPaymentModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-2xl font-bold text-[#032A33]">Pay Worker via eSewa</h2>
+                            <button
+                                onClick={() => setShowPaymentModal(false)}
+                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                <X size={20} className="text-gray-500" />
+                            </button>
+                        </div>
+
+                        {/* Worker Info */}
+                        {acceptedBid && (
+                            <div className="bg-[#F4FBFA] rounded-xl p-4 mb-6 flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-full bg-linear-to-br from-[#0B4B54] to-[#82ACAB] flex items-center justify-center text-white font-bold text-lg">
+                                    {acceptedBid.worker.name.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-500">Paying to</p>
+                                    <p className="text-lg font-semibold text-[#032A33]">{acceptedBid.worker.name}</p>
+                                    <p className="text-sm text-gray-500">Agreed bid: Rs {acceptedBid.bidAmount?.toLocaleString()}</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Amount Input */}
+                        <div className="mb-6">
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Payment Amount (Rs)
+                            </label>
+                            <input
+                                type="number"
+                                value={paymentAmount}
+                                onChange={(e) => setPaymentAmount(e.target.value)}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0B4B54] focus:border-transparent text-lg font-semibold"
+                                placeholder="Enter amount"
+                                min="1"
+                            />
+                        </div>
+
+                        {/* eSewa Logo / Info */}
+                        <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-4 py-3 mb-6">
+                            <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white text-xs font-bold">e</div>
+                            <p className="text-sm text-green-700 font-medium">You will be redirected to eSewa's secure payment page</p>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowPaymentModal(false)}
+                                className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleEsewaPayment}
+                                disabled={processingPayment}
+                                className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {processingPayment ? 'Redirecting...' : 'Pay with eSewa'}
                             </button>
                         </div>
                     </div>
