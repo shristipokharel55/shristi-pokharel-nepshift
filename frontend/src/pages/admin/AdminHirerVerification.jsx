@@ -18,6 +18,7 @@ import {
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import api from '../../utils/api';
+import { exportHirerVerificationReport } from '../../utils/pdfGenerator';
 
 // Document View Modal Component
 const DocumentViewModal = ({ isOpen, onClose, request, onApprove, onReject, isLoading }) => {
@@ -52,7 +53,7 @@ const DocumentViewModal = ({ isOpen, onClose, request, onApprove, onReject, isLo
             <div className="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                 <div className="sticky top-0 bg-white border-b border-slate-100 p-5 flex items-center justify-between rounded-t-2xl z-10">
                     <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-gradient-to-br from-[#4A9287] to-[#3d7a71] rounded-xl flex items-center justify-center text-white font-bold">
+                        <div className="w-12 h-12 bg-linear-to-br from-[#4A9287] to-[#3d7a71] rounded-xl flex items-center justify-center text-white font-bold">
                             {request.name?.charAt(0) || 'H'}
                         </div>
                         <div>
@@ -126,7 +127,7 @@ const DocumentViewModal = ({ isOpen, onClose, request, onApprove, onReject, isLo
                             {request.citizenshipFront && (
                                 <div className="group relative">
                                     <div className="bg-slate-50 rounded-xl overflow-hidden border-2 border-slate-200 hover:border-[#4A9287] transition-colors">
-                                        <div className="aspect-[3/2] relative">
+                                        <div className="aspect-3/2 relative">
                                             <img 
                                                 src={getImageUrl(request.citizenshipFront)}
                                                 alt="Citizenship Front"
@@ -147,7 +148,7 @@ const DocumentViewModal = ({ isOpen, onClose, request, onApprove, onReject, isLo
                             {request.citizenshipBack && (
                                 <div className="group relative">
                                     <div className="bg-slate-50 rounded-xl overflow-hidden border-2 border-slate-200 hover:border-[#4A9287] transition-colors">
-                                        <div className="aspect-[3/2] relative">
+                                        <div className="aspect-3/2 relative">
                                             <img 
                                                 src={getImageUrl(request.citizenshipBack)}
                                                 alt="Citizenship Back"
@@ -168,7 +169,7 @@ const DocumentViewModal = ({ isOpen, onClose, request, onApprove, onReject, isLo
                             {request.selfieWithId && (
                                 <div className="group relative">
                                     <div className="bg-slate-50 rounded-xl overflow-hidden border-2 border-slate-200 hover:border-[#4A9287] transition-colors">
-                                        <div className="aspect-[3/2] relative">
+                                        <div className="aspect-3/2 relative">
                                             <img 
                                                 src={getImageUrl(request.selfieWithId)}
                                                 alt="Selfie with ID"
@@ -274,7 +275,7 @@ const DocumentViewModal = ({ isOpen, onClose, request, onApprove, onReject, isLo
 
             {selectedImage && (
                 <div 
-                    className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4"
+                    className="fixed inset-0 z-60 bg-black/90 flex items-center justify-center p-4"
                     onClick={() => setSelectedImage(null)}
                 >
                     <img 
@@ -321,7 +322,7 @@ const VerificationRow = ({ request, onView, onApprove, onReject, isLoading }) =>
     <tr className="hover:bg-slate-50 transition-colors">
         <td className="px-6 py-4">
             <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#4A9287] to-[#3d7a71] rounded-xl flex items-center justify-center text-white font-bold">
+                <div className="w-12 h-12 bg-linear-to-br from-[#4A9287] to-[#3d7a71] rounded-xl flex items-center justify-center text-white font-bold">
                     {request.name.charAt(0)}
                 </div>
                 <div>
@@ -502,6 +503,20 @@ const AdminHirerVerification = () => {
         setSelectedRequest(null);
     };
 
+    // handles exporting hirer verification data to PDF
+    const handleExportReport = () => {
+        if (filteredRequests.length === 0) {
+            toast.error('No data to export');
+            return;
+        }
+        
+        // figuring out the filter label for the PDF title
+        const filterLabel = filter === 'all' ? 'All' : filter.charAt(0).toUpperCase() + filter.slice(1);
+        
+        exportHirerVerificationReport(filteredRequests, filterLabel);
+        toast.success('Report exported successfully!');
+    };
+
     const stats = {
         total: verificationRequests.length,
         pending: verificationRequests.filter(r => r.status === 'pending').length,
@@ -527,7 +542,10 @@ const AdminHirerVerification = () => {
                         Review and manage hirer identity verifications
                     </p>
                 </div>
-                <button className="px-5 py-2.5 bg-[#4A9287] text-white rounded-xl font-medium hover:bg-[#3d7a71] transition-colors flex items-center gap-2">
+                <button 
+                    onClick={handleExportReport}
+                    className="px-5 py-2.5 bg-[#4A9287] text-white rounded-xl font-medium hover:bg-[#3d7a71] transition-colors flex items-center gap-2"
+                >
                     <Download size={18} />
                     Export Report
                 </button>
