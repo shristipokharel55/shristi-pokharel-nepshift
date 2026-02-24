@@ -29,54 +29,15 @@ const Wallet = () => {
     const fetchTransactions = async () => {
         try {
             setLoading(true);
-            const response = await api.get('/bids/my-bids');
+            const response = await api.get('/payments/my-transactions');
             if (response.data.success) {
-                const bids = response.data.data;
-                
-                // Calculate wallet stats
-                const completedBids = bids.filter(bid => 
-                    bid.status === 'accepted' && bid.shiftId?.status === 'completed'
-                );
-                
-                const pendingBids = bids.filter(bid => 
-                    bid.status === 'accepted' && 
-                    bid.shiftId?.status !== 'completed'
-                );
-
-                const totalEarnings = completedBids.reduce((sum, bid) => sum + (bid.bidAmount || 0), 0);
-                const pendingPayout = pendingBids.reduce((sum, bid) => sum + (bid.bidAmount || 0), 0);
-
-                // Calculate this month's earnings
-                const now = new Date();
-                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-                const thisMonth = completedBids
-                    .filter(bid => new Date(bid.createdAt) >= startOfMonth)
-                    .reduce((sum, bid) => sum + (bid.bidAmount || 0), 0);
-
+                const { transactions, totalEarnings, thisMonth } = response.data.data;
+                setTransactions(transactions);
                 setWalletStats({
                     totalEarnings,
                     thisMonth,
-                    pendingPayout
+                    pendingPayout: 0 // pending payouts are not tracked in eSewa flow
                 });
-
-                // Convert bids to transaction format
-                const formattedTransactions = bids
-                    .filter(bid => bid.status === 'accepted')
-                    .map(bid => ({
-                        id: bid._id,
-                        title: `${bid.shiftId?.title || 'Shift'} - ${bid.hirerId?.fullName || 'Employer'}`,
-                        amount: bid.bidAmount,
-                        type: 'credit',
-                        date: new Date(bid.createdAt).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric'
-                        }),
-                        status: bid.shiftId?.status === 'completed' ? 'completed' : 'pending'
-                    }))
-                    .sort((a, b) => new Date(b.date) - new Date(a.date));
-
-                setTransactions(formattedTransactions);
             }
         } catch (error) {
             console.error('Error fetching wallet data:', error);
@@ -120,11 +81,11 @@ const Wallet = () => {
                 <div className="glass-card rounded-2xl p-8 mb-8 animate-fade-in-up bg-linear-to-br from-[#0B4B54] to-[#0D5A65] text-white">
                     <div className="flex flex-col md:flex-row md:items-center justify-between">
                         <div>
-                            <p className="text-[#82ACAB] text-sm mb-2">Available Balance</p>
+                            <p className="text-[#82ACAB] text-sm mb-2">Total Earnings (eSewa)</p>
                             <p className="text-4xl font-bold mb-4">Rs {walletStats.totalEarnings.toLocaleString()}</p>
                             <div className="flex items-center gap-2 text-emerald-300 text-sm">
                                 <TrendingUp size={16} />
-                                <span>Total earnings from completed shifts</span>
+                                <span>From verified eSewa payments</span>
                             </div>
                         </div>
                         <div className="mt-6 md:mt-0 flex gap-3">
@@ -187,8 +148,8 @@ const Wallet = () => {
                         {transactions.length === 0 ? (
                             <div className="text-center py-12">
                                 <DollarSign size={48} className="text-[#82ACAB] mx-auto mb-4" />
-                                <h4 className="font-semibold text-[#032A33] mb-2">No Transactions Yet</h4>
-                                <p className="text-[#888888]">Your earnings will appear here</p>
+                                <h4 className="font-semibold text-[#032A33] mb-2">No Payments Yet</h4>
+                                <p className="text-[#888888]">Your eSewa payments from hirers will appear here</p>
                             </div>
                         ) : (
                             transactions.map((tx) => (
@@ -209,6 +170,9 @@ const Wallet = () => {
                                         <div>
                                             <p className="font-medium text-[#032A33]">{tx.title}</p>
                                             <p className="text-sm text-[#888888]">{tx.date}</p>
+                                            {tx.transactionCode && (
+                                                <p className="text-xs text-gray-400">Txn: {tx.transactionCode}</p>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="text-right">
