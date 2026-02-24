@@ -6,6 +6,7 @@ import {
   CheckCircle,
   FileText,
   Loader2,
+  Locate,
   MapPin,
   Phone,
   Save,
@@ -15,7 +16,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
-import { MapContainer, Marker, TileLayer, useMapEvents } from "react-leaflet";
+import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import HirerLayout from "../../components/hirer/HirerLayout";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../utils/api";
@@ -29,6 +30,17 @@ L.Icon.Default.mergeOptions({
   iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
+
+// Fly map to new coordinates when they change
+function RecenterMap({ lat, lng }) {
+  const map = useMap();
+  useEffect(() => {
+    if (lat && lng) {
+      map.flyTo([lat, lng], map.getZoom(), { duration: 1 });
+    }
+  }, [lat, lng, map]);
+  return null;
+}
 
 // Map marker component
 function LocationMarker({ position, setPosition }) {
@@ -52,6 +64,7 @@ export default function HirerProfileEdit() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [submittingVerification, setSubmittingVerification] = useState(false);
+  const [locating, setLocating] = useState(false);
 
   const [profileData, setProfileData] = useState({
     fullName: authUser?.fullName || "",
@@ -179,6 +192,31 @@ export default function HirerProfileEdit() {
         ...position
       }
     }));
+  };
+
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser");
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setProfileData((prev) => ({
+          ...prev,
+          address: { ...prev.address, latitude, longitude },
+        }));
+        toast.success("Location detected!");
+        setLocating(false);
+      },
+      (err) => {
+        console.error(err);
+        toast.error("Unable to retrieve location. Please allow location access.");
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   };
 
   const handleSaveProfile = async () => {
@@ -358,7 +396,7 @@ export default function HirerProfileEdit() {
           </div>
           <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-[#0B4B54] to-[#82ACAB] transition-all duration-500"
+              className="h-full bg-linear-to-r from-[#0B4B54] to-[#82ACAB] transition-all duration-500"
               style={{ width: `${profileCompletion}%` }}
             />
           </div>
@@ -548,9 +586,29 @@ export default function HirerProfileEdit() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[#032A33] mb-2">
-              Click on the map to set your exact location
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-[#032A33]">
+                Click on the map or use your current location
+              </label>
+              <button
+                type="button"
+                onClick={handleGetLocation}
+                disabled={locating}
+                className="flex items-center gap-2 px-4 py-2 bg-[#0B4B54] text-white text-sm font-medium rounded-xl hover:bg-[#0D5A65] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {locating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Detecting...
+                  </>
+                ) : (
+                  <>
+                    <Locate className="w-4 h-4" />
+                    Use My Location
+                  </>
+                )}
+              </button>
+            </div>
             <div className="h-[400px] rounded-xl overflow-hidden border-2 border-[#82ACAB]/20">
               <MapContainer
                 center={[
@@ -563,6 +621,10 @@ export default function HirerProfileEdit() {
                 <TileLayer
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <RecenterMap
+                  lat={profileData.address.latitude}
+                  lng={profileData.address.longitude}
                 />
                 <LocationMarker
                   position={profileData.address}
@@ -610,7 +672,7 @@ export default function HirerProfileEdit() {
 
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
             <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
               <div className="text-sm text-amber-800">
                 <p className="font-semibold mb-1">Privacy Notice</p>
                 <p>Your citizenship photos are only visible to admins for verification. Workers will only see a "Verified" badge once approved.</p>
@@ -751,7 +813,7 @@ export default function HirerProfileEdit() {
 
         {/* Submit for Verification */}
         {canSubmit && profileData.verificationStatus === 'unverified' && (
-          <div className="glass-card rounded-2xl p-6 bg-gradient-to-r from-emerald-50 to-blue-50 border-2 border-emerald-200">
+          <div className="glass-card rounded-2xl p-6 bg-linear-to-r from-emerald-50 to-blue-50 border-2 border-emerald-200">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-[#032A33] mb-1">
@@ -785,7 +847,7 @@ export default function HirerProfileEdit() {
         {profileData.verificationStatus === 'pending' && (
           <div className="glass-card rounded-2xl p-6 bg-amber-50 border-2 border-amber-200">
             <div className="flex items-start gap-3">
-              <AlertCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-6 h-6 text-amber-600 shrink-0 mt-0.5" />
               <div>
                 <h3 className="text-lg font-semibold text-amber-900 mb-1">
                   Verification Pending
@@ -801,7 +863,7 @@ export default function HirerProfileEdit() {
         {profileData.verificationStatus === 'rejected' && (
           <div className="glass-card rounded-2xl p-6 bg-red-50 border-2 border-red-200">
             <div className="flex items-start gap-3">
-              <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-6 h-6 text-red-600 shrink-0 mt-0.5" />
               <div>
                 <h3 className="text-lg font-semibold text-red-900 mb-1">
                   Verification Rejected
