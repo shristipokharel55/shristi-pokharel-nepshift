@@ -1,8 +1,9 @@
 // src/pages/auth/RegisterHelper.jsx
 import { AlertCircle, CheckCircle, Eye, EyeOff, Lock, Mail, MapPin, Phone, User } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
+import locationData from "../../data/alllocation.json";
 import api from "../../utils/api";
 
 const InputField = ({
@@ -59,10 +60,36 @@ export default function RegisterHelper() {
     fullName: "",
     email: "",
     phone: "",
-    location: "",
+    province: "",
+    district: "",
+    municipality: "",
     password: "",
     confirmPassword: "",
   });
+
+  const provinces = locationData.provinceList;
+  const [districts, setDistricts] = useState([]);
+  const [municipalities, setMunicipalities] = useState([]);
+
+  useEffect(() => {
+    if (formData.province) {
+      const prov = provinces.find((p) => p.name === formData.province);
+      setDistricts(prov ? prov.districtList : []);
+      setMunicipalities([]);
+    } else {
+      setDistricts([]);
+      setMunicipalities([]);
+    }
+  }, [formData.province]);
+
+  useEffect(() => {
+    if (formData.district) {
+      const dist = districts.find((d) => d.name === formData.district);
+      setMunicipalities(dist ? dist.municipalityList : []);
+    } else {
+      setMunicipalities([]);
+    }
+  }, [formData.district, districts]);
 
   // Validation functions
   const validateFullName = (name) => {
@@ -104,14 +131,22 @@ export default function RegisterHelper() {
     return null;
   };
 
-  const validateLocation = (location) => {
-    if (!location) return "Please select your location";
+  const validateLocation = (province, district, municipality) => {
+    if (!province) return "Please select a province";
+    if (!district) return "Please select a district";
+    if (!municipality) return "Please select a municipality";
     return null;
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    if (name === "province") {
+      setFormData((prev) => ({ ...prev, province: value, district: "", municipality: "" }));
+    } else if (name === "district") {
+      setFormData((prev) => ({ ...prev, district: value, municipality: "" }));
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
 
     // Clear error when user starts typing
     if (errors[name]) {
@@ -132,6 +167,15 @@ export default function RegisterHelper() {
         break;
       case 'phone':
         error = validatePhone(value);
+        break;
+      case 'province':
+        error = !value ? 'Please select a province' : null;
+        break;
+      case 'district':
+        error = !value ? 'Please select a district' : null;
+        break;
+      case 'municipality':
+        error = !value ? 'Please select a municipality' : null;
         break;
       case 'password':
         error = validatePassword(value);
@@ -161,8 +205,8 @@ export default function RegisterHelper() {
     const phoneError = validatePhone(formData.phone);
     if (phoneError) newErrors.phone = phoneError;
 
-    const locationError = validateLocation(formData.location);
-    if (locationError) newErrors.location = locationError;
+    const locationError = validateLocation(formData.province, formData.district, formData.municipality);
+    if (locationError) newErrors.province = locationError;
 
     const passwordError = validatePassword(formData.password);
     if (passwordError) newErrors.password = passwordError;
@@ -188,7 +232,10 @@ export default function RegisterHelper() {
         fullName: formData.fullName.trim(),
         email: formData.email.toLowerCase().trim(),
         phone: formData.phone.replace(/\s/g, ''),
-        location: formData.location,
+        location: [formData.municipality, formData.district, formData.province].filter(Boolean).join(", "),
+        province: formData.province,
+        district: formData.district,
+        municipality: formData.municipality,
         password: formData.password,
         role: "helper"
       };
@@ -204,7 +251,7 @@ export default function RegisterHelper() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F4FBFA] to-[#E8F5F3] px-4 py-8">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-[#F4FBFA] to-[#E8F5F3] px-4 py-8">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
@@ -257,35 +304,79 @@ export default function RegisterHelper() {
               error={errors.phone}
             />
 
-            {/* Location */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Location</label>
+            {/* Location - Province / District / Municipality */}
+            <div className="space-y-3">
+              <label className="block text-sm font-medium text-gray-700">Location</label>
+
+              {/* Province */}
               <div className="relative">
                 <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                   <MapPin size={18} />
                 </div>
                 <select
-                  name="location"
-                  value={formData.location}
+                  name="province"
+                  value={formData.province}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#4A9287]/20 focus:border-[#4A9287] transition-colors appearance-none bg-white ${errors.location ? 'border-red-400 bg-red-50' : 'border-gray-200'
-                    }`}
+                  className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#4A9287]/20 focus:border-[#4A9287] transition-colors appearance-none bg-white ${
+                    errors.province ? 'border-red-400 bg-red-50' : 'border-gray-200'
+                  }`}
                 >
-                  <option value="">Select your location</option>
-                  <option value="Kathmandu">Kathmandu</option>
-                  <option value="Bhaktapur">Bhaktapur</option>
-                  <option value="Lalitpur">Lalitpur</option>
-                  <option value="Pokhara">Pokhara</option>
-                  <option value="Itahari">Itahari</option>
-                  <option value="Biratnagar">Biratnagar</option>
-                  <option value="Dharan">Dharan</option>
-                  <option value="Butwal">Butwal</option>
-                  <option value="Hetauda">Hetauda</option>
+                  <option value="">Select Province</option>
+                  {provinces.map((p) => (
+                    <option key={p.id} value={p.name}>{p.name}</option>
+                  ))}
                 </select>
               </div>
-              {errors.location && (
-                <p className="mt-1 text-sm text-red-500">{errors.location}</p>
+
+              {/* District */}
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <MapPin size={18} />
+                </div>
+                <select
+                  name="district"
+                  value={formData.district}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  disabled={!formData.province}
+                  className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#4A9287]/20 focus:border-[#4A9287] transition-colors appearance-none bg-white disabled:bg-gray-100 disabled:cursor-not-allowed ${
+                    errors.district ? 'border-red-400 bg-red-50' : 'border-gray-200'
+                  }`}
+                >
+                  <option value="">Select District</option>
+                  {districts.map((d) => (
+                    <option key={d.id} value={d.name}>{d.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Municipality */}
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <MapPin size={18} />
+                </div>
+                <select
+                  name="municipality"
+                  value={formData.municipality}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  disabled={!formData.district}
+                  className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#4A9287]/20 focus:border-[#4A9287] transition-colors appearance-none bg-white disabled:bg-gray-100 disabled:cursor-not-allowed ${
+                    errors.municipality ? 'border-red-400 bg-red-50' : 'border-gray-200'
+                  }`}
+                >
+                  <option value="">Select Municipality</option>
+                  {municipalities.map((m) => (
+                    <option key={m.id} value={m.name}>{m.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {(errors.province || errors.district || errors.municipality) && (
+                <p className="text-sm text-red-500">
+                  {errors.province || errors.district || errors.municipality}
+                </p>
               )}
             </div>
 
