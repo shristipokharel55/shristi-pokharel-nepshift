@@ -24,7 +24,7 @@ const getJwtExpiresIn = () => process.env.JWT_EXPIRES_IN || "7d";
  * Verifies a Google ID token (credential) and returns normalized identity.
  */
 const verifyGoogleIdToken = async ({ credential }) => {
-  if (!credential) throw new HttpError(400, "Google credential is required");
+  if (!credential) throw new HttpError(400, "Google credentials are required");
 
   const clientId = getGoogleClientId();
   const client = new OAuth2Client(clientId);
@@ -33,7 +33,7 @@ const verifyGoogleIdToken = async ({ credential }) => {
   try {
     ticket = await client.verifyIdToken({ idToken: credential, audience: clientId });
   } catch {
-    throw new HttpError(401, "Invalid Google credential");
+    throw new HttpError(401, "Invalid Google credentials");
   }
 
   const payload = ticket.getPayload();
