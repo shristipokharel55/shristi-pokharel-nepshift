@@ -1,22 +1,24 @@
 import {
     AlertCircle,
+    Calendar,
     CheckCircle,
     Clock,
+    CreditCard,
     Download,
     Eye,
     FileText,
+    Image,
     Loader2,
     Search,
-    XCircle,
-    X,
-    Image,
-    User,
-    Calendar,
     Shield,
-    CreditCard
+    User,
+    X,
+    XCircle
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import api from '../../utils/api';
+import { exportWorkerVerificationReport } from '../../utils/pdfGenerator';
 
 // Document View Modal Component
 const DocumentViewModal = ({ isOpen, onClose, request, onApprove, onReject, isLoading }) => {
@@ -28,7 +30,7 @@ const DocumentViewModal = ({ isOpen, onClose, request, onApprove, onReject, isLo
 
     const handleRejectSubmit = () => {
         if (!rejectionReason.trim()) {
-            alert('Please provide a reason for rejection');
+            toast.error('Please provide a reason for rejection');
             return;
         }
         onReject(request, rejectionReason);
@@ -55,7 +57,7 @@ const DocumentViewModal = ({ isOpen, onClose, request, onApprove, onReject, isLo
                 {/* Header */}
                 <div className="sticky top-0 bg-white border-b border-slate-100 p-5 flex items-center justify-between rounded-t-2xl z-10">
                     <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-gradient-to-br from-[#4A9287] to-[#3d7a71] rounded-xl flex items-center justify-center text-white font-bold">
+                        <div className="w-12 h-12 bg-linear-to-br from-[#4A9287] to-[#3d7a71] rounded-xl flex items-center justify-center text-white font-bold">
                             {request.name?.charAt(0) || 'U'}
                         </div>
                         <div>
@@ -232,7 +234,7 @@ const DocumentViewModal = ({ isOpen, onClose, request, onApprove, onReject, isLo
             {/* Full Image Preview */}
             {selectedImage && (
                 <div 
-                    className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4"
+                    className="fixed inset-0 z-60 bg-black/90 flex items-center justify-center p-4"
                     onClick={() => setSelectedImage(null)}
                 >
                     <button 
@@ -280,7 +282,7 @@ const VerificationRow = ({ request, onView, onApprove, onReject, isLoading }) =>
     <tr className="hover:bg-slate-50 transition-colors">
         <td className="px-6 py-4">
             <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#4A9287] to-[#3d7a71] rounded-xl flex items-center justify-center text-white font-bold">
+                <div className="w-12 h-12 bg-linear-to-br from-[#4A9287] to-[#3d7a71] rounded-xl flex items-center justify-center text-white font-bold">
                     {request.name.charAt(0)}
                 </div>
                 <div>
@@ -376,7 +378,9 @@ const AdminVerification = () => {
             setVerificationRequests(transformed);
         } catch (err) {
             console.error('Failed to fetch verifications:', err);
-            setError(err.response?.data?.message || 'Failed to load verification requests');
+            const errorMessage = err.response?.data?.message || 'Failed to load verification requests';
+            setError(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -394,9 +398,10 @@ const AdminVerification = () => {
             // Close modal and show success
             setIsModalOpen(false);
             setSelectedRequest(null);
+            toast.success('Worker verification approved successfully');
         } catch (err) {
             console.error('Failed to approve:', err);
-            alert(err.response?.data?.message || 'Failed to approve user');
+            toast.error(err.response?.data?.message || 'Failed to approve user');
         } finally {
             setActionLoading(null);
         }
@@ -419,9 +424,10 @@ const AdminVerification = () => {
             // Close modal
             setIsModalOpen(false);
             setSelectedRequest(null);
+            toast.success('Worker verification rejected');
         } catch (err) {
             console.error('Failed to reject:', err);
-            alert(err.response?.data?.message || 'Failed to reject user');
+            toast.error(err.response?.data?.message || 'Failed to reject user');
         } finally {
             setActionLoading(null);
         }
@@ -435,6 +441,20 @@ const AdminVerification = () => {
     const closeModal = () => {
         setIsModalOpen(false);
         setSelectedRequest(null);
+    };
+
+    // handles exporting verification data to PDF
+    const handleExportReport = () => {
+        if (filteredRequests.length === 0) {
+            toast.error('No data to export');
+            return;
+        }
+        
+        // getting the right filter name for the PDF title
+        const filterLabel = filter === 'all' ? 'All' : filter.charAt(0).toUpperCase() + filter.slice(1);
+        
+        exportWorkerVerificationReport(filteredRequests, filterLabel);
+        toast.success('Report downloaded successfully!');
     };
 
     const stats = {
@@ -463,7 +483,10 @@ const AdminVerification = () => {
                         Review and manage user KYC and document verifications
                     </p>
                 </div>
-                <button className="px-5 py-2.5 bg-[#4A9287] text-white rounded-xl font-medium hover:bg-[#3d7a71] transition-colors flex items-center gap-2">
+                <button 
+                    onClick={handleExportReport}
+                    className="px-5 py-2.5 bg-[#4A9287] text-white rounded-xl font-medium hover:bg-[#3d7a71] transition-colors flex items-center gap-2"
+                >
                     <Download size={18} />
                     Export Report
                 </button>
