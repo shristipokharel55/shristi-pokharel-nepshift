@@ -5,6 +5,9 @@ import Message from '../models/Message.js';
 // Store active socket connections
 const userSockets = new Map();
 
+// Store worker GPS locations keyed by shiftId
+const workerLocations = new Map();
+
 export const initializeSocket = (server) => {
   const io = new Server(server, {
     cors: {
@@ -136,6 +139,26 @@ export const initializeSocket = (server) => {
       } catch (error) {
         console.error('Error marking messages as read:', error);
       }
+    });
+
+    // Worker shares their current GPS location for a shift
+    socket.on('share-worker-location', ({ shiftId, lat, lng }) => {
+      workerLocations.set(shiftId, { lat, lng, workerId: socket.userId, timestamp: Date.now() });
+      // Broadcast to any hirer subscribed to this shift's tracking room
+      io.to(`shift:${shiftId}`).emit('worker-location-update', { lat, lng, shiftId });
+      console.log(`Worker ${socket.userId} shared location for shift ${shiftId}`);
+    });
+
+    // Hirer joins a shift's tracking room to receive worker location updates
+    socket.on('join-shift-tracking', ({ shiftId }) => {
+      socket.join(`shift:${shiftId}`);
+      console.log(`User ${socket.userId} joined shift tracking for ${shiftId}`);
+    });
+
+    // Hirer requests the latest stored location for a shift's worker
+    socket.on('get-worker-location', ({ shiftId }, callback) => {
+      const loc = workerLocations.get(shiftId) || null;
+      if (typeof callback === 'function') callback(loc);
     });
 
     // Handle disconnection
