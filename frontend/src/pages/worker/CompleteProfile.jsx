@@ -5,19 +5,20 @@ import {
   Clock,
   FileText,
   Loader2,
+  Locate,
   MapPin,
   Save
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
-import { MapContainer, Marker, TileLayer, useMapEvents } from "react-leaflet";
+import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import { useNavigate } from "react-router-dom";
 import WorkerLayout from "../../components/worker/WorkerLayout";
 import api from "../../utils/api";
 
 // Import Leaflet CSS
-import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 // Fix Leaflet's default icon path issues in React
 import icon from "leaflet/dist/images/marker-icon.png";
@@ -31,6 +32,17 @@ let DefaultIcon = L.icon({
 });
 
 L.Marker.prototype.options.icon = DefaultIcon;
+
+// Fly map to new coordinates when they change
+const RecenterMap = ({ lat, lng }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (lat && lng) {
+      map.flyTo([lat, lng], map.getZoom(), { duration: 1 });
+    }
+  }, [lat, lng, map]);
+  return null;
+};
 
 // Sub-component to handle map clicks
 const LocationMarker = ({ position, setPosition }) => {
@@ -49,6 +61,7 @@ const CompleteProfile = () => {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [locating, setLocating] = useState(false);
   const [hasExistingProfile, setHasExistingProfile] = useState(false);
   const [profile, setProfile] = useState({
     skillCategory: "",
@@ -131,6 +144,34 @@ const CompleteProfile = () => {
         }
       }
     }));
+  };
+
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser");
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setProfile((prev) => ({
+          ...prev,
+          location: {
+            ...prev.location,
+            coordinates: { latitude, longitude },
+          },
+        }));
+        toast.success("Location detected!");
+        setLocating(false);
+      },
+      (err) => {
+        console.error(err);
+        toast.error("Unable to retrieve location. Please allow location access.");
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -343,14 +384,34 @@ const CompleteProfile = () => {
 
           {/* Location Section */}
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center">
-                <MapPin size={20} className="text-rose-600" />
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center">
+                  <MapPin size={20} className="text-rose-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-800">Location</h3>
+                  <p className="text-sm text-gray-500">Click the map or use your current location</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold text-gray-800">Location</h3>
-                <p className="text-sm text-gray-500">Click on the map to set your location</p>
-              </div>
+              <button
+                type="button"
+                onClick={handleGetLocation}
+                disabled={locating}
+                className="flex items-center gap-2 px-4 py-2 bg-[#4A9287] text-white text-sm font-medium rounded-xl hover:bg-[#407C74] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {locating ? (
+                  <>
+                    <Loader2 size={15} className="animate-spin" />
+                    Detecting...
+                  </>
+                ) : (
+                  <>
+                    <Locate size={15} />
+                    Use My Location
+                  </>
+                )}
+              </button>
             </div>
 
             {/* Leaflet Map */}
@@ -364,6 +425,10 @@ const CompleteProfile = () => {
                 <TileLayer
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <RecenterMap
+                  lat={profile.location?.coordinates?.latitude}
+                  lng={profile.location?.coordinates?.longitude}
                 />
                 <LocationMarker
                   position={markerPosition}
