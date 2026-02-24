@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import express from 'express';
-import { protect } from '../middlewares/authMiddleware.js';
+import { protect, verifyAdmin } from '../middlewares/authMiddleware.js';
 import Payment from '../models/Payment.js';
 import Shift from '../models/shift.js';
 
@@ -176,6 +176,83 @@ router.get('/my-transactions', protect, async (req, res) => {
 
         res.json({ success: true, data: { transactions, totalEarnings, thisMonth } });
     } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// GET /api/payments/admin/overview
+// Admin-only: returns financial stats, monthly chart data, and recent transactions
+router.get('/admin/overview', protect, verifyAdmin, async (req, res) => {
+    try {
+        const { range = '30days' } = req.query;
+
+        // Determine date filter
+        const now = new Date();
+        let fromDate = new Date(0); // all time default
+        if (range === '7days') fromDate = new Date(now - 7 * 24 * 60 * 60 * 1000);
+        else if (range === '30days') fromDate = new Date(now - 30 * 24 * 60 * 60 * 1000);
+        else if (range === '90days') fromDate = new Date(now - 90 * 24 * 60 * 60 * 1000);
+        else if (range === 'year') fromDate = new Date(now.getFullYear(), 0, 1);
+
+        // All payments in range
+        const payments = await Payment.find({ createdAt: { $gte: fromDate } })
+            .populate('shiftId', 'title category')
+            .populate('hirerId', 'fullName')
+            .populate('workerId', 'fullName')
+            .sort({ createdAt: -1 });
+
+        const completed = payments.filter(p => p.status === 'completed');
+        const pending = payments.filter(p => p.status === 'pending');
+
+        const totalRevenue = completed.reduce((s, p) => s + p.amount, 0);
+        const pendingPayouts = pending.reduce((s, p) => s + p.amount, 0);
+
+        // Monthly breakdown for chart (last 6 months)
+        const monthlyMap = {};
+        const monthLabels = [];
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const key = `${d.getFullYear()}-${d.getMonth()}`;
+            const label = d.toLocaleString('en-US', { month: 'short' });
+            monthLabels.push(label);
+            monthlyMap[key] = { label, revenue: 0, transactions: 0 };
+        }
+        completed.forEach(p => {
+            const d = new Date(p.paidAt || p.createdAt);
+            const key = `${d.getFullYear()}-${d.getMonth()}`;
+            if (monthlyMap[key]) {
+                monthlyMap[key].revenue += p.amount;
+                monthlyMap[key].transactions += 1;
+            }
+        });
+        const monthly = Object.values(monthlyMap);
+
+        // Recent transactions (latest 20)
+        const recent = payments.slice(0, 20).map(p => ({
+            id: p.transactionUuid,
+            esewaCode: p.esewaTransactionCode,
+            description: p.shiftId?.title || 'Shift Payment',
+            hirer: p.hirerId?.fullName || 'Unknown',
+            worker: p.workerId?.fullName || 'Unknown',
+            date: new Date(p.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            amount: p.amount,
+            status: p.status,
+        }));
+
+        res.json({
+            success: true,
+            data: {
+                totalRevenue,
+                totalTransactions: completed.length,
+                pendingPayouts,
+                pendingCount: pending.length,
+                monthly,
+                monthLabels,
+                recent,
+            },
+        });
+    } catch (error) {
+        console.error('Admin overview error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 });
