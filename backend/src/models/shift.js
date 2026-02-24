@@ -147,6 +147,24 @@ const ShiftSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
+
+  // eSewa payment tracking
+  isPaid: {
+    type: Boolean,
+    default: false,
+  },
+  paidAmount: {
+    type: Number,
+    default: 0,
+  },
+  paymentTransactionId: {
+    type: String,
+    default: null,
+  },
+  paidAt: {
+    type: Date,
+    default: null,
+  },
 }, {
   timestamps: true, // Automatically add createdAt and updatedAt
 });
