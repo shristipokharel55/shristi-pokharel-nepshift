@@ -1,12 +1,10 @@
 /**
  * Calculate Hirer Profile Completion Percentage
- * 
  * Breakdown:
  * - Basic Info (fullName, email, bio): 40%
  * - Location with Map (address with coordinates): 20%
  * - Phone: 20%
  * - ID Documents Uploaded (all 3 documents): 20%
- * 
  * @param {Object} user - User object from database
  * @returns {Number} Profile completion percentage (0-100)
  */
