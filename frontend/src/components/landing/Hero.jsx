@@ -1,65 +1,76 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Play } from 'lucide-react';
+import { ArrowRight, Briefcase } from 'lucide-react';
 
 const Hero = () => {
     return (
-        <section className="relative pt-32 pb-24 lg:pt-48 lg:pb-32 px-4 overflow-hidden">
-            {/* Background Decorative Elements */}
-            <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl -z-10 animate-pulse"></div>
-            <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl -z-10 animate-blob"></div>
+        <section className="relative min-h-screen flex flex-col justify-center items-center text-center px-4 pt-24 pb-20 overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-50 via-white to-white">
 
-            <div className="max-w-7xl mx-auto text-center relative z-10">
-                <div className="inline-flex items-center space-x-2 bg-primary/10 text-primary px-4 py-2 rounded-full mb-8 animate-bounce-slow">
-                    <span className="w-2 h-2 bg-primary rounded-full animate-ping"></span>
-                    <span className="text-sm font-bold tracking-wide uppercase">Trusted by 10,000+ Users</span>
+            {/* Soft ambient orbs */}
+            <div className="absolute top-[-80px] left-1/2 -translate-x-1/2 w-[700px] h-[700px] bg-teal-100/40 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="absolute bottom-10 left-1/4 w-72 h-72 bg-emerald-100/30 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-teal-200/20 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center">
+
+                {/* Pill Badge */}
+                <div className="inline-flex items-center gap-2 bg-teal-50 border border-teal-200 text-teal-700 px-4 py-1.5 rounded-full text-sm font-semibold tracking-wide mb-10 shadow-sm">
+                    <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse"></span>
+                    Trusted by 10,000+ Users in Nepal
                 </div>
 
-                <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-dark leading-[1.1] mb-8 tracking-tight">
-                    Connect. Work. <span className="text-primary italic">Thrive.</span><br />
-                    Your Local Shift Partner.
+                {/* Headline */}
+                <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-[#1F2937] leading-[1.08] tracking-tight mb-7">
+                    Connect. Work.{' '}
+                    <span className="bg-gradient-to-r from-[#1F4E5F] to-[#34D399] bg-clip-text text-transparent italic">
+                        Thrive.
+                    </span>
+                    <br />
+                    Your Local{' '}
+                    <span className="bg-gradient-to-r from-[#1F4E5F] to-[#34D399] bg-clip-text text-transparent">
+                        Shift Partner.
+                    </span>
                 </h1>
 
-                <p className="text-xl md:text-2xl text-dark/60 max-w-3xl mx-auto mb-12 leading-relaxed">
-                    Nepshift connects reliable <span className="text-dark font-bold underline decoration-primary/30">Helpers</span> with local <span className="text-dark font-bold underline decoration-primary/30">Hirers</span> for temporary shifts.
-                    Find flexible work or skilled talent, fast.
+                {/* Subtext */}
+                <p className="text-lg md:text-xl text-[#1F2937]/55 max-w-2xl leading-relaxed mb-12">
+                    Nepshift connects reliable{' '}
+                    <span className="text-[#1F2937] font-semibold">Helpers</span> with local{' '}
+                    <span className="text-[#1F2937] font-semibold">Hirers</span> for temporary shifts.
+                    Find flexible work or skilled talent — fast.
                 </p>
 
-                <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6">
+                {/* CTA Buttons */}
+                <div className="flex flex-col sm:flex-row items-center gap-4 mb-20">
                     <Link
                         to="/register"
-                        className="group w-full sm:w-auto bg-dark text-white px-10 py-5 rounded-2xl font-bold text-xl hover:bg-dark/90 transition-all transform hover:scale-[1.02] shadow-2xl shadow-dark/20 flex items-center justify-center space-x-2"
+                        className="group flex items-center gap-2.5 bg-gradient-to-r from-[#1F4E5F] to-[#4A9287] hover:from-[#1a3f4d] hover:to-[#3d7a72] text-white px-9 py-4 rounded-full font-semibold text-base shadow-lg shadow-teal-500/25 hover:shadow-teal-500/40 transition-all duration-200 hover:scale-[1.03]"
                     >
-                        <span>Find Work</span>
-                        <ArrowRight className="group-hover:translate-x-1 transition-transform" />
+                        Find Work
+                        <ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" />
                     </Link>
                     <Link
                         to="/register"
-                        className="w-full sm:w-auto bg-white text-dark border-2 border-dark/5 px-10 py-5 rounded-2xl font-bold text-xl hover:bg-secondary/50 transition-all transform hover:scale-[1.02] shadow-xl shadow-black/5 flex items-center justify-center space-x-2"
+                        className="flex items-center gap-2.5 bg-white text-[#1F2937] border border-gray-200 hover:border-teal-300 hover:bg-teal-50/50 px-9 py-4 rounded-full font-semibold text-base shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.03]"
                     >
-                        <Play size={20} fill="currentColor" />
-                        <span>Post a Shift</span>
+                        <Briefcase size={17} />
+                        Post a Shift
                     </Link>
                 </div>
 
-                {/* Trust Badges or Stats */}
-                <div className="mt-20 pt-10 border-t border-dark/5 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
-                    <div className="flex flex-col items-center">
-                        <span className="text-3xl font-black text-dark">500+</span>
-                        <span className="text-sm font-bold uppercase tracking-wider">Shifts Daily</span>
-                    </div>
-                    <div className="flex flex-col items-center">
-                        <span className="text-3xl font-black text-dark">15k+</span>
-                        <span className="text-sm font-bold uppercase tracking-wider">Helpers</span>
-                    </div>
-                    <div className="flex flex-col items-center">
-                        <span className="text-3xl font-black text-dark">2k+</span>
-                        <span className="text-sm font-bold uppercase tracking-wider">Hirers</span>
-                    </div>
-                    <div className="flex flex-col items-center">
-                        <span className="text-3xl font-black text-dark">4.9/5</span>
-                        <span className="text-sm font-bold uppercase tracking-wider">Rating</span>
-                    </div>
+                {/* Stats Row */}
+                <div className="w-full max-w-xl mx-auto pt-8 border-t border-gray-100 grid grid-cols-4 gap-4">
+                    {[
+                        { value: '500+', label: 'Shifts Daily' },
+                        { value: '15k+', label: 'Helpers' },
+                        { value: '2k+', label: 'Hirers' },
+                        { value: '4.9★', label: 'Avg Rating' },
+                    ].map(({ value, label }) => (
+                        <div key={label} className="flex flex-col items-center gap-0.5">
+                            <span className="text-xl md:text-2xl font-bold text-[#1F2937]">{value}</span>
+                            <span className="text-xs text-[#1F2937]/45 font-medium uppercase tracking-wider">{label}</span>
+                        </div>
+                    ))}
                 </div>
             </div>
         </section>
