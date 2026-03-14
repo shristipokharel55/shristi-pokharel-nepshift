@@ -5,7 +5,7 @@ import { Sparkles } from 'lucide-react';
 const CTASection = () => {
     return (
         <section className="py-24 px-4 overflow-hidden">
-            <div className="max-w-7xl mx-auto rounded-[3rem] bg-gradient-to-br from-[#407B72] to-[#2D5A53] p-12 md:p-24 text-center text-white relative overflow-hidden shadow-2xl shadow-[#407B72]/30">
+            <div className="max-w-7xl mx-auto rounded-[3rem] bg-linear-to-br from-[#407B72] to-[#2D5A53] p-12 md:p-24 text-center text-white relative overflow-hidden shadow-2xl shadow-[#407B72]/30">
                 {/* Abstract background shapes */}
                 <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
                 <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-black/10 rounded-full -ml-24 -mb-24 blur-3xl"></div>
