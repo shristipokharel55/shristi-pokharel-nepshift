@@ -19,9 +19,9 @@ const InputField = ({
   ...props
 }) => (
   <div>
-    <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
+    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">{label}</label>
     <div className="relative">
-      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#07A3B2]">
         <Icon size={18} />
       </div>
       <input
@@ -30,7 +30,7 @@ const InputField = ({
         value={value}
         onChange={onChange}
         onBlur={onBlur}
-        className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#4A9287]/20 focus:border-[#4A9287] transition-colors ${error ? 'border-red-400 bg-red-50' : 'border-gray-200'
+        className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#07A3B2]/20 focus:border-[#07A3B2] transition-colors ${error ? 'border-red-400 bg-red-50' : 'border-gray-200'
           }`}
         placeholder={placeholder}
         {...props}
@@ -251,22 +251,38 @@ export default function RegisterHelper() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-[#F4FBFA] to-[#E8F5F3] px-4 py-8">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-block">
-            <h1 className="text-3xl font-bold text-[#4A9287]">NepShift</h1>
-          </Link>
-          <h2 className="text-xl font-semibold text-gray-800 mt-4">
-            Create Helper Account
-          </h2>
-          <p className="text-gray-500 mt-1">Join our community of skilled workers</p>
-        </div>
+    <div className="min-h-screen bg-white flex items-center justify-center px-4 py-10">
+      <div
+        className="w-full max-w-5xl bg-white rounded-2xl overflow-hidden flex flex-col md:flex-row"
+        style={{
+          boxShadow: "0 2px 8px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.07), 0 24px 56px rgba(0,0,0,0.06)",
+          border: "1px solid rgba(0,0,0,0.06)",
+          minHeight: "640px",
+        }}
+      >
+        <div className="w-full md:w-[60%] px-6 md:px-10 py-10 overflow-y-auto">
+          <div className="w-full max-w-lg mx-auto">
+          <div className="flex items-center gap-3 mb-6">
+            <img src="/images/logo.png" alt="NepShift logo" className="h-10 w-auto object-contain" />
+            <div>
+              <span
+                className="block text-xl font-bold leading-tight"
+                style={{
+                  background: "linear-gradient(90deg, #07A3B2, #5dbf8a)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                }}
+              >
+                NepShift
+              </span>
+              <span className="block text-xs text-gray-400 leading-tight">Nepal's shift-work marketplace</span>
+            </div>
+          </div>
 
-        {/* Form Card */}
-        <div className="bg-white p-8 rounded-2xl shadow-lg border border-[#CCE7E3]">
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-1">Create Helper Account</h2>
+          <p className="text-sm text-gray-400 mb-5">Join our community of skilled workers.</p>
+
+          <form onSubmit={handleSubmit} className="space-y-3.5">
             {/* Full Name */}
             <InputField
               name="fullName"
@@ -305,12 +321,12 @@ export default function RegisterHelper() {
             />
 
             {/* Location - Province / District / Municipality */}
-            <div className="space-y-3">
-              <label className="block text-sm font-medium text-gray-700">Location</label>
+            <div className="space-y-2.5">
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide">Location</label>
 
               {/* Province */}
               <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#07A3B2]">
                   <MapPin size={18} />
                 </div>
                 <select
@@ -318,7 +334,7 @@ export default function RegisterHelper() {
                   value={formData.province}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#4A9287]/20 focus:border-[#4A9287] transition-colors appearance-none bg-white ${
+                  className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#07A3B2]/20 focus:border-[#07A3B2] transition-colors appearance-none bg-white ${
                     errors.province ? 'border-red-400 bg-red-50' : 'border-gray-200'
                   }`}
                 >
@@ -331,7 +347,7 @@ export default function RegisterHelper() {
 
               {/* District */}
               <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#07A3B2]">
                   <MapPin size={18} />
                 </div>
                 <select
@@ -340,7 +356,7 @@ export default function RegisterHelper() {
                   onChange={handleChange}
                   onBlur={handleBlur}
                   disabled={!formData.province}
-                  className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#4A9287]/20 focus:border-[#4A9287] transition-colors appearance-none bg-white disabled:bg-gray-100 disabled:cursor-not-allowed ${
+                  className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#07A3B2]/20 focus:border-[#07A3B2] transition-colors appearance-none bg-white disabled:bg-gray-100 disabled:cursor-not-allowed ${
                     errors.district ? 'border-red-400 bg-red-50' : 'border-gray-200'
                   }`}
                 >
@@ -353,7 +369,7 @@ export default function RegisterHelper() {
 
               {/* Municipality */}
               <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#07A3B2]">
                   <MapPin size={18} />
                 </div>
                 <select
@@ -362,7 +378,7 @@ export default function RegisterHelper() {
                   onChange={handleChange}
                   onBlur={handleBlur}
                   disabled={!formData.district}
-                  className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#4A9287]/20 focus:border-[#4A9287] transition-colors appearance-none bg-white disabled:bg-gray-100 disabled:cursor-not-allowed ${
+                  className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#07A3B2]/20 focus:border-[#07A3B2] transition-colors appearance-none bg-white disabled:bg-gray-100 disabled:cursor-not-allowed ${
                     errors.municipality ? 'border-red-400 bg-red-50' : 'border-gray-200'
                   }`}
                 >
@@ -382,9 +398,9 @@ export default function RegisterHelper() {
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Password</label>
               <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#07A3B2]">
                   <Lock size={18} />
                 </div>
                 <input
@@ -393,14 +409,14 @@ export default function RegisterHelper() {
                   value={formData.password}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  className={`w-full pl-10 pr-12 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#4A9287]/20 focus:border-[#4A9287] transition-colors ${errors.password ? 'border-red-400 bg-red-50' : 'border-gray-200'
+                  className={`w-full pl-10 pr-12 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#07A3B2]/20 focus:border-[#07A3B2] transition-colors ${errors.password ? 'border-red-400 bg-red-50' : 'border-gray-200'
                     }`}
                   placeholder="Create a strong password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#07A3B2] cursor-pointer"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -415,9 +431,9 @@ export default function RegisterHelper() {
 
             {/* Confirm Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm Password</label>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Confirm Password</label>
               <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#07A3B2]">
                   <Lock size={18} />
                 </div>
                 <input
@@ -426,14 +442,14 @@ export default function RegisterHelper() {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  className={`w-full pl-10 pr-12 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#4A9287]/20 focus:border-[#4A9287] transition-colors ${errors.confirmPassword ? 'border-red-400 bg-red-50' : 'border-gray-200'
+                  className={`w-full pl-10 pr-12 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#07A3B2]/20 focus:border-[#07A3B2] transition-colors ${errors.confirmPassword ? 'border-red-400 bg-red-50' : 'border-gray-200'
                     }`}
                   placeholder="Re-enter your password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirm(!showConfirm)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#07A3B2] cursor-pointer"
                 >
                   {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -447,7 +463,11 @@ export default function RegisterHelper() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-[#4A9287] text-white rounded-lg font-semibold hover:bg-[#407C74] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
+              className="w-full py-2.5 text-white rounded-lg font-semibold transition-all hover:opacity-90 active:scale-[0.99] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-5"
+              style={{
+                background: "linear-gradient(90deg, #07A3B2 0%, #5dbf8a 100%)",
+                boxShadow: "0 4px 14px rgba(7,163,178,0.35)",
+              }}
             >
               {loading ? (
                 <>
@@ -464,20 +484,42 @@ export default function RegisterHelper() {
           </form>
 
           {/* Login Link */}
-          <p className="text-center text-gray-600 mt-6">
+          <p className="text-center text-gray-500 mt-6">
             Already have an account?{" "}
-            <Link to="/login" className="text-[#4A9287] font-semibold hover:underline">
+            <Link to="/login" className="text-[#07A3B2] font-semibold hover:underline">
               Log in
             </Link>
           </p>
+
+          <p className="text-center mt-4">
+            <Link to="/register" className="text-gray-500 hover:text-[#07A3B2] text-sm">
+            ← Back to registration options
+            </Link>
+          </p>
+          </div>
         </div>
 
-        {/* Back to selection */}
-        <p className="text-center mt-4">
-          <Link to="/register" className="text-gray-500 hover:text-[#4A9287] text-sm">
-            ← Back to registration options
-          </Link>
-        </p>
+        <div
+          className="hidden md:flex md:w-[40%] flex-col items-center justify-center p-8 relative overflow-hidden"
+          style={{ background: "linear-gradient(160deg, #07A3B2 0%, #4dbfa3 50%, #D9ECC7 100%)" }}
+        >
+          <div className="absolute -top-14 -right-14 w-52 h-52 rounded-full pointer-events-none" style={{ background: "rgba(255,255,255,0.14)" }} />
+          <div className="absolute -bottom-12 -left-12 w-40 h-40 rounded-full pointer-events-none" style={{ background: "rgba(255,255,255,0.12)" }} />
+
+          <div className="relative z-10 w-full flex items-center justify-center" style={{ maxWidth: "300px" }}>
+            <img
+              src="/images/login-illustration.png"
+              alt="NepShift illustration"
+              className="w-full h-auto object-contain"
+              style={{ maxHeight: "340px", borderRadius: "18px", filter: "drop-shadow(0 18px 36px rgba(0,0,0,0.2))" }}
+            />
+          </div>
+
+          <div className="relative z-10 mt-6 text-center">
+            <h3 className="text-white text-base font-bold leading-tight drop-shadow">Start Working Today</h3>
+            <p className="text-white/80 text-xs mt-1">Complete your profile and discover nearby shifts.</p>
+          </div>
+        </div>
       </div>
     </div>
   );
