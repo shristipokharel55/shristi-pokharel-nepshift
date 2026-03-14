@@ -4,7 +4,6 @@ import {
     Briefcase,
     CheckCircle,
     Clock,
-    DollarSign,
     Eye,
     Loader2,
     MoreHorizontal,
@@ -16,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import Chart from 'react-apexcharts';
+import RupeeIcon from '../../components/ui/RupeeIcon';
 import api from '../../utils/api';
 
 // Stats Card Component
@@ -148,7 +148,7 @@ const AdminDashboard = () => {
     const getActivityIcon = (type) => {
         const iconMap = {
             user_registered: { icon: UserCheck, bg: 'bg-emerald-500' },
-            payment_processed: { icon: DollarSign, bg: 'bg-[#3B82F6]' },
+            payment_processed: { icon: RupeeIcon, bg: 'bg-[#3B82F6]' },
             shift_posted: { icon: Briefcase, bg: 'bg-indigo-500' },
             verification_pending: { icon: AlertCircle, bg: 'bg-amber-500' },
             shift_completed: { icon: CheckCircle, bg: 'bg-emerald-500' },
@@ -194,7 +194,7 @@ const AdminDashboard = () => {
         yaxis: {
             labels: {
                 style: { colors: '#64748B', fontSize: '11px', fontWeight: 500 },
-                formatter: (val) => `Rs ${val / 1000}k`
+                formatter: (val) => `रु ${val / 1000}k`
             }
         },
         grid: {
@@ -205,7 +205,7 @@ const AdminDashboard = () => {
         },
         tooltip: {
             theme: 'light',
-            y: { formatter: (val) => `Rs ${val.toLocaleString()}` },
+            y: { formatter: (val) => `रु ${val.toLocaleString()}` },
             style: { fontSize: '12px', fontFamily: 'Inter' }
         }
     };
@@ -347,8 +347,8 @@ const AdminDashboard = () => {
                 />
                 <StatCard
                     title="Revenue"
-                    value={`Rs ${formatNumber(stats?.totalRevenue || 0)}`}
-                    icon={DollarSign}
+                    value={`रु ${formatNumber(stats?.totalRevenue || 0)}`}
+                    icon={RupeeIcon}
                     trend={true}
                     trendValue={`${stats?.completedShifts || 0} completed`}
                     trendUp={true}
