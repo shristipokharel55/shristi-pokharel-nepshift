@@ -1,5 +1,6 @@
 import React from 'react';
-import { Briefcase, DollarSign, MapPin, Calendar, Users, Rocket, ShieldCheck, MessageSquare } from 'lucide-react';
+import { Briefcase, MapPin, Calendar, Users, Rocket, ShieldCheck, MessageSquare } from 'lucide-react';
+import RupeeIcon from '../ui/RupeeIcon';
 
 const FeatureCard = ({ icon: Icon, title, description }) => (
     <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-dark/5 hover:border-primary/20 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-2 group">
@@ -19,7 +20,7 @@ const Features = () => {
             description: "Access a wide range of temporary shifts that fit your schedule and lifestyle."
         },
         {
-            icon: DollarSign,
+            icon: RupeeIcon,
             title: "Fair Pay",
             description: "Get competitive rates for your skills with transparent payment processing."
         },
