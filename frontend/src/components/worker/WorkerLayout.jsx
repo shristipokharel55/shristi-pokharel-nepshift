@@ -130,7 +130,7 @@ const WorkerLayout = ({ children }) => {
             <aside
                 className={`
           fixed lg:sticky top-0 left-0 h-screen w-72 
-          bg-[#D3E4E7]/30 backdrop-blur-sm
+                    bg-white/95 backdrop-blur-sm border-r border-[#e8e1f2]
           flex flex-col z-50
           transform transition-transform duration-300 ease-in-out
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -146,7 +146,7 @@ const WorkerLayout = ({ children }) => {
                         <span className="text-2xl font-bold text-[#032A33] tracking-tight">Nepshift</span>
                     </Link>
                     <button
-                        className="lg:hidden p-2 text-[#032A33] hover:bg-[#82ACAB]/20 rounded-lg"
+                        className="lg:hidden p-2 text-[#1f2937] hover:bg-[#f0ebf7] rounded-lg"
                         onClick={() => setIsMobileMenuOpen(false)}
                     >
                         <X size={24} />
@@ -169,8 +169,8 @@ const WorkerLayout = ({ children }) => {
                       transition-all duration-200 group
                       animate-slide-in-left
                       ${active
-                                                ? 'bg-[#0B4B54] text-white shadow-lg shadow-[#0B4B54]/20'
-                                                : 'text-[#032A33] hover:bg-[#82ACAB]/20'
+                                                ? 'bg-linear-to-r from-[#07A3B2] to-[#5dbf8a] text-white shadow-lg shadow-[#07A3B2]/20'
+                                                : 'text-[#1f2937] hover:bg-[#f0ebf7]'
                                             }
                     `}
                                         style={{ animationDelay: `${index * 30}ms` }}
@@ -180,7 +180,7 @@ const WorkerLayout = ({ children }) => {
                                             size={20}
                                             className={`
                         transition-transform duration-200 
-                        ${active ? 'text-white' : 'text-[#0B4B54]'}
+                                                ${active ? 'text-white' : 'text-[#07A3B2]'}
                         group-hover:scale-110
                       `}
                                         />
@@ -188,7 +188,7 @@ const WorkerLayout = ({ children }) => {
                                             {item.name}
                                         </span>
                                         {active && (
-                                            <ChevronRight size={16} className="ml-auto text-[#82ACAB]" />
+                                            <ChevronRight size={16} className="ml-auto text-white/80" />
                                         )}
                                     </Link>
                                 </li>
@@ -198,13 +198,13 @@ const WorkerLayout = ({ children }) => {
                 </nav>
 
                 {/* User Dropdown */}
-                <div className="px-4 py-6 border-t border-[#82ACAB]/20" ref={userDropdownRef}>
+                <div className="px-4 py-6 border-t border-[#e8e1f2]" ref={userDropdownRef}>
                     <div className="relative">
                         <button
                             onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
                             className="
                                 flex items-center gap-3 px-4 py-3 w-full rounded-xl
-                                hover:bg-[#82ACAB]/20 
+                                hover:bg-[#f0ebf7] 
                                 transition-all duration-200 group
                             "
                         >
@@ -223,16 +223,16 @@ const WorkerLayout = ({ children }) => {
 
                         {/* Dropdown Menu */}
                         {isUserDropdownOpen && (
-                            <div className="absolute bottom-full left-0 right-0 mb-2 py-2 bg-white rounded-xl shadow-lg border border-[#82ACAB]/20 animate-fade-in-up">
+                            <div className="absolute bottom-full left-0 right-0 mb-2 py-2 bg-white rounded-xl shadow-lg border border-[#e8e1f2] animate-fade-in-up">
                                 <Link
                                     to="/worker/profile"
                                     onClick={() => {
                                         setIsUserDropdownOpen(false);
                                         setIsMobileMenuOpen(false);
                                     }}
-                                    className="flex items-center gap-3 px-4 py-2.5 text-[#032A33] hover:bg-[#D3E4E7]/50 transition-colors"
+                                    className="flex items-center gap-3 px-4 py-2.5 text-[#1f2937] hover:bg-[#f0ebf7] transition-colors"
                                 >
-                                    <User size={18} className="text-[#0B4B54]" />
+                                    <User size={18} className="text-[#07A3B2]" />
                                     <span>My Profile</span>
                                 </Link>
                                 <Link
@@ -241,9 +241,9 @@ const WorkerLayout = ({ children }) => {
                                         setIsUserDropdownOpen(false);
                                         setIsMobileMenuOpen(false);
                                     }}
-                                    className="flex items-center gap-3 px-4 py-2.5 text-[#032A33] hover:bg-[#D3E4E7]/50 transition-colors"
+                                    className="flex items-center gap-3 px-4 py-2.5 text-[#1f2937] hover:bg-[#f0ebf7] transition-colors"
                                 >
-                                    <Settings size={18} className="text-[#0B4B54]" />
+                                    <Settings size={18} className="text-[#07A3B2]" />
                                     <span>Settings</span>
                                 </Link>
                                 <div className="my-2 border-t border-[#82ACAB]/20" />
