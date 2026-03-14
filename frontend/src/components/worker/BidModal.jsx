@@ -1,4 +1,5 @@
-import { X, DollarSign, Clock, MessageSquare } from 'lucide-react';
+import { X, Clock, MessageSquare } from 'lucide-react';
+import RupeeIcon from '../ui/RupeeIcon';
 import { useState } from 'react';
 import api from '../../utils/api';
 
@@ -114,7 +115,7 @@ const BidModal = ({ shift, onClose, onSuccess }) => {
             <div>
               <p className="text-sm text-[#888888]">Budget Range</p>
               <p className="font-semibold text-[#032A33]">
-                Rs. {shift.pay?.min} - {shift.pay?.max}
+                रु {shift.pay?.min} - {shift.pay?.max}
               </p>
             </div>
             <div>
@@ -147,7 +148,7 @@ const BidModal = ({ shift, onClose, onSuccess }) => {
               Your Rate <span className="text-red-500">*</span>
             </label>
             <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#888888]" />
+              <RupeeIcon size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#888888]" />
               <input
                 type="number"
                 name="bidAmount"
@@ -159,7 +160,7 @@ const BidModal = ({ shift, onClose, onSuccess }) => {
               />
             </div>
             <p className="text-xs text-[#888888] mt-1">
-              Budget: Rs. {shift.pay?.min} - Rs. {shift.pay?.max}
+              Budget: रु {shift.pay?.min} - रु {shift.pay?.max}
             </p>
           </div>
 
