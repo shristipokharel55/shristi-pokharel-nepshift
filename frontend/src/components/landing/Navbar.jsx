@@ -40,7 +40,7 @@ const Navbar = () => {
 
           {/* Logo — left on desktop */}
           <Link to="/" className="flex items-center gap-2.5 flex-shrink-0">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#1F4E5F] to-[#4A9287] flex items-center justify-center shadow-md shadow-teal-500/20">
+            <div className="w-9 h-9 rounded-xl bg-linear-to-br from-[#1F4E5F] to-[#4A9287] flex items-center justify-center shadow-md shadow-teal-500/20">
               <span className="text-white font-black text-base leading-none">N</span>
             </div>
             <span className="text-xl font-bold text-[#1F2937] tracking-tight">Nepshift</span>
@@ -81,7 +81,7 @@ const Navbar = () => {
                 </Link>
                 <Link
                   to="/register"
-                  className="text-sm font-semibold text-white bg-gradient-to-r from-[#1F4E5F] to-[#4A9287] hover:from-[#1a3f4d] hover:to-[#3d7a72] px-5 py-2 rounded-full shadow-md shadow-teal-500/20 hover:shadow-teal-500/30 transition-all duration-200"
+                  className="text-sm font-semibold text-white bg-linear-to-r from-[#1F4E5F] to-[#4A9287] hover:from-[#1a3f4d] hover:to-[#3d7a72] px-5 py-2 rounded-full shadow-md shadow-teal-500/20 hover:shadow-teal-500/30 transition-all duration-200"
                 >
                   Get Started
                 </Link>
@@ -138,7 +138,7 @@ const Navbar = () => {
                 </Link>
                 <Link
                   to="/register"
-                  className="mt-2 text-sm font-semibold text-white text-center bg-gradient-to-r from-[#1F4E5F] to-[#4A9287] px-5 py-3 rounded-full"
+                  className="mt-2 text-sm font-semibold text-white text-center bg-linear-to-r from-[#1F4E5F] to-[#4A9287] px-5 py-3 rounded-full"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Get Started
