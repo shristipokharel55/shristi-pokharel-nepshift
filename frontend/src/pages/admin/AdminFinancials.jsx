@@ -2,7 +2,6 @@
     ArrowDownLeft,
     ArrowUpRight,
     CreditCard,
-    DollarSign,
     Download,
     TrendingDown,
     TrendingUp,
@@ -11,6 +10,7 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import RupeeIcon from '../../components/ui/RupeeIcon';
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,14 +40,14 @@ import {
 import api from '../../utils/api';
 
 const chartConfig = {
-    revenue: { label: 'Revenue (Rs)', color: '#4A9287' },
+    revenue: { label: 'Revenue (रु)', color: '#4A9287' },
     transactions: { label: 'Transactions', color: '#94a3b8' },
 };
 
 const formatAmount = (val) => {
-    if (val >= 1_000_000) return `Rs ${(val / 1_000_000).toFixed(2)}M`;
-    if (val >= 1_000) return `Rs ${(val / 1_000).toFixed(0)}K`;
-    return `Rs ${val.toLocaleString()}`;
+    if (val >= 1_000_000) return `रु ${(val / 1_000_000).toFixed(2)}M`;
+    if (val >= 1_000) return `रु ${(val / 1_000).toFixed(0)}K`;
+    return `रु ${val.toLocaleString()}`;
 };
 
 const statusVariant = (status) => {
@@ -162,7 +162,7 @@ const AdminFinancials = () => {
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                 <CardTitle className="text-sm font-medium text-slate-500">Total Revenue</CardTitle>
                                 <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center">
-                                    <DollarSign size={20} className="text-emerald-500" />
+                                    <RupeeIcon size={20} className="text-emerald-500" />
                                 </div>
                             </CardHeader>
                             <CardContent>
@@ -262,7 +262,7 @@ const AdminFinancials = () => {
                                         <ChartTooltipContent
                                             formatter={(value, name) =>
                                                 name === 'revenue'
-                                                    ? [`Rs ${value.toLocaleString()}`, 'Revenue']
+                                                    ? [`रु ${value.toLocaleString()}`, 'Revenue']
                                                     : [value, 'Transactions']
                                             }
                                         />
@@ -325,7 +325,7 @@ const AdminFinancials = () => {
                                         <TableCell className="text-sm text-slate-500">{tx.date}</TableCell>
                                         <TableCell>
                                             <span className={`font-semibold text-sm ${tx.status === 'completed' ? 'text-emerald-600' : 'text-amber-600'}`}>
-                                                Rs {tx.amount?.toLocaleString()}
+                                                रु {tx.amount?.toLocaleString()}
                                             </span>
                                         </TableCell>
                                         <TableCell>
