@@ -8,7 +8,7 @@ const Footer = () => {
 
                 {/* Logo */}
                 <Link to="/" className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#1F4E5F] to-[#4A9287] flex items-center justify-center shadow-sm">
+                    <div className="w-8 h-8 rounded-xl bg-linear-to-br from-[#1F4E5F] to-[#4A9287] flex items-center justify-center shadow-sm">
                         <span className="text-white font-black text-sm leading-none">N</span>
                     </div>
                     <span className="text-lg font-bold text-[#1F2937] tracking-tight">Nepshift</span>
