@@ -34,7 +34,7 @@ body {
 /* Worker Dashboard Specific Styles */
 .worker-dashboard {
     font-family: 'Inter', sans-serif;
-    background-color: var(--color-worker-secondary);
+    background: linear-gradient(180deg, #ffffff 0%, #f7f4fb 100%);
     min-height: 100vh;
 }
 
@@ -58,14 +58,14 @@ body {
 
 /* Glassmorphism Card Effect */
 .glass-card {
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(130, 172, 171, 0.2);
+    border: 1px solid rgba(168, 146, 204, 0.16);
 }
 
 /* Gradient backgrounds */
 .gradient-primary {
-    background: linear-gradient(135deg, #0B4B54 0%, #0D5A65 50%, #0F6974 100%);
+    background: linear-gradient(135deg, #07A3B2 0%, #5dbf8a 100%);
 }
 
 .gradient-seafoam {
@@ -210,7 +210,7 @@ body {
 
 .card-hover:hover {
     transform: translateY(-4px);
-    box-shadow: 0 20px 40px -12px rgba(11, 75, 84, 0.15);
+    box-shadow: 0 18px 36px -14px rgba(168, 146, 204, 0.28);
 }
 
 /* Button ripple effect */
