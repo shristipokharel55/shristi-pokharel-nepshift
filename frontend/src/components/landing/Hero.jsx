@@ -22,12 +22,12 @@ const Hero = () => {
                 {/* Headline */}
                 <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-[#1F2937] leading-[1.08] tracking-tight mb-7">
                     Connect. Work.{' '}
-                    <span className="bg-gradient-to-r from-[#1F4E5F] to-[#34D399] bg-clip-text text-transparent italic">
+                    <span className="bg-linear-to-r from-[#1F4E5F] to-[#34D399] bg-clip-text text-transparent italic">
                         Thrive.
                     </span>
                     <br />
                     Your Local{' '}
-                    <span className="bg-gradient-to-r from-[#1F4E5F] to-[#34D399] bg-clip-text text-transparent">
+                    <span className="bg-linear-to-r from-[#1F4E5F] to-[#34D399] bg-clip-text text-transparent">
                         Shift Partner.
                     </span>
                 </h1>
@@ -44,7 +44,7 @@ const Hero = () => {
                 <div className="flex flex-col sm:flex-row items-center gap-4 mb-20">
                     <Link
                         to="/register"
-                        className="group flex items-center gap-2.5 bg-gradient-to-r from-[#1F4E5F] to-[#4A9287] hover:from-[#1a3f4d] hover:to-[#3d7a72] text-white px-9 py-4 rounded-full font-semibold text-base shadow-lg shadow-teal-500/25 hover:shadow-teal-500/40 transition-all duration-200 hover:scale-[1.03]"
+                        className="group flex items-center gap-2.5 bg-linear-to-r from-[#1F4E5F] to-[#4A9287] hover:from-[#1a3f4d] hover:to-[#3d7a72] text-white px-9 py-4 rounded-full font-semibold text-base shadow-lg shadow-teal-500/25 hover:shadow-teal-500/40 transition-all duration-200 hover:scale-[1.03]"
                     >
                         Find Work
                         <ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" />
