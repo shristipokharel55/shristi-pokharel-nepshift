@@ -3,11 +3,11 @@ import {
     FileText,
     Clock,
     MapPin,
-    DollarSign,
     CheckCircle,
     XCircle,
     Building
 } from 'lucide-react';
+import RupeeIcon from '../../components/ui/RupeeIcon';
 import WorkerLayout from '../../components/worker/WorkerLayout';
 
 const WorkerJobRequests = () => {
@@ -90,7 +90,7 @@ const WorkerJobRequests = () => {
                         >
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div className="flex items-start gap-4">
-                                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#0B4B54] to-[#82ACAB] flex items-center justify-center">
+                                    <div className="w-14 h-14 rounded-xl bg-linear-to-br from-[#0B4B54] to-[#82ACAB] flex items-center justify-center">
                                         <FileText size={24} className="text-white" />
                                     </div>
                                     <div>
@@ -109,8 +109,8 @@ const WorkerJobRequests = () => {
                                                 {request.time}
                                             </span>
                                             <span className="flex items-center gap-1">
-                                                <DollarSign size={14} className="text-[#82ACAB]" />
-                                                Rs {request.pay}
+                                                <RupeeIcon size={14} className="text-[#82ACAB]" />
+                                                रु {request.pay}
                                             </span>
                                         </div>
                                     </div>

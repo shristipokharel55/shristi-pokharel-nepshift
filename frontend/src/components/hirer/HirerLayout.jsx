@@ -108,7 +108,7 @@ const HirerLayout = ({ children }) => {
     const isActive = (path) => location.pathname === path;
 
     return (
-        <div className="hirer-dashboard flex min-h-screen bg-[#E0F0F3]">
+        <div className="hirer-dashboard flex min-h-screen bg-[radial-gradient(circle_at_top_left,#ffffff_0%,#f7f2fb_42%,#f4eef9_100%)]">
             {/* Mobile Menu Overlay */}
             {isMobileMenuOpen && (
                 <div
@@ -124,19 +124,22 @@ const HirerLayout = ({ children }) => {
                     flex flex-col z-50
                     transform transition-transform duration-300 ease-in-out
                     ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-                    worker-scrollbar overflow-y-auto
+                    worker-scrollbar overflow-y-auto bg-white/95 backdrop-blur-xl border-r border-[#ece4f4]
                 `}
             >
                 {/* Logo Section */}
                 <div className="px-6 py-6 flex items-center justify-between">
                     <Link to="/hirer/dashboard" className="flex items-center gap-3 group">
-                        <div className="w-11 h-11 gradient-primary rounded-xl flex items-center justify-center shadow-lg shadow-[#0B4B54]/20 group-hover:shadow-[#0B4B54]/30 transition-shadow">
+                        <div className="w-11 h-11 bg-linear-to-br from-[#07A3B2] via-[#4bb8a4] to-[#5dbf8a] rounded-xl flex items-center justify-center shadow-lg shadow-[#07A3B2]/20 group-hover:shadow-[#07A3B2]/30 transition-shadow">
                             <span className="text-white font-bold text-xl">N</span>
                         </div>
-                        <span className="text-2xl font-bold text-[#032A33] tracking-tight">Nepshift</span>
+                        <div>
+                            <span className="text-2xl font-bold text-[#2c2143] tracking-tight">Nepshift</span>
+                            <p className="text-[11px] text-[#8a7ba7] font-medium">Hirer portal</p>
+                        </div>
                     </Link>
                     <button
-                        className="lg:hidden p-2 text-[#032A33] hover:bg-[#82ACAB]/20 rounded-lg"
+                        className="lg:hidden p-2 text-[#2c2143] hover:bg-[#f4eef9] rounded-lg"
                         onClick={() => setIsMobileMenuOpen(false)}
                     >
                         <i className="ph ph-x text-2xl"></i>
@@ -156,10 +159,10 @@ const HirerLayout = ({ children }) => {
                                             to={item.path}
                                             className="
                                                 flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl
-                                                bg-[#0B4B54]
+                                                bg-linear-to-r from-[#07A3B2] to-[#5dbf8a]
                                                 text-white font-semibold
-                                                shadow-lg shadow-[#0B4B54]/20
-                                                hover:shadow-[#0B4B54]/40 hover:scale-[1.02]
+                                                shadow-lg shadow-[#07A3B2]/20
+                                                hover:shadow-[#07A3B2]/40 hover:scale-[1.02]
                                                 transition-all duration-200
                                                 animate-slide-in-left
                                             "
@@ -182,8 +185,8 @@ const HirerLayout = ({ children }) => {
                                             transition-all duration-200 group
                                             animate-slide-in-left
                                             ${active
-                                                ? 'bg-[#1F4E5F] text-white shadow-md'
-                                                : 'text-[#032A33] hover:bg-[#82ACAB]/20'
+                                                ? 'bg-[#f4eef9] text-[#55406f] shadow-md ring-1 ring-[#e2d8ef]'
+                                                : 'text-[#2c2143] hover:bg-[#f7f2fb]'
                                             }
                                         `}
                                         style={{ animationDelay: `${index * 30}ms` }}
@@ -194,7 +197,7 @@ const HirerLayout = ({ children }) => {
                                             {item.name}
                                         </span>
                                         {active && (
-                                            <i className="ph ph-caret-right ml-auto text-white/70"></i>
+                                            <i className="ph ph-caret-right ml-auto text-[#7f7199]"></i>
                                         )}
                                     </Link>
                                 </li>
@@ -204,38 +207,38 @@ const HirerLayout = ({ children }) => {
                 </nav>
 
                 {/* User Dropdown (Footer) */}
-                <div className="px-4 py-6 border-t border-[#82ACAB]/20" ref={userDropdownRef}>
+                <div className="px-4 py-6 border-t border-[#ece4f4]" ref={userDropdownRef}>
                     <div className="relative">
                         <button
                             onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
                             className="
                                 flex items-center gap-3 px-4 py-3 w-full rounded-xl
-                                hover:bg-[#82ACAB]/20 
+                                hover:bg-[#f7f2fb] 
                                 transition-all duration-200 group
                             "
                         >
-                            <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center text-white font-semibold shadow-lg shadow-[#0B4B54]/20">
+                            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-[#07A3B2] via-[#4bb8a4] to-[#5dbf8a] flex items-center justify-center text-white font-semibold shadow-lg shadow-[#07A3B2]/20">
                                 {firstName.charAt(0).toUpperCase()}
                             </div>
                             <div className="flex-1 text-left">
-                                <p className="font-medium text-[#032A33]">{firstName}</p>
-                                <p className="text-xs text-[#888888]">Employer</p>
+                                <p className="font-medium text-[#2c2143]">{firstName}</p>
+                                <p className="text-xs text-[#8a7ba7]">Employer</p>
                             </div>
-                            <i className={`ph ph-caret-down text-lg text-[#888888] transition-transform duration-200 ${isUserDropdownOpen ? 'rotate-180' : ''}`}></i>
+                            <i className={`ph ph-caret-down text-lg text-[#8a7ba7] transition-transform duration-200 ${isUserDropdownOpen ? 'rotate-180' : ''}`}></i>
                         </button>
 
                         {/* Dropdown Menu */}
                         {isUserDropdownOpen && (
-                            <div className="absolute bottom-full left-0 right-0 mb-2 py-2 bg-white rounded-xl shadow-lg border border-[#82ACAB]/20 animate-fade-in-up z-50">
+                            <div className="absolute bottom-full left-0 right-0 mb-2 py-2 bg-white rounded-xl shadow-lg border border-[#ece4f4] animate-fade-in-up z-50">
                                 <Link
                                     to="/hirer/profile"
                                     onClick={() => {
                                         setIsUserDropdownOpen(false);
                                         setIsMobileMenuOpen(false);
                                     }}
-                                    className="flex items-center gap-3 px-4 py-2.5 text-[#032A33] hover:bg-[#D3E4E7]/50 transition-colors"
+                                    className="flex items-center gap-3 px-4 py-2.5 text-[#2c2143] hover:bg-[#f7f2fb] transition-colors"
                                 >
-                                    <i className="ph ph-user text-lg text-[#0B4B54]"></i>
+                                    <i className="ph ph-user text-lg text-[#07A3B2]"></i>
                                     <span>My Profile</span>
                                 </Link>
                                 <Link
@@ -244,12 +247,12 @@ const HirerLayout = ({ children }) => {
                                         setIsUserDropdownOpen(false);
                                         setIsMobileMenuOpen(false);
                                     }}
-                                    className="flex items-center gap-3 px-4 py-2.5 text-[#032A33] hover:bg-[#D3E4E7]/50 transition-colors"
+                                    className="flex items-center gap-3 px-4 py-2.5 text-[#2c2143] hover:bg-[#f7f2fb] transition-colors"
                                 >
-                                    <i className="ph ph-gear text-lg text-[#0B4B54]"></i>
+                                    <i className="ph ph-gear text-lg text-[#07A3B2]"></i>
                                     <span>Settings</span>
                                 </Link>
-                                <div className="my-2 border-t border-[#82ACAB]/20" />
+                                <div className="my-2 border-t border-[#ece4f4]" />
                                 <button
                                     onClick={handleLogout}
                                     className="flex items-center gap-3 px-4 py-2.5 w-full text-red-500 hover:bg-red-50 transition-colors"
@@ -266,11 +269,11 @@ const HirerLayout = ({ children }) => {
             {/* Main Content Area */}
             <main className="flex-1 flex flex-col min-h-screen relative overflow-hidden">
                 {/* Top Navigation Bar */}
-                <header className="sticky top-0 z-30 bg-[#E0F0F3]/90 backdrop-blur-md">
+                <header className="sticky top-0 z-30 bg-white/85 backdrop-blur-md border-b border-[#ece4f4]">
                     <div className="flex items-center justify-between px-6 py-4">
                         {/* Mobile Menu Button */}
                         <button
-                            className="lg:hidden p-2 text-[#032A33] hover:bg-[#82ACAB]/20 rounded-lg"
+                            className="lg:hidden p-2 text-[#2c2143] hover:bg-[#f4eef9] rounded-lg"
                             onClick={() => setIsMobileMenuOpen(true)}
                         >
                             <i className="ph ph-list text-2xl"></i>
@@ -285,12 +288,12 @@ const HirerLayout = ({ children }) => {
                                     className="
                                         w-full px-5 py-3 pl-12 rounded-full
                                         bg-white border-0 shadow-sm
-                                        text-[#222222] placeholder-[#888888]
-                                        focus:outline-none focus:ring-2 focus:ring-[#0B4B54]/20
+                                        text-[#2c2143] placeholder-[#8a7ba7]
+                                        focus:outline-none focus:ring-2 focus:ring-[#07A3B2]/15
                                         transition-all duration-200
                                     "
                                 />
-                                <i className="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-xl text-[#888888]"></i>
+                                <i className="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-xl text-[#8a7ba7]"></i>
                             </div>
                         </div>
 
@@ -302,8 +305,8 @@ const HirerLayout = ({ children }) => {
                                     onClick={handleNotificationClick}
                                     className="
                                         relative p-3 rounded-full 
-                                        bg-white hover:bg-gray-50 
-                                        text-[#0B4B54] 
+                                        bg-white hover:bg-[#f7f2fb] 
+                                        text-[#07A3B2] 
                                         transition-all duration-200
                                         shadow-sm hover:shadow-md
                                     "
@@ -314,11 +317,11 @@ const HirerLayout = ({ children }) => {
 
                                 {/* Notifications Dropdown */}
                                 {isNotificationOpen && (
-                                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-[#82ACAB]/10 animate-fade-in-up z-50 overflow-hidden">
+                                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-[#ece4f4] animate-fade-in-up z-50 overflow-hidden">
                                         <div className="p-4 border-b border-gray-100">
                                             <div className="flex items-center justify-between">
-                                                <h3 className="font-semibold text-[#032A33]">Notifications</h3>
-                                                <button onClick={handleMarkAllRead} className="text-xs text-[#0B4B54] hover:underline">Mark all as read</button>
+                                                <h3 className="font-semibold text-[#2c2143]">Notifications</h3>
+                                                <button onClick={handleMarkAllRead} className="text-xs text-[#07A3B2] hover:underline">Mark all as read</button>
                                             </div>
                                         </div>
                                         <div className="max-h-80 overflow-y-auto">
@@ -328,16 +331,16 @@ const HirerLayout = ({ children }) => {
                                                 notifications.map((notification) => (
                                                     <div
                                                         key={notification._id}
-                                                        className={`p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0 ${!notification.read ? 'bg-blue-50/30' : ''}`}
+                                                        className={`p-4 hover:bg-[#f7f2fb] cursor-pointer border-b border-gray-100 last:border-0 ${!notification.read ? 'bg-[#f4eef9]' : ''}`}
                                                     >
                                                         <div className="flex items-start gap-3">
-                                                            <div className="w-8 h-8 rounded-full bg-[#E0F2F1] flex items-center justify-center shrink-0">
-                                                                <i className="ph ph-info text-[#00695C]"></i>
+                                                            <div className="w-8 h-8 rounded-full bg-[#eaf7f8] flex items-center justify-center shrink-0">
+                                                                <i className="ph ph-info text-[#07A3B2]"></i>
                                                             </div>
                                                             <div className="flex-1 min-w-0">
-                                                                <p className="font-medium text-[#032A33] text-sm">{notification.title}</p>
-                                                                <p className="text-[#888888] text-xs mt-0.5 truncate">{notification.message}</p>
-                                                                <p className="text-[#82ACAB] text-[10px] mt-1">{timeAgo(notification.createdAt)}</p>
+                                                                <p className="font-medium text-[#2c2143] text-sm">{notification.title}</p>
+                                                                <p className="text-[#8a7ba7] text-xs mt-0.5 truncate">{notification.message}</p>
+                                                                <p className="text-[#07A3B2] text-[10px] mt-1">{timeAgo(notification.createdAt)}</p>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -350,7 +353,7 @@ const HirerLayout = ({ children }) => {
                                                     navigate('/hirer/notifications');
                                                     setIsNotificationOpen(false);
                                                 }}
-                                                className="text-sm text-[#0B4B54] font-medium hover:underline"
+                                                className="text-sm text-[#07A3B2] font-medium hover:underline"
                                             >
                                                 View all
                                             </button>
@@ -368,7 +371,7 @@ const HirerLayout = ({ children }) => {
                                     }}
                                     className="
                                         w-10 h-10 rounded-full 
-                                        gradient-primary
+                                        bg-linear-to-br from-[#07A3B2] via-[#4bb8a4] to-[#5dbf8a]
                                         flex items-center justify-center 
                                         text-white font-semibold
                                         shadow-md hover:shadow-lg
@@ -380,18 +383,18 @@ const HirerLayout = ({ children }) => {
 
                                 {/* Profile Dropdown */}
                                 {isProfileDropdownOpen && (
-                                    <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-[#82ACAB]/20 animate-fade-in-up z-50 py-2">
+                                    <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-[#ece4f4] animate-fade-in-up z-50 py-2">
                                         <button
                                             onClick={() => {
                                                 navigate('/hirer/profile');
                                                 setIsProfileDropdownOpen(false);
                                             }}
-                                            className="flex items-center gap-3 px-4 py-2.5 w-full text-[#032A33] hover:bg-[#D3E4E7]/50 transition-colors"
+                                            className="flex items-center gap-3 px-4 py-2.5 w-full text-[#2c2143] hover:bg-[#f7f2fb] transition-colors"
                                         >
-                                            <i className="ph ph-user text-lg text-[#0B4B54]"></i>
+                                            <i className="ph ph-user text-lg text-[#07A3B2]"></i>
                                             <span>My Profile</span>
                                         </button>
-                                        <div className="my-2 border-t border-[#82ACAB]/20" />
+                                        <div className="my-2 border-t border-[#ece4f4]" />
                                         <button
                                             onClick={() => {
                                                 handleLogout();

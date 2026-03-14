@@ -295,7 +295,7 @@ const ViewApplicants = () => {
                         {application.status === "approved" && (
                           <button
                             onClick={() => navigate(`/hirer/chat/${application.worker?._id}`)}
-                            className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-[#0B4B54] to-[#0D5A65] text-white rounded-lg hover:from-[#0D5A65] hover:to-[#0B4B54] transition-all shadow-md hover:shadow-lg font-semibold"
+                            className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-3 bg-linear-to-r from-[#0B4B54] to-[#0D5A65] text-white rounded-lg hover:from-[#0D5A65] hover:to-[#0B4B54] transition-all shadow-md hover:shadow-lg font-semibold"
                           >
                             <MessageCircle size={18} />
                             <span>Chat with {application.worker?.fullName?.split(' ')[0]}</span>

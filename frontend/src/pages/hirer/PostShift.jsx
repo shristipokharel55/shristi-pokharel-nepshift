@@ -371,7 +371,7 @@ export default function PostShift() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-[#032A33] mb-2">
-                  Minimum Pay (NPR) <span className="text-red-500">*</span>
+                  Minimum Pay (रु) <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -386,7 +386,7 @@ export default function PostShift() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-[#032A33] mb-2">
-                  Maximum Pay (NPR) <span className="text-red-500">*</span>
+                  Maximum Pay (रु) <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"

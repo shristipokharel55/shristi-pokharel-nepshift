@@ -3,11 +3,11 @@ import {
     CheckCircle,
     Clock,
     MapPin,
-    DollarSign,
     Star,
     Calendar,
     Building
 } from 'lucide-react';
+import RupeeIcon from '../../components/ui/RupeeIcon';
 import WorkerLayout from '../../components/worker/WorkerLayout';
 
 const WorkerCompletedJobs = () => {
@@ -67,7 +67,7 @@ const WorkerCompletedJobs = () => {
                     {[
                         { label: 'Total Jobs', value: '24', icon: CheckCircle },
                         { label: 'This Month', value: '8', icon: Calendar },
-                        { label: 'Total Earned', value: 'Rs 28,400', icon: DollarSign },
+                        { label: 'Total Earned', value: 'रु 28,400', icon: RupeeIcon },
                         { label: 'Avg Rating', value: '4.9', icon: Star },
                     ].map((stat, index) => (
                         <div
@@ -111,8 +111,8 @@ const WorkerCompletedJobs = () => {
                                                 {job.date}
                                             </span>
                                             <span className="flex items-center gap-1">
-                                                <DollarSign size={14} className="text-[#82ACAB]" />
-                                                Rs {job.pay}
+                                                <RupeeIcon size={14} className="text-[#82ACAB]" />
+                                                रु {job.pay}
                                             </span>
                                         </div>
                                     </div>

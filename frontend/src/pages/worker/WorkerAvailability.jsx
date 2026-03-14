@@ -5,7 +5,6 @@ import {
     ChevronLeft,
     ChevronRight,
     Clock,
-    DollarSign,
     Filter,
     Grid,
     List,
@@ -14,6 +13,7 @@ import {
     Star,
     TrendingUp
 } from 'lucide-react';
+import RupeeIcon from '../../components/ui/RupeeIcon';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import WorkerLayout from '../../components/worker/WorkerLayout';
@@ -352,7 +352,7 @@ const WorkerAvailability = () => {
                                                 <div className="text-left md:text-right bg-[#D3E4E7]/20 md:bg-transparent p-3 md:p-0 rounded-xl md:rounded-none w-full md:w-auto">
                                                     <div className="text-[10px] font-bold text-[#888888] uppercase tracking-widest mb-1">Estimated Pay</div>
                                                     <div className="font-black text-2xl text-[#032A33]">
-                                                        NPR {shift.pay.toLocaleString()}
+                                                        रु {shift.pay.toLocaleString()}
                                                     </div>
                                                 </div>
                                             </div>
@@ -406,7 +406,7 @@ const WorkerAvailability = () => {
                                     upcomingShifts.map((shift) => (
                                         <div
                                             key={shift.id}
-                                            className="bg-white rounded-2xl shadow-sm border border-[#82ACAB]/10 hover:shadow-lg hover:shadow-[#0B4B54]/5 transition-all duration-300 border-l-[6px] border-[#D3E4E7] relative overflow-hidden group cursor-pointer"
+                                            className="bg-white rounded-2xl shadow-sm border border-[#82ACAB]/10 hover:shadow-lg hover:shadow-[#0B4B54]/5 transition-all duration-300 border-l-[6px] border-l-[#D3E4E7] relative overflow-hidden group cursor-pointer"
                                         >
                                             <div className="p-6">
                                                 <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-4">
@@ -434,7 +434,7 @@ const WorkerAvailability = () => {
                                                     <div className="text-left md:text-right bg-[#D3E4E7]/20 md:bg-transparent p-3 md:p-0 rounded-xl md:rounded-none w-full md:w-auto">
                                                         <div className="text-[10px] font-bold text-[#888888] uppercase tracking-widest mb-1">Pay on Completion</div>
                                                         <div className="font-black text-2xl text-[#032A33]">
-                                                            NPR {shift.pay.toLocaleString()}
+                                                            रु {shift.pay.toLocaleString()}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -555,7 +555,7 @@ const WorkerAvailability = () => {
                                 <h3 className="font-bold text-[#82ACAB] uppercase tracking-widest text-[10px]">Total Potential</h3>
                             </div>
                             <div className="text-4xl font-black mb-2 tracking-tight">
-                                NPR {workerStats.earningsPotential.toLocaleString()}
+                                रु {workerStats.earningsPotential.toLocaleString()}
                             </div>
                             <p className="text-xs text-[#82ACAB]/70 mb-8 font-medium">Projected for upcoming shifts</p>
 
@@ -569,15 +569,15 @@ const WorkerAvailability = () => {
                                     </div>
                                     <div className="w-full bg-white/10 rounded-full h-3">
                                         <div
-                                            className="bg-gradient-to-r from-[#82ACAB] to-[#0B4B54] h-3 rounded-full shadow-[0_0_15px_rgba(130,172,171,0.3)] transition-all duration-1000"
+                                            className="bg-linear-to-r from-[#82ACAB] to-[#0B4B54] h-3 rounded-full shadow-[0_0_15px_rgba(130,172,171,0.3)] transition-all duration-1000"
                                             style={{ 
                                                 width: `${Math.round((workerStats.earnedThisWeek / (workerStats.earningsPotential + workerStats.earnedThisWeek)) * 100)}%` 
                                             }}
                                         ></div>
                                     </div>
                                     <div className="flex justify-between text-[10px] font-black uppercase tracking-[0.2em] text-[#82ACAB]/40 pt-2">
-                                        <span>NPR {workerStats.earnedThisWeek.toLocaleString()} earned</span>
-                                        <span>NPR {workerStats.earningsPotential.toLocaleString()} left</span>
+                                        <span>रु {workerStats.earnedThisWeek.toLocaleString()} earned</span>
+                                        <span>रु {workerStats.earningsPotential.toLocaleString()} left</span>
                                     </div>
                                 </div>
                             )}
@@ -604,7 +604,7 @@ const WorkerAvailability = () => {
 
                         <div className="bg-white rounded-2xl shadow-sm p-5 border border-[#82ACAB]/10 hover:border-[#0B4B54]/30 transition-all group">
                             <div className="p-2.5 bg-[#D3E4E7]/40 w-fit rounded-xl mb-4 group-hover:scale-110 transition-transform">
-                                <DollarSign size={20} className="text-[#0B4B54]" />
+                                <RupeeIcon size={20} className="text-[#0B4B54]" />
                             </div>
                             <div className="text-3xl font-black text-[#032A33] mb-1">
                                 {(workerStats.totalEarnings / 1000).toFixed(1)}k
@@ -624,7 +624,7 @@ const WorkerAvailability = () => {
                     </div>
 
                     {/* Trust Badge Card */}
-                    <div className="bg-gradient-to-br from-[#0B4B54] to-[#032A33] rounded-2xl shadow-lg p-6 text-white relative overflow-hidden">
+                    <div className="bg-linear-to-br from-[#0B4B54] to-[#032A33] rounded-2xl shadow-lg p-6 text-white relative overflow-hidden">
                         <div className="absolute -right-4 -bottom-4 opacity-10 transform rotate-12">
                             <BadgeCheck size={120} />
                         </div>

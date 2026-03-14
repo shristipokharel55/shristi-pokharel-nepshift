@@ -100,7 +100,7 @@ const WorkerRatings = () => {
                         >
                             <div className="flex items-start justify-between mb-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#0B4B54] to-[#82ACAB] flex items-center justify-center text-white font-bold text-lg">
+                                    <div className="w-12 h-12 rounded-xl bg-linear-to-br from-[#0B4B54] to-[#82ACAB] flex items-center justify-center text-white font-bold text-lg">
                                         {review.employer.charAt(0)}
                                     </div>
                                     <div>

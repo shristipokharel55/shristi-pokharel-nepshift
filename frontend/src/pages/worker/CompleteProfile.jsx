@@ -342,7 +342,7 @@ const CompleteProfile = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-800">Hourly Rate</h3>
-                  <p className="text-sm text-gray-500">Your expected rate (NPR)</p>
+                  <p className="text-sm text-gray-500">Your expected rate (रु)</p>
                 </div>
               </div>
               <input

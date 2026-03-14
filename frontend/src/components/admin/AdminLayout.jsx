@@ -99,26 +99,29 @@ const Sidebar = ({ isOpen, onClose }) => {
             <aside
                 className={`
                     fixed top-0 left-0 z-50 h-full w-72
-                    bg-[#F8FAFC] flex flex-col
+                    bg-white/95 backdrop-blur-xl flex flex-col
                     transform transition-transform duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]
                     lg:translate-x-0 lg:static lg:z-auto
                     ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-                    border-r border-slate-200/80
+                    border-r border-[#ece4f4]
                 `}
             >
                 {/* Logo Section */}
-                <div className="h-16 px-6 flex items-center justify-between border-b border-slate-200/50">
+                <div className="h-16 px-6 flex items-center justify-between border-b border-[#ece4f4]">
                     <Link to="/admin/dashboard" className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center shadow-sm">
+                        <div className="w-9 h-9 bg-linear-to-br from-[#07A3B2] via-[#4bb8a4] to-[#5dbf8a] rounded-xl flex items-center justify-center shadow-sm">
                             <span className="text-white font-bold text-lg leading-none">N</span>
                         </div>
-                        <span className="text-lg font-bold text-slate-900 tracking-tight" style={{ fontFamily: "'Inter', sans-serif" }}>
-                            Nepshift
-                        </span>
+                        <div>
+                            <span className="text-lg font-bold text-[#2c2143] tracking-tight" style={{ fontFamily: "'Inter', sans-serif" }}>
+                                Nepshift
+                            </span>
+                            <p className="text-[10px] text-[#8a7ba7] font-medium">Admin</p>
+                        </div>
                     </Link>
                     <button
                         onClick={onClose}
-                        className="lg:hidden p-1.5 text-slate-500 hover:bg-slate-200 rounded-md transition-colors"
+                        className="lg:hidden p-1.5 text-[#8a7ba7] hover:bg-[#f4eef9] rounded-md transition-colors"
                     >
                         <X size={20} />
                     </button>
@@ -128,7 +131,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 <nav className="flex-1 px-4 py-6 overflow-y-auto space-y-8">
                     {navGroups.map((group, groupIndex) => (
                         <div key={groupIndex}>
-                            <h3 className="px-3 mb-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                            <h3 className="px-3 mb-2 text-[11px] font-bold text-[#9d90b6] uppercase tracking-wider">
                                 {group.title}
                             </h3>
                             <div className="space-y-0.5">
@@ -145,8 +148,8 @@ const Sidebar = ({ isOpen, onClose }) => {
                                                 relative flex items-center justify-between px-3 py-2 rounded-md
                                                 transition-all duration-200 group
                                                 ${isActive
-                                                    ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200'
-                                                    : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'
+                                                    ? 'bg-[#f4eef9] text-[#55406f] shadow-sm ring-1 ring-[#e2d8ef]'
+                                                    : 'text-[#6f6487] hover:bg-[#f7f2fb] hover:text-[#2c2143]'
                                                 }
                                             `}
                                         >
@@ -154,7 +157,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                                                 <Icon
                                                     size={18}
                                                     strokeWidth={2}
-                                                    className={`transition-colors ${isActive ? 'text-slate-900' : 'text-slate-400 group-hover:text-slate-600'}`}
+                                                    className={`transition-colors ${isActive ? 'text-[#55406f]' : 'text-[#a194ba] group-hover:text-[#6f6487]'}`}
                                                 />
                                                 <span className="text-sm font-medium" style={{ fontFamily: "'Inter', sans-serif" }}>
                                                     {item.name}
@@ -164,8 +167,8 @@ const Sidebar = ({ isOpen, onClose }) => {
                                                 <span className={`
                                                     px-1.5 py-0.5 text-[10px] font-bold rounded-full
                                                     ${isActive
-                                                        ? 'bg-slate-900 text-white'
-                                                        : 'bg-slate-100 text-slate-500'
+                                                        ? 'bg-linear-to-r from-[#07A3B2] to-[#5dbf8a] text-white'
+                                                        : 'bg-[#f4eef9] text-[#7f7199]'
                                                     }
                                                 `}>
                                                     {item.badge}
@@ -180,10 +183,10 @@ const Sidebar = ({ isOpen, onClose }) => {
                 </nav>
 
                 {/* User & Logout Section */}
-                <div className="p-4 border-t border-slate-200/50">
+                <div className="p-4 border-t border-[#ece4f4]">
                     <button
                         onClick={handleLogout}
-                        className="flex items-center gap-3 w-full px-3 py-2 text-slate-500 hover:text-red-600 hover:bg-red-50/50 rounded-md transition-all duration-200 group"
+                        className="flex items-center gap-3 w-full px-3 py-2 text-[#7f7199] hover:text-red-600 hover:bg-red-50/50 rounded-md transition-all duration-200 group"
                     >
                         <LogOut size={18} strokeWidth={2} className="group-hover:text-red-600 transition-colors" />
                         <span className="text-sm font-medium" style={{ fontFamily: "'Inter', sans-serif" }}>
@@ -274,11 +277,11 @@ const Header = ({ onMenuClick }) => {
     };
 
     return (
-        <header className="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        <header className="h-16 bg-white/85 backdrop-blur-md border-b border-[#ece4f4] shadow-[0_10px_28px_rgba(122,105,165,0.06)] sticky top-0 z-30 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
             <div className="flex items-center gap-4 flex-1">
                 <button
                     onClick={onMenuClick}
-                    className="lg:hidden p-2 -ml-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                    className="lg:hidden p-2 -ml-2 text-[#8a7ba7] hover:text-[#2c2143] hover:bg-[#f7f2fb] rounded-lg transition-colors"
                 >
                     <Menu size={20} />
                 </button>
@@ -286,15 +289,15 @@ const Header = ({ onMenuClick }) => {
                 {/* Global Search */}
                 <div className="hidden md:flex items-center gap-3 w-full max-w-md">
                     <div className="relative w-full group">
-                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-600 transition-colors" />
+                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a194ba] group-focus-within:text-[#6f6487] transition-colors" />
                         <input
                             type="text"
                             placeholder="Search..."
-                            className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-lg pl-9 pr-4 py-1.5 focus:outline-none focus:ring-2 focus:ring-slate-200 focus:bg-white transition-all placeholder:text-slate-400"
+                            className="w-full bg-[#f7f2fb] border border-[#ece4f4] text-[#2c2143] text-sm rounded-lg pl-9 pr-4 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#07A3B2]/15 focus:bg-white transition-all placeholder:text-[#a194ba]"
                             style={{ fontFamily: "'Inter', sans-serif" }}
                         />
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-50">
-                            <span className="text-[10px] font-medium text-slate-500 border border-slate-300 rounded px-1">/</span>
+                            <span className="text-[10px] font-medium text-[#8a7ba7] border border-[#d9cfe7] rounded px-1">/</span>
                         </div>
                     </div>
                 </div>
@@ -302,20 +305,20 @@ const Header = ({ onMenuClick }) => {
 
             <div className="flex items-center gap-3 sm:gap-6">
                 {/* Feedback / Help */}
-                <button className="hidden sm:flex text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors">
+                <button className="hidden sm:flex text-xs font-medium text-[#8a7ba7] hover:text-[#2c2143] transition-colors">
                     Feedback
                 </button>
-                <button className="hidden sm:flex text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors">
+                <button className="hidden sm:flex text-xs font-medium text-[#8a7ba7] hover:text-[#2c2143] transition-colors">
                     Help
                 </button>
 
-                <div className="h-4 w-px bg-slate-200 hidden sm:block"></div>
+                <div className="h-4 w-px bg-[#ece4f4] hidden sm:block"></div>
 
                 {/* Notifications */}
                 <div className="relative" ref={notificationRef}>
                     <button
                         onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-                        className="relative text-slate-400 hover:text-slate-600 transition-colors"
+                        className="relative text-[#8a7ba7] hover:text-[#07A3B2] transition-colors"
                     >
                         <Bell size={18} />
                         {unreadCount > 0 && (
@@ -325,14 +328,14 @@ const Header = ({ onMenuClick }) => {
 
                     {/* Notifications Dropdown */}
                     {isNotificationOpen && (
-                        <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-slate-200 animate-fade-in-up z-50">
-                            <div className="p-4 border-b border-slate-200">
+                        <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-[#ece4f4] animate-fade-in-up z-50">
+                            <div className="p-4 border-b border-[#ece4f4]">
                                 <div className="flex items-center justify-between">
-                                    <h3 className="font-semibold text-slate-900">Notifications</h3>
+                                    <h3 className="font-semibold text-[#2c2143]">Notifications</h3>
                                     {unreadCount > 0 && (
                                         <button
                                             onClick={markAllAsRead}
-                                            className="text-xs text-blue-600 hover:underline"
+                                            className="text-xs text-[#07A3B2] hover:underline"
                                         >
                                             Mark all as read
                                         </button>
@@ -341,8 +344,8 @@ const Header = ({ onMenuClick }) => {
                             </div>
                             <div className="max-h-80 overflow-y-auto">
                                 {notifications.length === 0 ? (
-                                    <div className="p-8 text-center text-slate-500">
-                                        <Bell size={32} className="mx-auto mb-2 text-slate-300" />
+                                    <div className="p-8 text-center text-[#8a7ba7]">
+                                        <Bell size={32} className="mx-auto mb-2 text-[#d9cfe7]" />
                                         <p className="text-sm">No notifications</p>
                                     </div>
                                 ) : (
@@ -351,7 +354,7 @@ const Header = ({ onMenuClick }) => {
                                         return (
                                             <div
                                                 key={notification._id}
-                                                className={`p-4 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-b-0 ${!notification.read ? 'bg-blue-50/50' : ''}`}
+                                                className={`p-4 hover:bg-[#f7f2fb] cursor-pointer border-b border-[#f2ecf8] last:border-b-0 ${!notification.read ? 'bg-[#f4eef9]' : ''}`}
                                             >
                                                 <div className="flex items-start gap-3">
                                                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${getIconColor(notification.type)}`}>
@@ -359,13 +362,13 @@ const Header = ({ onMenuClick }) => {
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center gap-2">
-                                                            <p className="font-medium text-slate-900 text-sm">{notification.title}</p>
+                                                            <p className="font-medium text-[#2c2143] text-sm">{notification.title}</p>
                                                             {!notification.read && (
-                                                                <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                                                                <span className="w-2 h-2 rounded-full bg-[#07A3B2] shrink-0" />
                                                             )}
                                                         </div>
-                                                        <p className="text-slate-600 text-xs mt-0.5 truncate">{notification.message}</p>
-                                                        <p className="text-slate-400 text-xs mt-1">{getTimeAgo(notification.createdAt)}</p>
+                                                        <p className="text-[#7f7199] text-xs mt-0.5 truncate">{notification.message}</p>
+                                                        <p className="text-[#a194ba] text-xs mt-1">{getTimeAgo(notification.createdAt)}</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -374,11 +377,11 @@ const Header = ({ onMenuClick }) => {
                                 )}
                             </div>
                             {notifications.length > 0 && (
-                                <div className="p-3 border-t border-slate-200">
+                                <div className="p-3 border-t border-[#ece4f4]">
                                     <Link
                                         to="/admin/notifications"
                                         onClick={() => setIsNotificationOpen(false)}
-                                        className="block w-full text-center text-sm text-blue-600 font-medium hover:underline"
+                                        className="block w-full text-center text-sm text-[#07A3B2] font-medium hover:underline"
                                     >
                                         View all notifications
                                     </Link>
@@ -390,7 +393,7 @@ const Header = ({ onMenuClick }) => {
 
                 {/* Profile Menu */}
                 <div className="flex items-center gap-3 pl-2">
-                    <div className="h-8 w-8 bg-gradient-to-tr from-slate-200 to-slate-300 rounded-full flex items-center justify-center text-xs font-bold text-slate-600 ring-2 ring-white shadow-sm cursor-pointer hover:ring-slate-100 transition-all">
+                    <div className="h-8 w-8 bg-linear-to-tr from-[#07A3B2] to-[#5dbf8a] rounded-full flex items-center justify-center text-xs font-bold text-white ring-2 ring-white shadow-sm cursor-pointer hover:ring-[#eaf7f8] transition-all">
                         <span style={{ fontFamily: "'Inter', sans-serif" }}>
                             {user?.fullName?.charAt(0) || 'A'}
                         </span>
@@ -406,12 +409,12 @@ const AdminLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     return (
-        <div className="min-h-screen bg-[#FFFFFF] flex font-sans text-slate-900 selection:bg-indigo-100 selection:text-indigo-700">
+        <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#ffffff_0%,#f7f2fb_42%,#f4eef9_100%)] flex font-sans text-slate-900 selection:bg-indigo-100 selection:text-indigo-700">
             {/* Sidebar */}
             <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
             {/* Main Content Area */}
-            <div className="flex-1 flex flex-col min-h-screen lg:ml-0 bg-[#F9FAFB]">
+            <div className="flex-1 flex flex-col min-h-screen lg:ml-0 bg-transparent">
                 {/* Header */}
                 <Header onMenuClick={() => setSidebarOpen(true)} />
 

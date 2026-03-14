@@ -6,7 +6,6 @@ import {
     CheckCircle,
     ChevronRight,
     Clock,
-    DollarSign,
     MapPin,
     Shield,
     ShieldCheck,
@@ -20,6 +19,7 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import BidModal from '../../components/worker/BidModal';
 import WorkerLayout from '../../components/worker/WorkerLayout';
+import RupeeIcon from '../../components/ui/RupeeIcon';
 import api from '../../utils/api';
 
 // Profile Completion Banner Component
@@ -30,17 +30,17 @@ const ProfileCompletionBanner = ({ percentage, onComplete }) => {
 
     return (
         <div
-            className="glass-card rounded-2xl p-5 mb-6 border-l-4 border-[#0B4B54] animate-fade-in-up"
+            className="glass-card rounded-2xl p-5 mb-6 border-l-4 border-[#07A3B2] animate-fade-in-up"
             style={{ animationFillMode: 'forwards' }}
         >
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-[#0B4B54]/10 flex items-center justify-center">
-                        <User size={24} className="text-[#0B4B54]" />
+                    <div className="w-12 h-12 rounded-xl bg-[#07A3B2]/10 flex items-center justify-center">
+                        <User size={24} className="text-[#07A3B2]" />
                     </div>
                     <div>
-                        <h4 className="font-semibold text-[#032A33]">Complete Your Profile</h4>
-                        <p className="text-sm text-[#888888]">
+                        <h4 className="font-semibold text-[#1f2937]">Complete Your Profile</h4>
+                        <p className="text-sm text-[#6b7280]">
                             Your profile is {percentage}% complete. Add more details to get more job opportunities.
                         </p>
                     </div>
@@ -49,14 +49,14 @@ const ProfileCompletionBanner = ({ percentage, onComplete }) => {
                     <div className="flex-1 sm:w-32">
                         <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                             <div
-                                className="h-full bg-gradient-to-r from-[#0B4B54] to-[#82ACAB] rounded-full transition-all duration-500"
+                                className="h-full bg-linear-to-r from-[#07A3B2] to-[#5dbf8a] rounded-full transition-all duration-500"
                                 style={{ width: `${percentage}%` }}
                             />
                         </div>
                     </div>
                     <button
                         onClick={onComplete}
-                        className="flex items-center gap-1 px-4 py-2 rounded-xl bg-[#0B4B54] text-white text-sm font-semibold hover:bg-[#0D5A65] transition-colors"
+                        className="flex items-center gap-1 px-4 py-2 rounded-xl bg-[#07A3B2] text-white text-sm font-semibold hover:bg-[#068998] transition-colors cursor-pointer"
                     >
                         Complete
                         <ChevronRight size={16} />
@@ -121,13 +121,13 @@ const VerificationBanner = ({ status, onVerify }) => {
                         <IconComponent size={24} className={config.iconColor} />
                     </div>
                     <div>
-                        <h4 className="font-semibold text-[#032A33]">{config.title}</h4>
-                        <p className="text-sm text-[#888888]">{config.message}</p>
+                        <h4 className="font-semibold text-[#1f2937]">{config.title}</h4>
+                        <p className="text-sm text-[#6b7280]">{config.message}</p>
                     </div>
                 </div>
                 <button
                     onClick={onVerify}
-                    className={`flex items-center gap-1 px-4 py-2 rounded-xl text-white text-sm font-semibold transition-colors ${config.buttonColor}`}
+                    className={`flex items-center gap-1 px-4 py-2 rounded-xl text-white text-sm font-semibold transition-colors cursor-pointer ${config.buttonColor}`}
                 >
                     {config.buttonText}
                     <ChevronRight size={16} />
@@ -174,8 +174,8 @@ const StatCard = ({ title, value, icon: Icon, trend, trendValue, gradientFrom, g
                 </div>
             )}
         </div>
-        <h3 className="text-3xl font-bold text-[#032A33] mb-1">{value}</h3>
-        <p className="text-[#888888] font-medium">{title}</p>
+        <h3 className="text-3xl font-bold text-[#1f2937] mb-1">{value}</h3>
+        <p className="text-[#6b7280] font-medium">{title}</p>
     </div>
 );
 
@@ -185,9 +185,9 @@ const QuickActionButton = ({ title, description, icon: Icon, onClick, color, del
         onClick={onClick}
         className={`
       w-full p-5 rounded-2xl text-left
-      bg-white/80 hover:bg-white
-      border border-[#82ACAB]/20 hover:border-[#0B4B54]/30
-      shadow-sm hover:shadow-lg hover:shadow-[#0B4B54]/5
+            bg-white/90 hover:bg-white
+            border border-[#e8e1f2] hover:border-[#d7caeb]
+            shadow-sm hover:shadow-lg hover:shadow-[#b9a7d6]/20
       transition-all duration-300 group
       animate-fade-in-up opacity-0
     `}
@@ -201,14 +201,14 @@ const QuickActionButton = ({ title, description, icon: Icon, onClick, color, del
                 <Icon size={22} style={{ color }} />
             </div>
             <div className="flex-1">
-                <h4 className="font-semibold text-[#032A33] group-hover:text-[#0B4B54] transition-colors">
+                <h4 className="font-semibold text-[#1f2937] group-hover:text-[#07A3B2] transition-colors">
                     {title}
                 </h4>
-                <p className="text-sm text-[#888888]">{description}</p>
+                <p className="text-sm text-[#6b7280]">{description}</p>
             </div>
             <ArrowUpRight
                 size={20}
-                className="text-[#82ACAB] group-hover:text-[#0B4B54] transition-all group-hover:translate-x-1 group-hover:-translate-y-1"
+                className="text-[#b9a7d6] group-hover:text-[#07A3B2] transition-all group-hover:translate-x-1 group-hover:-translate-y-1"
             />
         </div>
     </button>
@@ -220,7 +220,7 @@ const SimpleBarChart = ({ data, title }) => {
 
     return (
         <div className="glass-card rounded-2xl p-6 animate-fade-in-up opacity-0" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
-            <h3 className="font-semibold text-[#032A33] mb-6">{title}</h3>
+            <h3 className="font-semibold text-[#1f2937] mb-6">{title}</h3>
             <div className="flex items-end justify-between gap-3 h-40">
                 {data.map((item, index) => (
                     <div key={index} className="flex-1 flex flex-col items-center gap-2">
@@ -229,12 +229,12 @@ const SimpleBarChart = ({ data, title }) => {
                                 className="w-8 rounded-t-lg transition-all duration-500 hover:opacity-80"
                                 style={{
                                     height: `${(item.value / maxValue) * 120}px`,
-                                    background: `linear-gradient(180deg, #0B4B54 0%, #82ACAB 100%)`,
+                                    background: `linear-gradient(180deg, #07A3B2 0%, #5dbf8a 100%)`,
                                     animationDelay: `${index * 100}ms`
                                 }}
                             />
                         </div>
-                        <span className="text-xs text-[#888888] font-medium">{item.label}</span>
+                        <span className="text-xs text-[#6b7280] font-medium">{item.label}</span>
                     </div>
                 ))}
             </div>
@@ -249,8 +249,8 @@ const EarningsChart = ({ data }) => {
     return (
         <div className="glass-card rounded-2xl p-6 animate-fade-in-up opacity-0" style={{ animationDelay: '500ms', animationFillMode: 'forwards' }}>
             <div className="flex items-center justify-between mb-6">
-                <h3 className="font-semibold text-[#032A33]">Earnings Overview</h3>
-                <select className="px-3 py-1.5 rounded-lg bg-[#D3E4E7]/50 text-sm text-[#032A33] border-0 focus:ring-2 focus:ring-[#0B4B54]/20">
+                <h3 className="font-semibold text-[#1f2937]">Earnings Overview</h3>
+                <select className="px-3 py-1.5 rounded-lg bg-[#f3eef9] text-sm text-[#1f2937] border border-[#e8e1f2] focus:ring-2 focus:ring-[#07A3B2]/20">
                     <option>This Week</option>
                     <option>This Month</option>
                     <option>This Year</option>
@@ -260,7 +260,7 @@ const EarningsChart = ({ data }) => {
                 <svg className="w-full h-full" viewBox="0 0 300 100" preserveAspectRatio="none">
                     {/* Grid lines */}
                     {[0, 25, 50, 75, 100].map((y) => (
-                        <line key={y} x1="0" y1={y} x2="300" y2={y} stroke="#82ACAB" strokeWidth="0.5" strokeOpacity="0.3" />
+                        <line key={y} x1="0" y1={y} x2="300" y2={y} stroke="#d7caeb" strokeWidth="0.5" strokeOpacity="0.8" />
                     ))}
 
                     {/* Area fill */}
@@ -281,7 +281,7 @@ const EarningsChart = ({ data }) => {
               ${data.map((d, i) => `L ${(i / (data.length - 1)) * 300} ${100 - (d.amount / maxValue) * 80}`).join(' ')}
             `}
                         fill="none"
-                        stroke="#0B4B54"
+                        stroke="#07A3B2"
                         strokeWidth="2.5"
                         strokeLinecap="round"
                     />
@@ -293,7 +293,7 @@ const EarningsChart = ({ data }) => {
                             cx={(i / (data.length - 1)) * 300}
                             cy={100 - (d.amount / maxValue) * 80}
                             r="4"
-                            fill="#0B4B54"
+                            fill="#07A3B2"
                             stroke="white"
                             strokeWidth="2"
                         />
@@ -301,15 +301,15 @@ const EarningsChart = ({ data }) => {
 
                     <defs>
                         <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#0B4B54" />
-                            <stop offset="100%" stopColor="#82ACAB" />
+                            <stop offset="0%" stopColor="#07A3B2" />
+                            <stop offset="100%" stopColor="#5dbf8a" />
                         </linearGradient>
                     </defs>
                 </svg>
             </div>
             <div className="flex justify-between mt-4">
                 {data.map((d, i) => (
-                    <span key={i} className="text-xs text-[#888888]">{d.day}</span>
+                    <span key={i} className="text-xs text-[#6b7280]">{d.day}</span>
                 ))}
             </div>
         </div>
@@ -327,46 +327,46 @@ const RecommendedJobCard = ({ job, delay, shift, onApply }) => (
     >
         <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-[#D3E4E7] flex items-center justify-center">
-                    <Briefcase size={20} className="text-[#0B4B54]" />
+                <div className="w-12 h-12 rounded-xl bg-[#f3eef9] flex items-center justify-center">
+                    <Briefcase size={20} className="text-[#07A3B2]" />
                 </div>
                 <div>
-                    <h4 className="font-semibold text-[#032A33]">{job.title}</h4>
-                    <p className="text-sm text-[#888888]">{job.company}</p>
+                    <h4 className="font-semibold text-[#1f2937]">{job.title}</h4>
+                    <p className="text-sm text-[#6b7280]">{job.company}</p>
                 </div>
             </div>
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#82ACAB]/20 text-[#0B4B54]">
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#f3eef9] text-[#7a69a5]">
                 {job.tag}
             </span>
         </div>
 
         <div className="flex flex-wrap gap-3 mb-4">
-            <div className="flex items-center gap-1.5 text-sm text-[#888888]">
-                <MapPin size={14} className="text-[#82ACAB]" />
+            <div className="flex items-center gap-1.5 text-sm text-[#6b7280]">
+                <MapPin size={14} className="text-[#b9a7d6]" />
                 {job.location}
             </div>
-            <div className="flex items-center gap-1.5 text-sm text-[#888888]">
-                <Clock size={14} className="text-[#82ACAB]" />
+            <div className="flex items-center gap-1.5 text-sm text-[#6b7280]">
+                <Clock size={14} className="text-[#b9a7d6]" />
                 {job.time}
             </div>
-            <div className="flex items-center gap-1.5 text-sm text-[#888888]">
-                <DollarSign size={14} className="text-[#82ACAB]" />
-                Rs {job.pay}
+            <div className="flex items-center gap-1.5 text-sm text-[#6b7280]">
+                <RupeeIcon size={14} className="text-[#b9a7d6]" />
+                रु {job.pay}
             </div>
         </div>
 
-        <div className="flex items-center justify-between pt-4 border-t border-[#82ACAB]/20">
+        <div className="flex items-center justify-between pt-4 border-t border-[#e8e1f2]">
             <div className="flex items-center gap-1">
                 <Star size={14} className="text-yellow-500 fill-yellow-500" />
-                <span className="text-sm font-medium text-[#032A33]">{job.rating}</span>
+                <span className="text-sm font-medium text-[#1f2937]">{job.rating}</span>
             </div>
             <button
                 onClick={() => onApply && onApply(shift)}
                 className="
         px-4 py-2 rounded-xl
-        bg-[#0B4B54] hover:bg-[#0D5A65]
+        bg-[#07A3B2] hover:bg-[#068998]
         text-white text-sm font-semibold
-        transition-all duration-200
+        transition-all duration-200 cursor-pointer
         btn-ripple
       ">
                 Apply Now
@@ -535,16 +535,16 @@ const WorkerDashboard = () => {
             <div className="mb-8 animate-fade-in-up">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl lg:text-4xl font-bold text-[#032A33] mb-2">
-                            {getGreeting()}, <span className="text-[#0B4B54]">{firstName}</span>! 👋
+                        <h1 className="text-3xl lg:text-4xl font-bold text-[#1f2937] mb-2">
+                            {getGreeting()}, <span className="text-[#07A3B2]">{firstName}</span>! 👋
                         </h1>
-                        <p className="text-[#888888] font-medium">{formatDate()}</p>
+                        <p className="text-[#6b7280] font-medium">{formatDate()}</p>
                     </div>
                     <div className="flex items-center gap-3">
                         {profileData.isVerified ? (
                             <VerifiedBadge />
                         ) : (
-                            <span className="px-4 py-2 rounded-xl bg-[#82ACAB]/20 text-[#0B4B54] font-semibold flex items-center gap-2">
+                            <span className="px-4 py-2 rounded-xl bg-[#f3eef9] text-[#7a69a5] font-semibold flex items-center gap-2">
                                 <Zap size={16} className="text-yellow-500" />
                                 Pro Helper
                             </span>
@@ -585,19 +585,19 @@ const WorkerDashboard = () => {
                 />
                 <StatCard
                     title="Total Earnings"
-                    value={`Rs ${stats.earnings.toLocaleString()}`}
-                    icon={DollarSign}
+                    value={`रु ${stats.earnings.toLocaleString()}`}
+                    icon={RupeeIcon}
                     trend="up"
                     trendValue="+8%"
-                    gradientFrom="#032A33"
-                    gradientTo="#0B4B54"
+                    gradientFrom="#7a69a5"
+                    gradientTo="#a892cc"
                     delay={400}
                 />
             </div>
 
             {/* Quick Actions */}
             <div className="mb-8">
-                <h3 className="font-semibold text-[#032A33] text-lg mb-4">Quick Actions</h3>
+                <h3 className="font-semibold text-[#1f2937] text-lg mb-4">Quick Actions</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <QuickActionButton
                         title="Find Shifts"
@@ -618,9 +618,9 @@ const WorkerDashboard = () => {
                     <QuickActionButton
                         title="Wallet"
                         description="View payment history"
-                        icon={DollarSign}
+                        icon={RupeeIcon}
                         onClick={() => navigate('/worker/wallet')}
-                        color="#032A33"
+                        color="#7a69a5"
                         delay={400}
                     />
                 </div>
@@ -629,10 +629,10 @@ const WorkerDashboard = () => {
             {/* Recommended Jobs Section */}
             <div className="mb-8">
                 <div className="flex items-center justify-between mb-6">
-                    <h3 className="font-semibold text-[#032A33] text-lg">Recommended Shifts</h3>
+                    <h3 className="font-semibold text-[#1f2937] text-lg">Recommended Shifts</h3>
                     <button
                         onClick={() => navigate('/worker/find-shifts')}
-                        className="text-[#0B4B54] hover:text-[#0D5A65] font-semibold text-sm flex items-center gap-1 group"
+                        className="text-[#07A3B2] hover:text-[#068998] font-semibold text-sm flex items-center gap-1 group cursor-pointer"
                     >
                         View All
                         <ArrowUpRight size={16} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
@@ -640,8 +640,8 @@ const WorkerDashboard = () => {
                 </div>
                 {loadingShifts ? (
                     <div className="text-center py-12">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0B4B54] mx-auto"></div>
-                        <p className="text-[#888888] mt-4">Loading shifts...</p>
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#07A3B2] mx-auto"></div>
+                        <p className="text-[#6b7280] mt-4">Loading shifts...</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -677,12 +677,12 @@ const WorkerDashboard = () => {
             )}
 
             {/* Footer Info */}
-            <div className="text-center py-6 border-t border-[#82ACAB]/20">
-                <p className="text-sm text-[#888888]">
+            <div className="text-center py-6 border-t border-[#e8e1f2]">
+                <p className="text-sm text-[#6b7280]">
                     © 2026 Nepshift. All rights reserved. |{' '}
-                    <button className="text-[#0B4B54] hover:underline">Privacy Policy</button>{' '}
+                    <button className="text-[#07A3B2] hover:underline cursor-pointer">Privacy Policy</button>{' '}
                     |{' '}
-                    <button className="text-[#0B4B54] hover:underline">Terms of Service</button>
+                    <button className="text-[#07A3B2] hover:underline cursor-pointer">Terms of Service</button>
                 </p>
             </div>
         </WorkerLayout>

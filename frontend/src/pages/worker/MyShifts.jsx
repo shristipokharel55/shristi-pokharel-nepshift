@@ -6,7 +6,6 @@ import {
     Calendar,
     CheckCircle,
     Clock,
-    DollarSign,
     FileText,
     Loader2,
     MapPin,
@@ -16,6 +15,7 @@ import {
     Star,
     X
 } from 'lucide-react';
+import RupeeIcon from '../../components/ui/RupeeIcon';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { MapContainer, Marker, Polyline, TileLayer, useMap } from 'react-leaflet';
@@ -346,8 +346,8 @@ const MyShifts = () => {
                                             {bid.shiftId?.time?.start} - {bid.shiftId?.time?.end}
                                         </span>
                                         <span className="flex items-center gap-1 text-[#032A33] font-semibold">
-                                            <DollarSign size={14} className="text-[#82ACAB]" />
-                                            Rs {bid.bidAmount?.toLocaleString()}
+                                            <RupeeIcon size={14} className="text-[#82ACAB]" />
+                                            रु {bid.bidAmount?.toLocaleString()}
                                         </span>
                                     </div>
                                 </div>
@@ -422,8 +422,8 @@ const MyShifts = () => {
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2 text-sm">
-                                        <DollarSign size={16} className="text-[#82ACAB]" />
-                                        <span className="text-[#032A33] font-semibold">Rs {bid.bidAmount?.toLocaleString()}</span>
+                                        <RupeeIcon size={16} className="text-[#82ACAB]" />
+                                        <span className="text-[#032A33] font-semibold">रु {bid.bidAmount?.toLocaleString()}</span>
                                     </div>
                                     <div className="flex items-center gap-2 text-sm">
                                         <Phone size={16} className="text-[#82ACAB]" />
@@ -467,7 +467,7 @@ const MyShifts = () => {
                 {[
                     { label: 'Total Jobs', value: stats.totalJobs.toString(), icon: CheckCircle, color: 'text-emerald-600 bg-emerald-100' },
                     { label: 'This Month', value: stats.thisMonth.toString(), icon: Calendar, color: 'text-blue-600 bg-blue-100' },
-                    { label: 'Total Earned', value: `Rs ${stats.totalEarned.toLocaleString()}`, icon: DollarSign, color: 'text-purple-600 bg-purple-100' },
+                    { label: 'Total Earned', value: `रु ${stats.totalEarned.toLocaleString()}`, icon: RupeeIcon, color: 'text-purple-600 bg-purple-100' },
                     { label: 'Avg Rating', value: stats.avgRating.toString(), icon: Star, color: 'text-amber-600 bg-amber-100' },
                 ].map((stat, index) => (
                     <div
@@ -522,8 +522,8 @@ const MyShifts = () => {
                                                 {formatDate(bid.shiftId?.date)}
                                             </span>
                                             <span className="flex items-center gap-1 text-[#032A33] font-semibold">
-                                                <DollarSign size={14} className="text-[#82ACAB]" />
-                                                Rs {bid.bidAmount?.toLocaleString()}
+                                                <RupeeIcon size={14} className="text-[#82ACAB]" />
+                                                रु {bid.bidAmount?.toLocaleString()}
                                             </span>
                                         </div>
                                     </div>
@@ -539,7 +539,7 @@ const MyShifts = () => {
                                                 <span className="text-emerald-700 text-xs font-semibold">Payment Received</span>
                                             </div>
                                             <p className="text-base font-bold text-emerald-600">
-                                                Rs {paymentsMap[bid.shiftId?._id].amount?.toLocaleString()}
+                                                रु {paymentsMap[bid.shiftId?._id].amount?.toLocaleString()}
                                             </p>
                                             <p className="text-xs text-gray-400">
                                                 {paymentsMap[bid.shiftId?._id].date}

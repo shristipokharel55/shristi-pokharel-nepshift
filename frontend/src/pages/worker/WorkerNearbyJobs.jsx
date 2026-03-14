@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import {
     MapPin,
     Clock,
-    DollarSign,
     Star,
     Filter,
     Search,
@@ -11,6 +10,7 @@ import {
     Building,
     ArrowUpRight
 } from 'lucide-react';
+import RupeeIcon from '../../components/ui/RupeeIcon';
 import WorkerLayout from '../../components/worker/WorkerLayout';
 
 const JobCard = ({ job, delay }) => {
@@ -23,7 +23,7 @@ const JobCard = ({ job, delay }) => {
         >
             <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#0B4B54] to-[#82ACAB] flex items-center justify-center">
+                    <div className="w-14 h-14 rounded-xl bg-linear-to-br from-[#0B4B54] to-[#82ACAB] flex items-center justify-center">
                         <Briefcase size={24} className="text-white" />
                     </div>
                     <div>
@@ -60,8 +60,8 @@ const JobCard = ({ job, delay }) => {
                     <span className="text-[#032A33]">{job.time}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
-                    <DollarSign size={16} className="text-[#82ACAB]" />
-                    <span className="text-[#032A33] font-semibold">Rs {job.pay}/shift</span>
+                    <RupeeIcon size={16} className="text-[#82ACAB]" />
+                    <span className="text-[#032A33] font-semibold">रु {job.pay}/shift</span>
                 </div>
             </div>
 

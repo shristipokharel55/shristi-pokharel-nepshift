@@ -4,7 +4,6 @@ import {
     Briefcase,
     Building,
     Clock,
-    DollarSign,
     Filter,
     Loader2,
     MapPin,
@@ -12,6 +11,7 @@ import {
     ShieldAlert,
     Star
 } from 'lucide-react';
+import RupeeIcon from '../../components/ui/RupeeIcon';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
@@ -55,7 +55,7 @@ const ShiftCard = ({ shift, delay, canApply, onApply, onVerify }) => {
         >
             <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#0B4B54] to-[#82ACAB] flex items-center justify-center">
+                    <div className="w-14 h-14 rounded-xl bg-linear-to-br from-[#0B4B54] to-[#82ACAB] flex items-center justify-center">
                         <Briefcase size={24} className="text-white" />
                     </div>
                     <div>
@@ -94,8 +94,8 @@ const ShiftCard = ({ shift, delay, canApply, onApply, onVerify }) => {
                     <span className="text-[#032A33]">{shift.time}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
-                    <DollarSign size={16} className="text-[#82ACAB]" />
-                    <span className="text-[#032A33] font-semibold">Rs {shift.pay}/shift</span>
+                    <RupeeIcon size={16} className="text-[#82ACAB]" />
+                    <span className="text-[#032A33] font-semibold">रु {shift.pay}/shift</span>
                 </div>
             </div>
 

@@ -192,7 +192,7 @@ const HirerProfile = () => {
                     {/* HERO CARD - Slim teal banner with circular avatar */}
                     <div className="bg-white rounded-xl shadow-sm overflow-hidden">
                         {/* Teal Banner Background */}
-                        <div className="h-32 bg-gradient-to-r from-[#0D4747] to-[#1a6b6b] relative"></div>
+                        <div className="h-32 bg-linear-to-r from-[#0D4747] to-[#1a6b6b] relative"></div>
 
                         {/* Profile Content */}
                         <div className="px-6 pb-6 -mt-16 relative">

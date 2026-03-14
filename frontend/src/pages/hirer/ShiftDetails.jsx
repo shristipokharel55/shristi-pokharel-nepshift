@@ -3,7 +3,6 @@ import {
     Briefcase,
     Calendar,
     Clock,
-    DollarSign,
     Loader2,
     MapPin,
     MessageCircle,
@@ -12,6 +11,7 @@ import {
     Users,
     X
 } from 'lucide-react';
+import RupeeIcon from '../../components/ui/RupeeIcon';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -330,7 +330,7 @@ const ShiftDetails = () => {
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-6">
                     <div className="flex items-start justify-between mb-6">
                         <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#0B4B54] to-[#82ACAB] flex items-center justify-center">
+                            <div className="w-16 h-16 rounded-xl bg-linear-to-br from-[#0B4B54] to-[#82ACAB] flex items-center justify-center">
                                 <Briefcase size={28} className="text-white" />
                             </div>
                             <div>
@@ -382,7 +382,7 @@ const ShiftDetails = () => {
                                             </svg>
                                             <span className="text-emerald-700 font-semibold text-sm">Paid via eSewa</span>
                                         </div>
-                                        <p className="text-lg font-bold text-emerald-600">Rs {paymentStatus.amount?.toLocaleString()}</p>
+                                        <p className="text-lg font-bold text-emerald-600">रु {paymentStatus.amount?.toLocaleString()}</p>
                                         {paymentStatus.paidAt && (
                                             <p className="text-xs text-gray-400">
                                                 {new Date(paymentStatus.paidAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -400,7 +400,7 @@ const ShiftDetails = () => {
                                         }}
                                         className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
                                     >
-                                        <DollarSign size={18} />
+                                        <RupeeIcon size={18} />
                                         <span>Pay via eSewa</span>
                                     </button>
                                 )
@@ -420,12 +420,12 @@ const ShiftDetails = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-6 border-t border-gray-200">
                         <div className="flex items-center gap-3">
                             <div className="w-12 h-12 rounded-xl bg-[#F4FBFA] flex items-center justify-center">
-                                <DollarSign size={20} className="text-[#0B4B54]" />
+                                <RupeeIcon size={20} className="text-[#0B4B54]" />
                             </div>
                             <div>
                                 <p className="text-sm text-gray-500">Pay Range</p>
                                 <p className="text-lg font-semibold text-[#032A33]">
-                                    Rs {shift.pay.min.toLocaleString()} - Rs {shift.pay.max.toLocaleString()}
+                                    रु {shift.pay.min.toLocaleString()} - रु {shift.pay.max.toLocaleString()}
                                 </p>
                             </div>
                         </div>
@@ -521,7 +521,7 @@ const ShiftDetails = () => {
                                     <div className="flex items-start justify-between">
                                         <div className="flex items-start gap-4 flex-1">
                                             {/* Worker Avatar */}
-                                            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#0B4B54] to-[#82ACAB] flex items-center justify-center text-white font-bold text-xl">
+                                            <div className="w-14 h-14 rounded-full bg-linear-to-br from-[#0B4B54] to-[#82ACAB] flex items-center justify-center text-white font-bold text-xl">
                                                 {bid.worker.name.charAt(0).toUpperCase()}
                                             </div>
 
@@ -547,7 +547,7 @@ const ShiftDetails = () => {
                                                     <div>
                                                         <p className="text-sm text-gray-500">Bid Amount</p>
                                                         <p className="text-lg font-bold text-[#0B4B54]">
-                                                            Rs {bid.bidAmount.toLocaleString()}
+                                                            रु {bid.bidAmount.toLocaleString()}
                                                         </p>
                                                     </div>
                                                     <div>
@@ -595,7 +595,7 @@ const ShiftDetails = () => {
                                                 {bid.status === 'accepted' && (
                                                     <button
                                                         onClick={() => navigate(`/hirer/chat/${bid.worker.id}`)}
-                                                        className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-[#0B4B54] to-[#0D5A65] text-white rounded-lg hover:from-[#0D5A65] hover:to-[#0B4B54] transition-all shadow-md hover:shadow-lg font-semibold"
+                                                        className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-3 bg-linear-to-r from-[#0B4B54] to-[#0D5A65] text-white rounded-lg hover:from-[#0D5A65] hover:to-[#0B4B54] transition-all shadow-md hover:shadow-lg font-semibold"
                                                     >
                                                         <MessageCircle size={18} />
                                                         <span>Chat with {bid.worker.name.split(' ')[0]}</span>
@@ -736,7 +736,7 @@ const ShiftDetails = () => {
                                 <div>
                                     <p className="text-xs text-gray-500">Paying to</p>
                                     <p className="text-lg font-semibold text-[#032A33]">{acceptedBid.worker.name}</p>
-                                    <p className="text-sm text-gray-500">Agreed bid: Rs {acceptedBid.bidAmount?.toLocaleString()}</p>
+                                    <p className="text-sm text-gray-500">Agreed bid: रु {acceptedBid.bidAmount?.toLocaleString()}</p>
                                 </div>
                             </div>
                         )}
@@ -744,7 +744,7 @@ const ShiftDetails = () => {
                         {/* Amount Input */}
                         <div className="mb-6">
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                Payment Amount (Rs)
+                                Payment Amount (रु)
                             </label>
                             <input
                                 type="number"

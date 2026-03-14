@@ -178,7 +178,7 @@ const ChatWithWorker = () => {
                     {/* Chat Container */}
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
                         {/* Chat Header */}
-                        <div className="bg-gradient-to-r from-[#0B4B54] to-[#0D5A65] p-6 text-white">
+                        <div className="bg-linear-to-r from-[#0B4B54] to-[#0D5A65] p-6 text-white">
                             <div className="flex items-center gap-4">
                                 <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-xl backdrop-blur-sm">
                                     {worker?.fullName?.charAt(0).toUpperCase() || 'W'}

@@ -142,7 +142,7 @@ const AppliedShifts = () => {
                       {/* Hourly Rate */}
                       {application.shift?.hourlyRate && (
                         <p className="text-gray-600 mb-1">
-                          💰 Rate: Rs. {application.shift.hourlyRate}/hour
+                          💰 Rate: रु {application.shift.hourlyRate}/hour
                         </p>
                       )}
 
@@ -174,7 +174,7 @@ const AppliedShifts = () => {
                             : application.shift.hirerId;
                           navigate(`/worker/chat/${hirerId}`);
                         }}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-[#0B4B54] to-[#0D5A65] text-white rounded-lg hover:from-[#0D5A65] hover:to-[#0B4B54] transition-all shadow-md hover:shadow-lg font-semibold"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-linear-to-r from-[#0B4B54] to-[#0D5A65] text-white rounded-lg hover:from-[#0D5A65] hover:to-[#0B4B54] transition-all shadow-md hover:shadow-lg font-semibold"
                       >
                         <MessageCircle size={18} />
                         <span>Chat with Hirer</span>

@@ -75,7 +75,7 @@ const ProfileCompletionProgress = ({ percentage, onClick }) => (
         </div>
         <div className="h-3 bg-gray-200 rounded-full overflow-hidden mb-2">
             <div
-                className="h-full bg-gradient-to-r from-[#0B4B54] to-[#82ACAB] rounded-full transition-all duration-500"
+                className="h-full bg-linear-to-r from-[#0B4B54] to-[#82ACAB] rounded-full transition-all duration-500"
                 style={{ width: `${percentage}%` }}
             />
         </div>
@@ -302,7 +302,7 @@ const WorkerProfile = () => {
                         },
                         {
                             label: 'Total Earned',
-                            value: `Rs ${(stats.earnings || 0).toLocaleString()}`,
+                            value: `रु ${(stats.earnings || 0).toLocaleString()}`,
                             color: '#10B981'
                         },
                     ].map((stat, index) => (

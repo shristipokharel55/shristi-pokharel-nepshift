@@ -15,7 +15,7 @@ const WorkerCard = ({ worker, delay }) => {
     >
       <div className="flex items-start gap-4 mb-4">
         {/* Profile Picture */}
-        <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#0B4B54] to-[#82ACAB] flex items-center justify-center text-white font-bold text-2xl shadow-md">
+        <div className="w-16 h-16 rounded-xl bg-linear-to-br from-[#0B4B54] to-[#82ACAB] flex items-center justify-center text-white font-bold text-2xl shadow-md">
           {worker.fullName?.charAt(0) || "W"}
         </div>
 
@@ -66,7 +66,7 @@ const WorkerCard = ({ worker, delay }) => {
             )}
             {worker.profile?.hourlyRate && (
               <div className="flex items-center gap-1">
-                <span className="font-medium text-[#0B4B54]">NPR {worker.profile.hourlyRate}/hr</span>
+                <span className="font-medium text-[#0B4B54]">रु {worker.profile.hourlyRate}/hr</span>
               </div>
             )}
           </div>

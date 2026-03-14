@@ -263,9 +263,9 @@ export default function ManageJobs() {
                     <span className="text-sm">{shift.location.city}</span>
                   </div>
                   <div className="flex items-center gap-2 text-[#888888]">
-                    <i className="ph ph-currency-dollar text-lg"></i>
+                    <span className="text-[#82ACAB] font-black text-lg">रु</span>
                     <span className="text-sm">
-                      NPR {shift.pay.min} - {shift.pay.max}
+                      रु {shift.pay.min} - {shift.pay.max}
                     </span>
                   </div>
                 </div>

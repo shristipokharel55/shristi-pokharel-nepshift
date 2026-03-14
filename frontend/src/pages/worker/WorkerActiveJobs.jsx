@@ -3,11 +3,11 @@ import {
     Briefcase,
     Clock,
     MapPin,
-    DollarSign,
     Phone,
     MessageCircle,
     Navigation
 } from 'lucide-react';
+import RupeeIcon from '../../components/ui/RupeeIcon';
 import WorkerLayout from '../../components/worker/WorkerLayout';
 
 const WorkerActiveJobs = () => {
@@ -74,8 +74,8 @@ const WorkerActiveJobs = () => {
                                             <span className="text-[#032A33]">{job.time}</span>
                                         </div>
                                         <div className="flex items-center gap-2 text-sm">
-                                            <DollarSign size={16} className="text-[#82ACAB]" />
-                                            <span className="text-[#032A33] font-semibold">Rs {job.pay}</span>
+                                            <RupeeIcon size={16} className="text-[#82ACAB]" />
+                                            <span className="text-[#032A33] font-semibold">रु {job.pay}</span>
                                         </div>
                                         <div className="flex items-center gap-2 text-sm">
                                             <Phone size={16} className="text-[#82ACAB]" />

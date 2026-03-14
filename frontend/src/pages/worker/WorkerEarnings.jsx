@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-    DollarSign,
     TrendingUp,
     Calendar,
     Download,
@@ -9,6 +8,7 @@ import {
     CreditCard,
     Wallet
 } from 'lucide-react';
+import RupeeIcon from '../../components/ui/RupeeIcon';
 import WorkerLayout from '../../components/worker/WorkerLayout';
 
 const WorkerEarnings = () => {
@@ -46,17 +46,17 @@ const WorkerEarnings = () => {
                                 +12%
                             </span>
                         </div>
-                        <p className="text-3xl font-bold text-[#032A33] mb-1">Rs 45,600</p>
+                        <p className="text-3xl font-bold text-[#032A33] mb-1">रु 45,600</p>
                         <p className="text-[#888888]">Total Earnings</p>
                     </div>
 
                     <div className="glass-card rounded-2xl p-6 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
                         <div className="flex items-center justify-between mb-4">
                             <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                                <DollarSign size={24} className="text-blue-600" />
+                                <RupeeIcon size={24} className="text-blue-600" />
                             </div>
                         </div>
-                        <p className="text-3xl font-bold text-[#032A33] mb-1">Rs 8,400</p>
+                        <p className="text-3xl font-bold text-[#032A33] mb-1">रु 8,400</p>
                         <p className="text-[#888888]">This Month</p>
                     </div>
 
@@ -66,7 +66,7 @@ const WorkerEarnings = () => {
                                 <CreditCard size={24} className="text-[#0B4B54]" />
                             </div>
                         </div>
-                        <p className="text-3xl font-bold text-[#032A33] mb-1">Rs 3,800</p>
+                        <p className="text-3xl font-bold text-[#032A33] mb-1">रु 3,800</p>
                         <p className="text-[#888888]">Pending Payout</p>
                     </div>
                 </div>
@@ -104,7 +104,7 @@ const WorkerEarnings = () => {
                                 </div>
                                 <div className="text-right">
                                     <p className={`font-bold ${tx.type === 'credit' ? 'text-emerald-600' : 'text-red-500'}`}>
-                                        {tx.type === 'credit' ? '+' : '-'} Rs {tx.amount.toLocaleString()}
+                                        {tx.type === 'credit' ? '+' : '-'} रु {tx.amount.toLocaleString()}
                                     </p>
                                     <span className={`text-xs px-2 py-0.5 rounded-full ${tx.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-yellow-100 text-yellow-700'
                                         }`}>

@@ -314,8 +314,8 @@ export default function HirerDashboard() {
                           {shift.location.city}
                         </div>
                         <div className="flex items-center gap-1">
-                          <i className="ph ph-currency-dollar"></i>
-                          NPR {shift.pay.min} - {shift.pay.max}
+                          <span className="text-[#82ACAB] font-black">रु</span>
+                          रु {shift.pay.min} - {shift.pay.max}
                         </div>
                       </div>
 

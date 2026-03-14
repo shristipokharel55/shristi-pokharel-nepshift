@@ -49,7 +49,7 @@ const PaymentSuccess = () => {
                         <p className="text-gray-600 mb-2">Worker has been paid successfully via eSewa.</p>
                         {paymentInfo?.amount && (
                             <p className="text-xl font-bold text-[#0B4B54] mb-6">
-                                Rs {Number(paymentInfo.amount).toLocaleString()}
+                                रु {Number(paymentInfo.amount).toLocaleString()}
                             </p>
                         )}
                         {paymentInfo?.transactionCode && (

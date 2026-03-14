@@ -2,12 +2,12 @@ import {
     ArrowDownRight,
     ArrowUpRight,
     CreditCard,
-    DollarSign,
     Download,
     Send,
     TrendingUp,
     Wallet as WalletIcon
 } from 'lucide-react';
+import RupeeIcon from '../../components/ui/RupeeIcon';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import WorkerLayout from '../../components/worker/WorkerLayout';
@@ -82,7 +82,7 @@ const Wallet = () => {
                     <div className="flex flex-col md:flex-row md:items-center justify-between">
                         <div>
                             <p className="text-[#82ACAB] text-sm mb-2">Total Earnings (eSewa)</p>
-                            <p className="text-4xl font-bold mb-4">Rs {walletStats.totalEarnings.toLocaleString()}</p>
+                            <p className="text-4xl font-bold mb-4">रु {walletStats.totalEarnings.toLocaleString()}</p>
                             <div className="flex items-center gap-2 text-emerald-300 text-sm">
                                 <TrendingUp size={16} />
                                 <span>From verified eSewa payments</span>
@@ -105,17 +105,17 @@ const Wallet = () => {
                                 <WalletIcon size={24} className="text-emerald-600" />
                             </div>
                         </div>
-                        <p className="text-3xl font-bold text-[#032A33] mb-1">Rs {walletStats.totalEarnings.toLocaleString()}</p>
+                        <p className="text-3xl font-bold text-[#032A33] mb-1">रु {walletStats.totalEarnings.toLocaleString()}</p>
                         <p className="text-[#888888]">Total Earnings</p>
                     </div>
 
                     <div className="glass-card rounded-2xl p-6 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
                         <div className="flex items-center justify-between mb-4">
                             <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                                <DollarSign size={24} className="text-blue-600" />
+                                <RupeeIcon size={24} className="text-blue-600" />
                             </div>
                         </div>
-                        <p className="text-3xl font-bold text-[#032A33] mb-1">Rs {walletStats.thisMonth.toLocaleString()}</p>
+                        <p className="text-3xl font-bold text-[#032A33] mb-1">रु {walletStats.thisMonth.toLocaleString()}</p>
                         <p className="text-[#888888]">This Month</p>
                     </div>
 
@@ -130,7 +130,7 @@ const Wallet = () => {
                                 </span>
                             )}
                         </div>
-                        <p className="text-3xl font-bold text-[#032A33] mb-1">Rs {walletStats.pendingPayout.toLocaleString()}</p>
+                        <p className="text-3xl font-bold text-[#032A33] mb-1">रु {walletStats.pendingPayout.toLocaleString()}</p>
                         <p className="text-[#888888]">Pending Payout</p>
                     </div>
                 </div>
@@ -147,7 +147,7 @@ const Wallet = () => {
                     <div className="space-y-4">
                         {transactions.length === 0 ? (
                             <div className="text-center py-12">
-                                <DollarSign size={48} className="text-[#82ACAB] mx-auto mb-4" />
+                                <RupeeIcon size={48} className="text-[#82ACAB] mx-auto mb-4" />
                                 <h4 className="font-semibold text-[#032A33] mb-2">No Payments Yet</h4>
                                 <p className="text-[#888888]">Your eSewa payments from hirers will appear here</p>
                             </div>
@@ -179,7 +179,7 @@ const Wallet = () => {
                                         <p className={`font-bold ${
                                             tx.type === 'credit' ? 'text-emerald-600' : 'text-red-500'
                                         }`}>
-                                            {tx.type === 'credit' ? '+' : '-'} Rs {tx.amount.toLocaleString()}
+                                            {tx.type === 'credit' ? '+' : '-'} रु {tx.amount.toLocaleString()}
                                         </p>
                                         <span className={`text-xs px-2 py-0.5 rounded-full ${
                                             tx.status === 'completed' 

@@ -92,7 +92,7 @@ const WorkerProfileView = () => {
         {!loading && !error && worker && (
           <div className="space-y-6">
             {/* Header Section with Name and Verified Badge */}
-            <div className="bg-gradient-to-r from-[#0B4B54] to-[#155e63] text-white rounded-xl p-8 shadow-lg">
+            <div className="bg-linear-to-r from-[#0B4B54] to-[#155e63] text-white rounded-xl p-8 shadow-lg">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-6">
                   {/* Profile Picture */}
@@ -186,7 +186,7 @@ const WorkerProfileView = () => {
                   <Clock className="text-[#0B4B54]" size={28} />
                 </div>
                 <p className="text-2xl font-bold text-gray-900">
-                  Rs. {worker.hourlyRate}
+                  रु {worker.hourlyRate}
                 </p>
                 <p className="text-sm text-gray-600">Per Hour</p>
               </div>

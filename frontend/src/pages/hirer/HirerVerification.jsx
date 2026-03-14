@@ -288,7 +288,7 @@ const HirerVerification = () => {
 
                 {/* Case: Verified */}
                 {profile?.isVerified && (
-                    <div className="glass-card rounded-3xl p-10 text-center mb-8 bg-gradient-to-br from-emerald-50/50 to-white">
+                    <div className="glass-card rounded-3xl p-10 text-center mb-8 bg-linear-to-br from-emerald-50/50 to-white">
                         <div className="w-24 h-24 bg-emerald-100/50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-emerald-100">
                             <CheckCircle size={48} className="text-emerald-500" />
                         </div>
@@ -307,7 +307,7 @@ const HirerVerification = () => {
 
                 {/* Case: Pending */}
                 {!profile?.isVerified && profile?.verificationStatus === 'pending' && (
-                    <div className="glass-card rounded-3xl p-10 text-center mb-8 bg-gradient-to-br from-amber-50/50 to-white">
+                    <div className="glass-card rounded-3xl p-10 text-center mb-8 bg-linear-to-br from-amber-50/50 to-white">
                         <div className="w-24 h-24 bg-amber-100/50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-amber-100">
                             <Clock size={48} className="text-amber-500" />
                         </div>

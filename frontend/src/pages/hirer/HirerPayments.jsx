@@ -4,7 +4,6 @@ import {
     Calendar,
     Clock,
     CreditCard,
-    DollarSign,
     Download,
     Eye,
     FileText,
@@ -15,6 +14,7 @@ import {
     Unlock,
     Wallet
 } from 'lucide-react';
+import RupeeIcon from '../../components/ui/RupeeIcon';
 import { useState } from 'react';
 import HirerLayout from '../../components/hirer/HirerLayout';
 
@@ -31,30 +31,30 @@ const HirerPayments = () => {
     const stats = [
         {
             label: 'Wallet Balance',
-            value: 'Rs 25,000',
-            change: '+Rs 5,000',
+            value: 'रु 25,000',
+            change: '+रु 5,000',
             changeType: 'positive',
             icon: Wallet,
             color: 'emerald'
         },
         {
             label: 'In Escrow',
-            value: 'Rs 8,500',
+            value: 'रु 8,500',
             subtext: '3 pending releases',
             icon: Lock,
             color: 'amber'
         },
         {
             label: 'Total Spent',
-            value: 'Rs 45,200',
+            value: 'रु 45,200',
             change: '+12%',
             changeType: 'neutral',
-            icon: DollarSign,
+            icon: RupeeIcon,
             color: 'blue'
         },
         {
             label: 'This Month',
-            value: 'Rs 12,600',
+            value: 'रु 12,600',
             change: '+8%',
             changeType: 'positive',
             icon: Calendar,
@@ -148,7 +148,7 @@ const HirerPayments = () => {
             case 'deposit': return ArrowDownRight;
             case 'escrow': return Lock;
             case 'refund': return ArrowDownRight;
-            default: return DollarSign;
+            default: return RupeeIcon;
         }
     };
 
@@ -203,7 +203,7 @@ const HirerPayments = () => {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <button className="p-6 bg-gradient-to-r from-[#1F4E5F] to-[#2D6A7A] rounded-xl text-white text-left hover:shadow-lg transition-shadow">
+                <button className="p-6 bg-linear-to-r from-[#1F4E5F] to-[#2D6A7A] rounded-xl text-white text-left hover:shadow-lg transition-shadow">
                     <Plus size={24} className="mb-3" />
                     <h3 className="font-semibold text-lg">Add Funds</h3>
                     <p className="text-white/70 text-sm">Top up your wallet balance</p>
@@ -249,7 +249,7 @@ const HirerPayments = () => {
                                 </div>
                                 <div className="text-right">
                                     <p className={`font-semibold ${tx.amount > 0 ? 'text-emerald-600' : 'text-gray-800'}`}>
-                                        {tx.amount > 0 ? '+' : ''}Rs {Math.abs(tx.amount).toLocaleString()}
+                                        {tx.amount > 0 ? '+' : ''}रु {Math.abs(tx.amount).toLocaleString()}
                                     </p>
                                     <span className={`text-xs px-2 py-0.5 rounded-lg ${getStatusBadge(tx.status)}`}>
                                         {tx.status}
@@ -266,14 +266,14 @@ const HirerPayments = () => {
     const renderEscrow = () => (
         <div className="space-y-6">
             {/* Escrow Summary */}
-            <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-6 border border-amber-200">
+            <div className="bg-linear-to-r from-amber-50 to-orange-50 rounded-xl p-6 border border-amber-200">
                 <div className="flex items-start justify-between">
                     <div>
                         <div className="flex items-center gap-2 mb-2">
                             <Lock size={20} className="text-amber-600" />
                             <h3 className="font-semibold text-gray-800">Escrow Balance</h3>
                         </div>
-                        <p className="text-3xl font-bold text-gray-800">Rs 8,500</p>
+                        <p className="text-3xl font-bold text-gray-800">रु 8,500</p>
                         <p className="text-sm text-gray-600 mt-1">Funds held for 3 active jobs</p>
                     </div>
                     <div className="text-right">
@@ -316,7 +316,7 @@ const HirerPayments = () => {
                             </div>
                             <div className="flex items-center gap-4">
                                 <div className="text-right">
-                                    <p className="font-bold text-gray-800">Rs {item.amount.toLocaleString()}</p>
+                                    <p className="font-bold text-gray-800">रु {item.amount.toLocaleString()}</p>
                                     <p className="text-xs text-amber-600">Auto-release in {item.dueIn}</p>
                                 </div>
                                 <div className="flex gap-2">
@@ -412,7 +412,7 @@ const HirerPayments = () => {
                                     </td>
                                     <td className="p-4 text-right">
                                         <span className={`font-semibold ${tx.amount > 0 ? 'text-emerald-600' : 'text-gray-800'}`}>
-                                            {tx.amount > 0 ? '+' : ''}Rs {Math.abs(tx.amount).toLocaleString()}
+                                            {tx.amount > 0 ? '+' : ''}रु {Math.abs(tx.amount).toLocaleString()}
                                         </span>
                                     </td>
                                     <td className="p-4 text-right">
@@ -438,7 +438,7 @@ const HirerPayments = () => {
                         <h1 className="text-2xl font-bold text-gray-800">Payments</h1>
                         <p className="text-gray-500">Manage your wallet, escrow, and transactions</p>
                     </div>
-                    <button className="px-5 py-2.5 bg-gradient-to-r from-[#1F4E5F] to-[#2D6A7A] text-white font-semibold rounded-xl hover:shadow-lg transition-shadow flex items-center gap-2">
+                    <button className="px-5 py-2.5 bg-linear-to-r from-[#1F4E5F] to-[#2D6A7A] text-white font-semibold rounded-xl hover:shadow-lg transition-shadow flex items-center gap-2">
                         <Plus size={18} />
                         Add Funds
                     </button>
